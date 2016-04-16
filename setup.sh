@@ -20,7 +20,7 @@ echo "$X GEMS"
 gem install $DISTRO_GEMS
 
 echo "$X SCREEN"
-cat << END > ../.screenrc 
+cat << END > $1/.screenrc 
 shell -${SHELL}
 caption always "[ %t(%n) ] %w"
 defscrollback 1024
@@ -33,7 +33,7 @@ screen -t pry 2 pry
 select 0
 END
 echo "INDEX"
-cat << END > ../index.org
+cat << END > $1/index.org
 #+TITLE: Nomadic Linux.
 #+TODO: TODO(t!/@) ACTION(a!/@) WORKING(w!/@) | ACTIVE(f!/@) DELEGATED(D!/@) DONE(X!/@)
 #+OPTIONS: stat:t html-postamble:nil H:1 num:nil toc:t \n:nil ::nil |:t ^:t f:t tex:t
@@ -69,7 +69,7 @@ cat << END > ../index.org
 
 END
 echo "$X PROMPT"
-cat << 'END' > ../.prompt
+cat << 'END' > $1/.prompt
 #  Customize BASH PS1 prompt to show current GIT repository and branch.
 #  by Mike Stewart - http://MediaDoneRight.com
 #  SETUP CONSTANTS
@@ -160,7 +160,7 @@ Jobs="\j"
 # This PS1 snippet was adopted from code for MAC/BSD I saw from: http://allancraig.net/index.php?option=com_content&view=article&id=108:ps1-export-command-for-git&catid=45:general&Itemid=96
 # I tweaked it to work on UBUNTU 11.04 & 11.10 plus made it mo' better
 
-export PS1=$IBlack$Time12h$Color_Off'$(git branch &>/dev/null;\
+export PS1=$Green$Time12h$Color_Off'$(git branch &>/dev/null;\
 if [ $? -eq 0 ]; then \
   echo "$(echo `git status` | grep "nothing to commit" > /dev/null 2>&1; \
   if [ "$?" -eq "0" ]; then \
@@ -177,10 +177,17 @@ fi)'
 
 END
 echo "BASH"
-cat << 'END' >> ../.bashrc
+if [[ $2 == '--live' ]]; then
+cat << 'END' >> $1/.bashrc
+source ~/.prompt
+function leah() { sudo su -c "source /root/leah.sh && $*"; }
+END
+else
+cat << 'END' >> $1/.bashrc
 source ~/.prompt
 function leah() { su -c "source /root/leah.sh && $*"; }
 END
+fi
 echo "$X LEAH"
 cat << 'END' > /root/leah.sh
 #!/bin/bash
@@ -252,51 +259,37 @@ END
 echo "$X ISSUE"
 
 cat << END > /etc/issue
-The programs included with the Debian GNU/Linux system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
+The programs included with the Debian GNU/Linux system are free software; the exact distribution terms for each program are described in the individual files in /usr/share/doc/*/copyright. Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
 
-Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
-permitted by applicable law.
-
-.#@@@@@@@@@@@@@@@@@@@@@@@@#.
-  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.
-   #@@@@@@@@@@@ NOMADIC @@@@@@@@@@@@#
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@@  @@@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@    @@@@@@@@@@@@@@@@@@@@@@
-   @@@@@@@@    @@@@@@@@  +@@@@@@@@@@@
-   @@@@@@@@@  @@  @@@@    @@@@@@@@@@@
-   @@@@@@@@@@   ; +@@@    @@@@@@@@@@@
-   @@@@@@@@@+   .  @@@@  ;@  @@@@@@@@
-   @@@@@@@@@     + +@@@@      @@@@@@@
-   @@@@@@@@@        @@@@      @@@@@@@
-   @@@@@@@@@      @@@@@;    # ;@@@@@@
-   @@@@@@@:  +     @@@@       @@@@@@@
-   @@@@@@   #@     @@@  +    @@@@@@@@
-   @@@@@  @@@@,    @.  @@:   ;@@@@@@@
-   @@@@@@; @@@    @@  @@@+   @@@@@@@@
-   @@@@@@@ @@;    @@@ +@@    @@@@@@@@
-   @@@@@@@# @      @@@ @@    @@@@@@@@
-   @@@@@@@@    :   @@@.;.     @@@@@@@
-   @@@@@@@@@   @@  #@@@   @   @@@@@@@
-   @@@@@@@@@   @@,  @@@: .@@  @@@@@@@
-   @@@@@@@@@  #@@@  @@@.  @@, ;@@@@@@
-   @@@@@@@@@   @@@, +@@   @@@  @@@@@@
-   @@@@@@@@: . :@@@  @@   #@@: @@@@@@
-   @@@@@@@@@  @ @@@: @@ .# @@@  @@@@@
-   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-   #@@@@@@@@@@@@@ LINUX @@@@@@@@@@@@#
-   .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.
-     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-           .#@@@@@@@@@@@@@@@@@@@@@@@@#.
-
+         ############ NOMADIC #############
+         #########  #######################
+         ########    ######################
+         ########    ########  +###########
+         #########  #@  ####    ###########
+         ##########   ; +###    ###########
+         #########+   .  ####  ;@  ########
+         #########     + +####      #######
+         #########        ####      #######
+         #########      #####;    # ;######
+         #######:  +     ####       #######
+         ######   ##     ###  +    ########
+         #####  ####,    #.  ##:   ;#######
+         ######; ###    ##  ###+   ########
+         ####### ##;    ### +##    ########
+         ######## #      ### ##    ########
+         ########    :   ###.;.     #######
+         #########   ##  ####   #   #######
+         #########   ##,  ###: .##  #######
+         #########  ####  ###.  ##, ;######
+         #########   ###, +##   ###  ######
+         ########: . :###  ##   ###: ######
+         #########  # ###: ## .# ###  #####
+         ##################################
+         ############## LINUX #############
+   
 $DISTRO_PRETTY_NAME 
 (`uname -a`)
-
+Born on: `date`
 May the force be with you...
 END
 echo "$X DONE!"
