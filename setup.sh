@@ -1,26 +1,32 @@
 #!/bin/bash
 
+
+if [[ $1 == '' ]]; then
+    DIR='..'
+else
+    DIR=$1
+fi
+
 DISTRO_NAME='nomadic'
 DISTRO_VARIANT='local'
 DISTRO_PRETTY_NAME='Nomadic Linux'
 DISTRO_HOSTNAME='nomad'
 DISTRO_PACKAGES='git emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode nmap arp-scan grep wpasupplicant macchanger tshark wifite netcat ii chntpw'
-
 DISTRO_GEMS='pry sinatra redis-objects cinch gmail'
 
-X="[$DISTRO_NAME]"
+X="[\033[0;34m$DISTRO_NAME\033[0m]"
 
-echo "$X HOSTNAME"
+echo -e "$X HOSTNAME"
 echo $DISTRO_HOSTNAME > /etc/hostname
 
-echo "$X DEBS"
-apt-get update
-apt-get -y install $SCRIPT_PACKAGES $DISTRO_PACKAGES
-echo "$X GEMS"
-gem install $DISTRO_GEMS
+echo -e "$X DEBS"
+apt-get -qq update
+apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
+echo -e "$X GEMS"
+gem install $DISTRO_GEMS 2>1 /dev/null
 
-echo "$X SCREEN"
-cat << END > $1/.screenrc 
+echo -e "$X SCREEN"
+cat << END > $DIR/.screenrc 
 shell -${SHELL}
 caption always "[ %t(%n) ] %w"
 defscrollback 1024
@@ -32,8 +38,10 @@ screen -t bash 1 bash
 screen -t pry 2 pry
 select 0
 END
-echo "INDEX"
-cat << END > $1/index.org
+chown $USERNAME:$USERNAME $DIR/.screenrc
+
+echo -e "$X INDEX"
+cat << END > $DIR/index.org
 #+TITLE: Nomadic Linux.
 #+TODO: TODO(t!/@) ACTION(a!/@) WORKING(w!/@) | ACTIVE(f!/@) DELEGATED(D!/@) DONE(X!/@)
 #+OPTIONS: stat:t html-postamble:nil H:1 num:nil toc:t \n:nil ::nil |:t ^:t f:t tex:t
@@ -68,8 +76,10 @@ cat << END > $1/index.org
   Nomadic linux believes in staying organized.  Org mode keeps notes well organized. Nomadic linux also integrates lots of other tools to automate the process of exporting these files.
 
 END
-echo "$X PROMPT"
-cat << 'END' > $1/.prompt
+chown $USERNAME:$USERNAME $DIR/index.org
+
+echo -e "$X PROMPT"
+cat << 'END' > $DIR/.prompt
 #  Customize BASH PS1 prompt to show current GIT repository and branch.
 #  by Mike Stewart - http://MediaDoneRight.com
 #  SETUP CONSTANTS
@@ -176,19 +186,29 @@ else \
 fi)'
 
 END
-echo "BASH"
+chown $USERNAME:$USERNAME $DIR/.prompt
+
+echo -e "$X BASH"
 if [[ $2 == '--live' ]]; then
-cat << 'END' >> $1/.bashrc
+cat << 'END' >> $DIR/.bashrc
 source ~/.prompt
 function leah() { sudo su -c "source /root/leah.sh && $*"; }
 END
 else
-cat << 'END' >> $1/.bashrc
+cat << 'END' >> $DIR/.bashrc
 source ~/.prompt
 function leah() { su -c "source /root/leah.sh && $*"; }
 END
 fi
-echo "$X LEAH"
+chown $USERNAME:$USERNAME $DIR/.bashrc
+
+echo -e "$X PROFILE"
+cat << END >> $DIR/.profile
+screen
+END
+chown $USERNAME:$USERNAME $DIR/.profile
+
+echo -e "$X LEAH"
 cat << 'END' > /root/leah.sh
 #!/bin/bash
 AUTOSTART=~/.autostart.sh
@@ -256,7 +276,7 @@ END
 ##
 # TRAMP STAMP
 
-echo "$X ISSUE"
+echo -e "$X ISSUE"
 
 cat << END > /etc/issue
 The programs included with the Debian GNU/Linux system are free software; the exact distribution terms for each program are described in the individual files in /usr/share/doc/*/copyright. Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
@@ -289,7 +309,7 @@ The programs included with the Debian GNU/Linux system are free software; the ex
    
 $DISTRO_PRETTY_NAME 
 (`uname -a`)
-Born on: `date`
+This image was born on: `date`
 May the force be with you...
 END
-echo "$X DONE!"
+echo -e "$X DONE!"

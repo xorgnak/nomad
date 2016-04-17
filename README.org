@@ -1,0 +1,38 @@
+
+The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible.  The tools, along with accompanying configurations and documentation are installed to the directory specified, or the directory above.  The '--live' flag may be passed to install the leah tool with the appropriate prefix to run in a live environment.
+
+* Tools
+
+- Ruby: A functional, object-oriented, interpreted language.
+- Emacs: A feature rich text editor.
+- Redis: A lightweight key/value datastore.
+
+* Installation
+
+** Personal
+This installs the nomadic tools on your local system and for your local user.
+#+BEGIN_SRC 
+cd ~/
+apt-get install git
+git clone https://github.com/xorgnak/nomad
+cd nomad
+su -c "export USERNAME=$USER; ./setup.sh"
+#+END_SRC
+
+** Server
+This installs the nomadic tools system-wide.
+#+BEGIN_SRC 
+apt-get install git
+git clone https://github.com/xorgnak/nomad
+cd nomad
+su -c "export USERNAME='root'; ./setup.sh /etc/skel"
+#+END_SRC
+
+** Live
+This installs the nomadic tools within a live environment.
+#+BEGIN_SRC 
+apt-get install git
+git clone https://github.com/xorgnak/nomad
+cd nomad
+su -c "export USERNAME='root'; ./setup.sh /etc/skel --live"
+#+END_SRC
