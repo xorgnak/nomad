@@ -1,7 +1,8 @@
 #!/bin/bash
 
-
 if [[ $1 == '' ]]; then
+    DIR='..'
+elif [[ $1 == '--google'  ]]; then
     DIR='..'
 else
     DIR=$1
@@ -11,14 +12,17 @@ DISTRO_NAME='nomadic'
 DISTRO_VARIANT='local'
 DISTRO_PRETTY_NAME='Nomadic Linux'
 DISTRO_HOSTNAME='nomad'
-DISTRO_PACKAGES='git emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode nmap arp-scan grep wpasupplicant macchanger tshark wifite netcat ii chntpw'
+DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii'
 DISTRO_GEMS='pry sinatra redis-objects cinch gmail'
 
 X="[\033[0;34m$DISTRO_NAME\033[0m]"
 
-echo -e "$X HOSTNAME"
-echo $DISTRO_HOSTNAME > /etc/hostname
-
+if [[ $1 != '--google' ]]; then
+    echo -e "$X HOSTNAME"
+    echo $DISTRO_HOSTNAME > /etc/hostname
+else
+    echo -e "$X HOSTNAME: `hostname`"
+fi 
 echo -e "$X DEBS"
 apt-get -qq update
 apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
