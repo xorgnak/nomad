@@ -2,8 +2,6 @@
 
 if [[ $1 == '' ]]; then
     DIR='..'
-elif [[ $1 == '--google'  ]]; then
-    DIR='..'
 else
     DIR=$1
 fi
@@ -17,7 +15,7 @@ DISTRO_GEMS='pry sinatra redis-objects cinch gmail'
 
 X="[\033[0;34m$DISTRO_NAME\033[0m]"
 
-if [[ $1 != '--google' ]]; then
+if [[ $2 != '--google' ]]; then
     echo -e "$X HOSTNAME"
     echo $DISTRO_HOSTNAME > /etc/hostname
 else
