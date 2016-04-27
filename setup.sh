@@ -25,7 +25,7 @@ echo -e "$X DEBS"
 apt-get -qq update
 apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
 echo -e "$X GEMS"
-gem install $DISTRO_GEMS 2>1 /dev/null
+gem install --no-rdoc --no-ri $DISTRO_GEMS 2>1 /dev/null
 
 echo -e "$X SCREEN"
 cat << END > $DIR/.screenrc 
