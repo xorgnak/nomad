@@ -528,7 +528,8 @@ form { text-align: center; height: 100%; }
 <datalist id='items'>                                                                                                                        
 <% @user.inventory.members.each do |e| %>
 <option value='<%= e %>'>                                                                                                                    
-<% end %>                                                                                                                                    
+<% end %>
+
 </datalist>
 
 <h1 id='boss'>
@@ -541,10 +542,11 @@ form { text-align: center; height: 100%; }
 <% end %>
 </h1>
 
-<h1><input list='items' name='give' id='give' placeholder='GIVE'></h1>
 <fieldset>
 <legend>badge</legend>
+<% if @user.perm[@zone.id].to_i > 1 %>
 <h1><input name='zap[badge]' placeholder='BADGE'></h1>
+<% end %>
 <% @user.badges.each do |e| %>
 <span id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></span>
 <% end %>
