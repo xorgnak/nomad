@@ -284,13 +284,14 @@ class App
       end
     end
   end
-  def manifest
+  def manifest t
+    @user = HERE.usr(HERE.uid[t])
     return ERB.new(%[{
     "theme_color": "#f69435",
     "background_color": "#f69435",
     "display": "fullscreen",
     "scope": "/",
-    "start_url": "/?tok=<%= params[:i] %>",
+    "start_url": "/?tok=<%= t %>",
     "name": "propedicab.com",
     "short_name": "pedicab",
     "description": "the propedicab.com user interface",
