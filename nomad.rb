@@ -362,7 +362,7 @@ form { text-align: center; }
 </form>
 <script>
 <% if @user %>
-	$('#qrcode').qrcode("/m?u=<%= @user %>");
+    $('#qrcode').qrcode("/m?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
     var canvasElement = document.getElementById("canvas");
     var canvas = canvasElement.getContext("2d");
@@ -397,6 +397,7 @@ form { text-align: center; }
         }
         requestAnimationFrame(tick);
     }
+    
 <% end %>
 #{@app[:js].join("\n")}
 </script>
@@ -440,6 +441,7 @@ HERE = Here.new(OPTS.to_hash)
 class APP < Sinatra::Base
   set :port, OPTS[:port]
   before { @app = App.new(request, params) }
+  get('/favicon.ico') {}
   get('/manifest.webmanifest') { @app.manifest params[:tok] }
   get('/') { @app.html }
   post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
