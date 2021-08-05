@@ -391,8 +391,10 @@ class App
 html { margin: 0; padding: 0; }
 body { margin: 0; padding: 0; width: 100vw; height: 100vh; }
 #canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
-form { text-align: center; }
-#qrcode > canvas { } 
+form { text-align: center; height: 100%; }
+#qrcode > canvas { width: 100%; } 
+
+.func  { background-color: rgba(0,0,0,0.2); color: white; margin: 0 3% 0 3%; padding: 0 3% 0 3%; }
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
