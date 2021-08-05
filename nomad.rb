@@ -21,6 +21,8 @@ end
 # load dependancies
 REQS.each {|e| require e }
 
+
+
 class Here
   include Redis::Objects
   hash_key :uid
@@ -35,6 +37,59 @@ class Here
   end
   def id; @id; end
 
+  class Phone
+    def twilio
+      Twilio::REST::Client.new(ENV['PHONE_SID'], ENV['PHONE_KEY'])
+    end
+    def send_sms h={}
+      to = []
+      [ h[:to] ].flatten.uniq.each do |t|
+        if /^\+1#.+$/.match(t)
+          if @cloud.zones.members.include? t.gsub(/\+1/, '')
+            @cloud.zone(t.gsub(/\+1/, '')).admins.members.each { |e| to << e }
+          else
+            to << ENV['ADMIN']
+          end
+        elsif /^#.+/.match(t)
+          if @cloud.zones.members.include? t
+            @cloud.zone(t).admins.members.each {|e| to << e }
+          else
+            to << ENV['ADMIN']
+          end
+        else
+          to << t
+        end
+      end
+      if ENV['DEBUG'] == 'true'
+        Redis.new.publish "DEBUG.send_sms_to", "#{h} #{to}"
+      end
+      to.each do |t|
+        if ENV['DEBUG'] == 'true'
+          Redis.new.publish "DEBUG.send_sms", "#{t}"
+        end
+        if ENV['LIVE'] == 'true' && h[:body] != ''
+          if h[:image]
+            twilio.messages.create(
+              to: t,
+              from: ENV['PHONE'],
+              body: h[:body],
+              media_url: [ h[:image] ]
+            )
+          else
+            twilio.messages.create(
+              to: t,
+              from: ENV['PHONE'],
+              body: h[:body]
+            )
+          end
+        end
+      end
+    end
+  end
+  def phone
+    Phone.new
+  end
+  
   class D
     include Redis::Objects
     sorted_set :referrer
@@ -192,6 +247,7 @@ class Here
       p = []; 6.times { p << rand(9) }
       Redis::HashKey.new('chk')[chk] = @id
       self.pin.value = p.join('')
+      HERE.phone.send_sms to: @id, body: "pin: #{p.join('')}"
     end
     
     def valid!
