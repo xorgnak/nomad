@@ -496,7 +496,7 @@ form { text-align: center; height: 100%; }
   <input style='position: fixed; top: -100000px;' type='file' id='file'>
 </p>
 <button style='padding: 1%; border: thin solid white; height: 20%;' id='pic'>
-  <img id='preview' style='height: 100%;' src='<%= @user.attr['img'] %>' alt='click to set image...'>
+  <img id='preview' style='width: 50%;' src='<%= @user.attr['img'] %>' alt='click to set image...'>
 </button>
 </div>
 
