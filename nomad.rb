@@ -405,7 +405,7 @@ form { text-align: center; }
 <%= BODY %>
 <% end %>
 <div id='wrap' class='body' style='display: none;'>
-<div id="qrcode" style='padding: 2%; border: thick solid black;'></div>
+<div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
 </div>
 
 <div id='conf' class='body' style='display: none;'>
