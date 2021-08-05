@@ -202,7 +202,7 @@ class App
   HEAD = [
     %[<meta name="viewport" content="initial-scale=1, maximum-scale=1">],
     %[<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">],
-    %[<link rel="manifest" href="https://<%= ENV['DOMAIN'] %>/manifest.webmanifest" crossorigin="use-credentials" />],
+    %[<link rel="manifest" href="https://<%= ENV['DOMAIN'] %>/manifest.webmanifest?<%= @req.query_string %>" crossorigin="use-credentials" />],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>],
     %[<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
@@ -211,7 +211,8 @@ class App
   BODY = [
     %[<h1>works.</h1>]
   ].join("\n")
-  def initialize(p)
+  def initialize(r, p)
+    @req = r
     @redirect = false
     @app = Hash.new {|h,k| h[k] = []}
     Redis.new.publish "App.initialize", "#{p}"
@@ -440,7 +441,7 @@ HERE = Here.new(OPTS.to_hash)
 
 class APP < Sinatra::Base
   set :port, OPTS[:port]
-  before { @app = App.new(params) }
+  before { @app = App.new(request, params) }
   get('/manifest.webmanifest') { @app.manifest params[:tok] }
   get('/') { @app.html }
   post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
@@ -452,7 +453,7 @@ begin
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     Process.detach( fork { APP.run! } )
     Pry.config.prompt_name = :nomad
-    Pry.start()
+    Pry.start(OPTS[:domain])
   else
     APP.run!
   end
