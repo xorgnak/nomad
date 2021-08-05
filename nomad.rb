@@ -318,10 +318,10 @@ class App
 #        end
 #        @app[:body] << %[<code>#{@fingerprint}</code>]
         block('nav', style: 'position: fixed; bottom: 0;') do
-          button id: 'close', class: 'material-icons', text: 'close', style: 'display: none;'
-          button id: 'badge', class: 'material-icons func', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
-          button id: 'config', class: 'material-icons func', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-          button id: 'magic', class: 'material-icons func', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+          button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
+          button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+          button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+          button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
         end
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
@@ -450,13 +450,13 @@ body { margin: 0; padding: 0; width: 100vw; height: 100vh; }
 #canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
 form { text-align: center; height: 100%; }
 #qrcode > canvas { width: 100%; } 
-nav > * { 
+.ui { 
     background-color: rgba(0,0,0,0.2);
     color: white;
     margin: 2% 3% 2% 3%;
     padding: 0 3% 0 3%;
  }
-.func  { }
+
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
