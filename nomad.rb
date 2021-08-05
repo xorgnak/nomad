@@ -13,7 +13,7 @@ REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/
 # install dependancies
 if ARGF.argv[0] == 'install'
   puts "[INSTALL][INIT][#{Time.now.utc.to_f}]"
-  puts "[INSTALL][DEBS][#{Time.now.utc.to_f}]\n" + `su -c 'apt update && apt upgrade && apt install #{DEBS.join(' ')}'`
+  puts "[INSTALL][DEBS][#{Time.now.utc.to_f}]\n" + `su -c 'apt update && apt upgrade -y && apt install -y #{DEBS.join(' ')}'`
   GEMS.each { |e| puts "[INSTALL][GEM][#{Time.now.utc.to_i}]" + `su -c 'gem install --no-rdoc --no-ri #{e}'` }
 end
 
