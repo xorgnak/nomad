@@ -6,9 +6,9 @@ INFO = {
   release: 0
 }
 
-GEMS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra' 'device_detector']
+GEMS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra', 'device_detector', 'twilio-ruby']
 DEBS = ['multimon-ng', 'soundmodem']
-REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector']
+REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector', 'twilio-ruby']
 
 
 # install dependancies
