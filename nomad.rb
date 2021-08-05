@@ -1,4 +1,5 @@
 
+
 INFO = {
   name: $0,
   project: "the nomad shell",
@@ -391,7 +392,7 @@ html { margin: 0; padding: 0; }
 body { margin: 0; padding: 0; width: 100vw; height: 100vh; }
 #canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
 form { text-align: center; }
-#qrcode > canvas { width: 90%; } 
+#qrcode > canvas { } 
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
@@ -405,7 +406,7 @@ form { text-align: center; }
 <% else %>
 <%= BODY %>
 <% end %>
-<div id='wrap' class='body' style='display: none;'>
+<div id='wrap' class='body' style='display: none; width: 100%;'>
 <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white; width: 100%;'></div>
 </div>
 
