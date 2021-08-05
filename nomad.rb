@@ -473,6 +473,18 @@ form { text-align: center; height: 100%; }
 <% if @user %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
 <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
+<h1 id='rank'>
+    <% @ic = { "pedicabber" => "stars", "staff" => "check_box_outline_blank", "influencer" => "change_history", "sponsor" => "circle" } %>
+    <span id='rank'>
+    <% @user.attr['lvl'].to_i.times do |t| %>
+    <% if @user.attr['lvl'].to_i  > 5 %>
+  <span class='material-icons lvl x xx'><%= @ic[@user.attr['type']] %></span>
+  <% else %>
+  <span class='material-icons lvl x'><%= @ic[@user.attr['type']] %></span>
+  <% end %>
+  <% end %>
+  </span>
+</h1>
 </div>
 
 <div id='conf' class='body' style='display: none;'>
@@ -488,8 +500,8 @@ form { text-align: center; height: 100%; }
 </datalist> 
 <h1><input type='text' name='config[name]' id='name' placeholder='NAME' value='<%= @user.attr['name'] %>'></h1> 
 <h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH' value='<%= @user.attr['pitch'] %>'></h1>
-<h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'></h1>
-<h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE' value='<%= @user.attr['zone'] %>'></h1>
+<h1><input list='zones' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'></h1>
+<h1><input list='types' name='config[zone]' id='zone' placeholder='ZONE' value='<%= @user.attr['zone'] %>'></h1>
 <h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
   <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
