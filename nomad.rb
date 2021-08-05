@@ -393,10 +393,10 @@ $(function(){
 			h[oo[0]] = oo[1]
                     });
 		    console.log(h);
-		    requestAnimationFrame(tick);
 		}
 	    }
-	}
+            requestAnimationFrame(tick);
+        }
     }
 <% end %>
 #{@app[:js].join("\n")}
