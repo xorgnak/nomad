@@ -63,7 +63,7 @@ class Here
     sorted_set :inventory
     sorted_set :wallet
     
-    [ :zones, :grp, :usr ].each {|e| set e }
+    [ :zones, :grps, :usrs ].each {|e| set e }
     
     def initialize a = nil, i
 #      super a
@@ -166,7 +166,10 @@ class Here
     sorted_set :visits
     
     sorted_set :zones
-    
+    sorted_set :types
+    sorted_set :classes
+
+    sorted_set :badges
     sorted_set :impacts
     sorted_set :friends
     
@@ -181,6 +184,7 @@ class Here
         5.times { i << pool.sample }
         self.attr[:id] = i.join('')
         HERE.ids[i.join('')] = @id
+        self.attr['zone'] = 'none'
       end
     end
     
@@ -253,12 +257,14 @@ class App
     if p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
+        @user = HERE.usr(HERE.uid[p[:tok]])
+        @zone = HERE.zone(HERE.attr['zone'])
         input type: 'hidden', name: 'tok', value: p[:tok]
+        input type: 'hidden', name: 'id', value: @user.attr['id']
 #        block('div', id: 'main') do
 #          input type: 'text', name: 'cmd', placeholder: Time.now.utc
 #          button id: 'ok', text: 'OK'
 #        end
-        @user = HERE.usr(HERE.uid[p[:tok]])
 #        @app[:body] << %[<code>#{@fingerprint}</code>]
         block('nav', style: 'position: fixed; bottom: 0;') do
           button id: 'close', class: 'material-icons', text: 'close', style: 'display: none;'
@@ -415,17 +421,62 @@ form { text-align: center; height: 100%; }
 <div id='conf' class='body' style='display: none;'>
 <datalist id='zones'>
 <option value='new'>
+<% @user.zones.members.each do |e| %>
+<option value='<%= e %>'>
+<% end %>
 </datalist>
 <datalist id='types'>
 <option value='new'>
+<% @user.types.members.each do |e| %>
+<option value='<%= e %>'>
+<% end %>
 </datalist> 
-<h1><input list='zones' name='config[zone]' id='mode' placeholder='TYPE'></h1>
-<h1><input list='types' name='config[mode]' id='mode' placeholder='ZONE'></h1>
+<h1><input type='text' name='config[name]' id='name' placeholder='NAME'></h1> 
+<h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH'></h1>
+<h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE'></h1>
+<h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE'></h1>
+<!-- take pictures... -->
 </div>
+
+<div id='zap' class='body' style='display: none;'>
+<datalist id='classes'>
+<option value='new'>                                                                                                                         
+<% @user.classes.members.each do |e| %>
+<option value='<%= e %>'>                                                                                                                    
+<% end %>                                                                                                                                    
+</datalist>
+<datalist id='types'>                                                                                                                        
+<option value='new'>                                                                                                                         
+<% @user.types.members.each do |e| %>                                                                                                        
+<option value='<%= e %>'>                                                                                                                    
+<% end %>                                                                                                                                    
+</datalist>
+
+<datalist id='items'>                                                                                                                        
+<option value='new'>                                                                                                                         
+<% @user.inventory.members.each do |e| %>
+<option value='<%= e %>'>                                                                                                                    
+<% end %>                                                                                                                                    
+</datalist>
+
+<h1 id='boss'>
+<input list='classes' name='boss[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
+<input list='types' name='boss[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type']% >'>
+<input type='number' name='boss[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
+</h1>
+
+<h1><input list='items' name='zap[give]' id='give' placeholder='GIVE'></h1>
+
+<% @user.badges.each do |e| %>
+<span id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></span>
+<% end %>
+
+</div>
+
 </form>
 <script>
 <% if @user %>
-    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/m?u=<%= @user.attr['id'] %>");
+    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
     var canvasElement = document.getElementById("canvas");
     var canvas = canvasElement.getContext("2d");
@@ -454,7 +505,8 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-		    console.log(h);
+                    
+		    $('#magic').show();
 		}
 	    }
         }
