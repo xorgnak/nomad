@@ -258,7 +258,7 @@ class App
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
-        @zone = HERE.zone(HERE.attr['zone'])
+        @zone = HERE.zone(@user.attr['zone'])
         input type: 'hidden', name: 'tok', value: p[:tok]
         input type: 'hidden', name: 'id', value: @user.attr['id']
 #        block('div', id: 'main') do
@@ -414,19 +414,18 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
+<% if @user %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
 <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
 </div>
 
 <div id='conf' class='body' style='display: none;'>
 <datalist id='zones'>
-<option value='new'>
 <% @user.zones.members.each do |e| %>
 <option value='<%= e %>'>
 <% end %>
 </datalist>
 <datalist id='types'>
-<option value='new'>
 <% @user.types.members.each do |e| %>
 <option value='<%= e %>'>
 <% end %>
@@ -439,21 +438,18 @@ form { text-align: center; height: 100%; }
 </div>
 
 <div id='zap' class='body' style='display: none;'>
-<datalist id='classes'>
-<option value='new'>                                                                                                                         
+<datalist id='classes'>                                                                                                                        
 <% @user.classes.members.each do |e| %>
 <option value='<%= e %>'>
 <% end %>                                                                                                                                    
 </datalist>
-<datalist id='types'>                                                                                                                        
-<option value='new'>                                                                                                                         
+<datalist id='types'>                                                                                                                      
 <% @user.types.members.each do |e| %>                                                                                                        
 <option value='<%= e %>'>                                                                                                                    
 <% end %>                                                                                                                                    
 </datalist>
 
 <datalist id='items'>                                                                                                                        
-<option value='new'>                                                                                                                         
 <% @user.inventory.members.each do |e| %>
 <option value='<%= e %>'>                                                                                                                    
 <% end %>                                                                                                                                    
@@ -466,13 +462,15 @@ form { text-align: center; height: 100%; }
 </h1>
 
 <h1><input list='items' name='zap[give]' id='give' placeholder='GIVE'></h1>
-
+<fieldset>
+<legend>badge</legend>
+<h1><input name='zap[badge]' placeholder='BADGE'></h1>
 <% @user.badges.each do |e| %>
 <span id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></span>
 <% end %>
-
+</fieldset>
 </div>
-
+<% end %>
 </form>
 <script>
 <% if @user %>
