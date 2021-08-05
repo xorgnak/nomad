@@ -391,7 +391,7 @@ html { margin: 0; padding: 0; }
 body { margin: 0; padding: 0; width: 100vw; height: 100vh; }
 #canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
 form { text-align: center; }
-#qrcode > canvas { width: 95%; } 
+#qrcode > canvas { width: 90%; } 
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
