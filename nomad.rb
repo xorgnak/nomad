@@ -441,7 +441,7 @@ HERE = Here.new(OPTS.to_hash)
 class APP < Sinatra::Base
   set :port, OPTS[:port]
   before { @app = App.new(params) }
-  get('/manifest.webmanifest') { @app.manifest }
+  get('/manifest.webmanifest') { @app.manifest params[:tok] }
   get('/') { @app.html }
   post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
   get('/:n') { @app.html }
