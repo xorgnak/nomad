@@ -394,8 +394,8 @@ form { text-align: center; }
 		    console.log(h);
 		}
 	    }
-            requestAnimationFrame(tick);
         }
+        requestAnimationFrame(tick);
     }
 <% end %>
 #{@app[:js].join("\n")}
