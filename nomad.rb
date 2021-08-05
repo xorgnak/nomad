@@ -293,7 +293,6 @@ class App
   def initialize(r, p)
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
-    
     @fingerprint['referrer'] = r.referrer
     @ua = DeviceDetector.new(r.user_agent)
     @fingerprint['ua'] = {
@@ -310,6 +309,7 @@ class App
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
         @zone = HERE.zone(@user.attr['zone'])
+        p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
         input type: 'hidden', name: 'tok', value: p[:tok]
         input type: 'hidden', name: 'id', value: @user.attr['id']
 #        block('div', id: 'main') do
@@ -490,18 +490,18 @@ form { text-align: center; height: 100%; }
 <h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH'></h1>
 <h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE'></h1>
 <h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE'></h1>
-<h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='social'></h1>
+<h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
   <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
   <input style='position: fixed; top: -100000px;' type='file' id='file'>
 </p>
-<button style='padding: 1%; border: thin solid white; width: 100%; height: 20%;' id='pic'>
+<button style='padding: 1%; border: thin solid white; height: 20%;' id='pic'>
   <img id='preview' style='height: 100%;' src='<%= @user.attr['img'] %>' alt='click to set image...'>
 </button>
 </div>
 
 <div id='zap' class='body' style='display: none;'>
-<datalist id='classes'>                                                                                                                        
+<datalist id='classes'>                                                                                                                      
 <% @user.classes.members.each do |e| %>
 <option value='<%= e %>'>
 <% end %>                                                                                                                                    
@@ -519,12 +519,12 @@ form { text-align: center; height: 100%; }
 </datalist>
 
 <h1 id='boss'>
-<input list='classes' name='boss[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
-<input list='types' name='boss[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'>
-<input type='number' name='boss[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
+<input list='classes' name='config[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
+<input list='types' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'>
+<input type='number' name='config[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
 </h1>
 
-<h1><input list='items' name='zap[give]' id='give' placeholder='GIVE'></h1>
+<h1><input list='items' name='give' id='give' placeholder='GIVE'></h1>
 <fieldset>
 <legend>badge</legend>
 <h1><input name='zap[badge]' placeholder='BADGE'></h1>
