@@ -361,7 +361,6 @@ form { text-align: center; }
 <% end %>
 </form>
 <script>
-$(function(){ 
 <% if @user %>
 	$('#qrcode').qrcode("/m?u=<%= @user %>");
     var video = document.createElement("video");
@@ -400,7 +399,6 @@ $(function(){
     }
 <% end %>
 #{@app[:js].join("\n")}
-})
 </script>
 </body>
 </html>]).result(binding)
