@@ -284,7 +284,58 @@ class App
       end
     end
   end
-  
+  def manifest
+    return ERB.new(%[{
+    "theme_color": "#f69435",
+    "background_color": "#f69435",
+    "display": "fullscreen",
+    "scope": "/",
+    "start_url": "/?tok=<%= params[:i] %>",
+    "name": "propedicab.com",
+    "short_name": "pedicab",
+    "description": "the propedicab.com user interface",
+    "icons": [
+	{
+	    "src": "\/android-icon-36x36.png",
+	    "sizes": "36x36",
+	    "type": "image\/png",
+	    "density": "0.75"
+	},
+	{
+	    "src": "\/android-icon-48x48.png",
+	    "sizes": "48x48",
+	    "type": "image\/png",
+	    "density": "1.0"
+	},
+	{
+	    "src": "\/android-icon-72x72.png",
+	    "sizes": "72x72",
+	    "type": "image\/png",
+	    "density": "1.5"
+	},
+	{
+	    "src": "\/android-icon-96x96.png",
+	    "sizes": "96x96",
+	    "type": "image\/png",
+	    "density": "2.0"
+	},
+	{
+	    "src": "\/android-icon-144x144.png",
+	    "sizes": "144x144",
+	    "type": "image\/png",
+	    "density": "3.0"
+	},
+	{
+	    "src": "\/android-icon-192x192.png",
+	    "sizes": "192x192",
+	    "type": "image\/png",
+	    "density": "4.0"
+	}
+    ]
+}
+
+]).result(binding)
+  end
   def html
     return ERB.new(%[<!DOCTYPE html>
 <head>
@@ -389,6 +440,7 @@ HERE = Here.new(OPTS.to_hash)
 class APP < Sinatra::Base
   set :port, OPTS[:port]
   before { @app = App.new(params) }
+  get('/manifest.webmanifest') { @app.manifest }
   get('/') { @app.html }
   post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
   get('/:n') { @app.html }
