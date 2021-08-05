@@ -474,7 +474,7 @@ form { text-align: center; height: 100%; }
 <div id='wrap' class='body' style='display: none; width: 100%;'>
 <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
 <% @r = { nil => "none", "1" => "thick solid black", "2" => "thick double black", "3" => "thick dotted black" } %>
-<h1 id='rank' class='border: <%= @r[@user.attr['rank']] %>'>
+<h1 id='rank' style='border: <%= @r[@user.attr['rank']] %>'>
     <% @ic = { "pedicabber" => "stars", "staff" => "check_box_outline_blank", "influencer" => "change_history", "sponsor" => "circle" } %>
     <% @user.attr['lvl'].to_i.times do |t| %>
     <% if @user.attr['lvl'].to_i  > 5 %>
