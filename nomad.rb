@@ -202,7 +202,7 @@ class App
   HEAD = [
     %[<meta name="viewport" content="initial-scale=1, maximum-scale=1">],
     %[<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">],
-    %[<link rel="manifest" href="https://<%= ENV['DOMAIN'] %>/manifest.webmanifest?<%= @req.query_string %>" crossorigin="use-credentials" />],
+    %[<link rel="manifest" href="https://<%= ENV['DOMAIN'] %>/manifest.webmanifest?<%= @req.query_string.gsub('/', '') %>" crossorigin="use-credentials" />],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>],
     %[<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
