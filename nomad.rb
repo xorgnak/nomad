@@ -36,6 +36,7 @@ class Here
 
   class D
     include Redis::Objects
+    sorted_set :referrer
     sorted_set :name
     sorted_set :ver
     sorted_set :os
@@ -74,7 +75,9 @@ class Here
     def fingerprint k
       @fingerprint.send(k.to_sym)
     end
-    
+    def referrer
+      @fingerprint.referrer
+    end
   end
   def obj(o); O.new(o); end
   
@@ -250,13 +253,18 @@ class App
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         input type: 'hidden', name: 'tok', value: p[:tok]
-        block('div', id: 'main') do
-          input type: 'text', name: 'cmd', placeholder: Time.now.utc
-          button id: 'ok', text: 'OK'
-        end
+#        block('div', id: 'main') do
+#          input type: 'text', name: 'cmd', placeholder: Time.now.utc
+#          button id: 'ok', text: 'OK'
+#        end
         @user = HERE.usr(HERE.uid[p[:tok]])
-        @app[:body] << %[<code>#{@fingerprint}</code>]
-        block('div', id: 'button', events: { click: %[console.log('click')] })
+#        @app[:body] << %[<code>#{@fingerprint}</code>]
+        block('nav', style: 'position: fixed; bottom: 0;') do
+          button id: 'close', class: 'material-icons', text: 'close', style: 'display: none;'
+          button id: 'badge', class: 'material-icons func', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+          button id: 'config', class: 'material-icons func', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+          button id: 'magic', class: 'material-icons func', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+        end
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
       @target = 'auth?'
@@ -284,7 +292,8 @@ class App
         button id: 'auth', text: 'auth'
       }
     end
-    @fingerprint.each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
+    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
+    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
   end
   
   def redirect
@@ -311,10 +320,10 @@ class App
   end
   def button h={}
     if h.has_key? :events
-      j = j.delete(:events)
+      j = h.delete(:events)
     end
     bl = []; h.each_pair { |k,v| bl << %[#{k}='#{v}'] }
-    @app[:body] << %[<p class='form'><button #{bl.join(' ')}>#{h[:text]}</button></p>]
+    @app[:body] << %[<button #{bl.join(' ')}>#{h[:text]}</button>]
     if j
       j.each_pair do |k,v|
         @app[:js] << %[$(document).on('#{k}', '##{h[:id]}', function(ev) { ev.preventDefault(); #{v}; })]
@@ -380,21 +389,35 @@ class App
 <style>
 html { margin: 0; padding: 0; }
 body { margin: 0; padding: 0; width: 100vw; height: 100vh; }
-canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
+#canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; }
 form { text-align: center; }
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
 </head>
 <body>
+
 <canvas id='canvas'></canvas>
-<div id='wrap' style='display: none;'><div id="qrcode"></div></div>
 <form action='/' method='post'>
 <% if @app.has_key? :body %>
 <%= @app[:body].join("\n") %>
 <% else %>
 <%= BODY %>
 <% end %>
+<div id='wrap' class='body' style='display: none;'>
+<div id="qrcode" style='height: '></div>
+</div>
+
+<div id='conf' class='body' style='display: none;'>
+<datalist id='zones'>
+<option value='new'>
+</datalist>
+<datalist id='types'>
+<option value='new'>
+</datalist> 
+<h1><input list='zones' name='config[zone]' id='mode' placeholder='TYPE'></h1>
+<h1><input list='types' name='config[mode]' id='mode' placeholder='ZONE'></h1>
+</div>
 </form>
 <script>
 <% if @user %>
