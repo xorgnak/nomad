@@ -456,7 +456,9 @@ form { text-align: center; height: 100%; }
     margin: 2% 3% 2% 3%;
     padding: 0 3% 0 3%;
  }
-
+#rank { background-color: <%= @user.attr['color'] || 'black' %>; }
+.lvl { margin: 3%; padding: 2%; color: white; }
+.lvl-up { color: gold; }
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
@@ -473,14 +475,14 @@ form { text-align: center; height: 100%; }
 <% if @user %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
 <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
-<% @r = { nil => "none", "1" => "thick solid black", "2" => "thick double black", "3" => "thick dotted black" } %>
+<% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
 <h1 id='rank' style='border: <%= @r[@user.attr['rank']] %>'>
     <% @ic = { "pedicabber" => "stars", "staff" => "check_box_outline_blank", "influencer" => "change_history", "sponsor" => "circle" } %>
     <% @user.attr['lvl'].to_i.times do |t| %>
     <% if @user.attr['lvl'].to_i  > 5 %>
-  <span class='material-icons lvl x xx'><%= @ic[@user.attr['type']] %></span>
+  <span class='material-icons lvl lvl-up'><%= @ic[@user.attr['type']] %></span>
   <% else %>
-  <span class='material-icons lvl x'><%= @ic[@user.attr['type']] %></span>
+  <span class='material-icons lvl'><%= @ic[@user.attr['type']] %></span>
   <% end %>
   <% end %>
 </h1>
