@@ -486,10 +486,10 @@ form { text-align: center; height: 100%; }
 <option value='<%= e %>'>
 <% end %>
 </datalist> 
-<h1><input type='text' name='config[name]' id='name' placeholder='NAME'></h1> 
-<h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH'></h1>
-<h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE'></h1>
-<h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE'></h1>
+<h1><input type='text' name='config[name]' id='name' placeholder='NAME' value='<%= @user.attr['name'] %>'></h1> 
+<h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH' value='<%= @user.attr['pitch'] %>'></h1>
+<h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'></h1>
+<h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE' value='<%= @user.attr['zone'] %>'></h1>
 <h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
   <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
@@ -519,9 +519,13 @@ form { text-align: center; height: 100%; }
 </datalist>
 
 <h1 id='boss'>
+<% if @user.perm[@zone.id].to_i > 1 %>
 <input list='classes' name='config[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
 <input list='types' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'>
+<% end %>
+<% if @user.perm[@zone.id].to_i > 0 %>
 <input type='number' name='config[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
+<% end %>
 </h1>
 
 <h1><input list='items' name='give' id='give' placeholder='GIVE'></h1>
@@ -537,6 +541,9 @@ form { text-align: center; height: 100%; }
 </form>
 <script>
 <% if @user %>
+//   $("#type").val("<%= @user.attr['type'] %>");
+//   $("#type").val("<%= @user.attr['type'] %>");
+
     $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
     var canvasElement = document.getElementById("canvas");
