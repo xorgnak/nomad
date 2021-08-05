@@ -387,6 +387,7 @@ OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
 HERE = Here.new(OPTS.to_hash)
 
 class APP < Sinatra::Base
+  set :port, OPTS[:port]
   before { @app = App.new(params) }
   get('/') { @app.html }
   post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
