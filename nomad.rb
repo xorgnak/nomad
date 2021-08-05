@@ -33,9 +33,24 @@ class Here
     @bank = Hash.new { |h,k| h[k] = BANK.new(k) }
   end
   def id; @id; end
+
+  class D
+    include Redis::Objects
+    sorted_set :name
+    sorted_set :ver
+    sorted_set :os
+    sorted_set :os_ver
+    sorted_set :dev
+    sorted_set :type
+    def initialize i
+      @id = i
+    end
+    def id; @id; end
+  end
   
   class O
     include Redis::Objects
+    
     hash_key :attr
     sorted_set :stat
     sorted_set :priv
@@ -51,10 +66,15 @@ class Here
     def initialize a = nil, i
 #      super a
       @id = i
+      @fingerprint = D.new(i)
     end
     def id
       @id
     end
+    def fingerprint k
+      @fingerprint.send(k.to_sym)
+    end
+    
   end
   def obj(o); O.new(o); end
   
@@ -212,10 +232,9 @@ class App
     %[<h1>works.</h1>]
   ].join("\n")
   def initialize(r, p)
-    @req = r
-    @redirect = false
+    @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
-    @fingerprint = {}.merge(p)
+    
     @fingerprint['referrer'] = r.referrer
     @ua = DeviceDetector.new(r.user_agent)
     @fingerprint['ua'] = {
@@ -229,6 +248,7 @@ class App
     Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
     if p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
+        @target = 'app'
         input type: 'hidden', name: 'tok', value: p[:tok]
         block('div', id: 'main') do
           input type: 'text', name: 'cmd', placeholder: Time.now.utc
@@ -236,8 +256,10 @@ class App
         end
         @user = HERE.usr(HERE.uid[p[:tok]])
         @app[:body] << %[<code>#{@fingerprint}</code>]
+        block('div', id: 'button', events: { click: %[console.log('click')] })
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
+      @target = 'auth?'
       # auth!
       chk = []; 10.times { chk << rand(9) }
       u = HERE.usr(p[:auth])
@@ -248,18 +270,21 @@ class App
         button id: 'pin', text: 'pin'
       end
     elsif p.has_key?(:pin) && HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).pin == p[:pin]
+      @target = 'auth!'
       # auth?
       HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid!
       input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
       Redis::HashKey.new('chk').delete(p[:chk])
       block('div', id: 'main') { button id: 'ok', text: 'OK' }
     else
+      @target = 'index'
       # begin auth cycle
       block('div', id: 'main') {
         input type: 'tel', name: 'auth', placeholder: 'auth'
         button id: 'auth', text: 'auth'
       }
     end
+    @fingerprint.each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
   end
   
   def redirect
