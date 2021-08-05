@@ -490,15 +490,14 @@ form { text-align: center; height: 100%; }
 <h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH'></h1>
 <h1><input list='zones' name='config[zone]' id='type' placeholder='TYPE'></h1>
 <h1><input list='types' name='config[mode]' id='zone' placeholder='ZONE'></h1>
+<h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='social'></h1>
 <p>
-  <input type='hidden' id='img' name='config[img]' value='<%= @me.attr['img'] %>'>
+  <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
   <input style='position: fixed; top: -100000px;' type='file' id='file'>
 </p>
 <button style='padding: 1%; border: thin solid white; width: 100%; height: 20%;' id='pic'>
-  <img id='preview' style='height: 100%;' src='<%= @me.attr['img'] %>' alt='click to set image...'>
+  <img id='preview' style='height: 100%;' src='<%= @user.attr['img'] %>' alt='click to set image...'>
 </button>
-
-  <p><input type='text' id='social' name='config[social]' value='<%= @me.attr['social'] %>' placeholder='social'></p>
 </div>
 
 <div id='zap' class='body' style='display: none;'>
