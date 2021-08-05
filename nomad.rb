@@ -60,14 +60,9 @@ class Here
           to << t
         end
       end
-      if ENV['DEBUG'] == 'true'
-        Redis.new.publish "DEBUG.send_sms_to", "#{h} #{to}"
-      end
       to.each do |t|
-        if ENV['DEBUG'] == 'true'
-          Redis.new.publish "DEBUG.send_sms", "#{t}"
-        end
-        if ENV['LIVE'] == 'true' && h[:body] != ''
+        Redis.new.publish "DEBUG.send_sms", "#{t}"
+        if h[:body] != ''
           if h[:image]
             twilio.messages.create(
               to: t,
