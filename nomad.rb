@@ -5,16 +5,16 @@ INFO = {
   release: 0
 }
 
-GEMS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra']
+GEMS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra' 'device_detector']
 DEBS = ['multimon-ng', 'soundmodem']
-REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base']
+REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector']
 
 
 # install dependancies
 if ARGF.argv[0] == 'install'
   puts "[INSTALL][INIT][#{Time.now.utc.to_f}]"
   puts "[INSTALL][DEBS][#{Time.now.utc.to_f}]\n" + `su -c 'apt update && apt upgrade -y && apt install -y #{DEBS.join(' ')}'`
-  GEMS.each { |e| puts "[INSTALL][GEM][#{Time.now.utc.to_i}]" + `su -c 'gem install --no-rdoc --no-ri #{e}'` }
+  puts "[INSTALL][GEM][#{Time.now.utc.to_i}]" + `su -c 'gem install --no-rdoc --no-ri #{GEMS.join(' ')}'`
 end
 
 # load dependancies
@@ -215,7 +215,18 @@ class App
     @req = r
     @redirect = false
     @app = Hash.new {|h,k| h[k] = []}
-    Redis.new.publish "App.initialize", "#{p}"
+    @fingerprint = {}.merge(p)
+    @fingerprint['referrer'] = r.referrer
+    @ua = DeviceDetector.new(r.user_agent)
+    @fingerprint['ua'] = {
+      name: @ua.name,
+      ver: @ua.full_version,
+      os: @ua.os_name,
+      os_ver: @ua.os_full_version,
+      dev: @ua.device_name,
+      type: @ua.device_type
+    }
+    Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
     if p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         input type: 'hidden', name: 'tok', value: p[:tok]
@@ -224,7 +235,7 @@ class App
           button id: 'ok', text: 'OK'
         end
         @user = HERE.usr(HERE.uid[p[:tok]])
-        @app[:body] << %[<code>#{@user}</code>]
+        @app[:body] << %[<code>#{@fingerprint}</code>]
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
       # auth!
