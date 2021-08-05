@@ -442,7 +442,7 @@ form { text-align: center; height: 100%; }
 <datalist id='classes'>
 <option value='new'>                                                                                                                         
 <% @user.classes.members.each do |e| %>
-<option value='<%= e %>'>                                                                                                                    
+<option value='<%= e %>'>
 <% end %>                                                                                                                                    
 </datalist>
 <datalist id='types'>                                                                                                                        
@@ -461,7 +461,7 @@ form { text-align: center; height: 100%; }
 
 <h1 id='boss'>
 <input list='classes' name='boss[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
-<input list='types' name='boss[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type']% >'>
+<input list='types' name='boss[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'>
 <input type='number' name='boss[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
 </h1>
 
