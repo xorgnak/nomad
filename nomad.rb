@@ -422,7 +422,7 @@ form { text-align: center; }
 </form>
 <script>
 <% if @user %>
-    $('#qrcode').qrcode("/m?u=<%= @user.attr['id'] %>");
+    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/m?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
     var canvasElement = document.getElementById("canvas");
     var canvas = canvasElement.getContext("2d");
