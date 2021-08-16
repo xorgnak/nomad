@@ -288,7 +288,7 @@ class App
     %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>]
   ].join("\n")
   BODY = [
-    %[<h1><a href='https://#{OPTS[:domain]}/?tok=<%= @tok %>'>begin</a></h1>]
+    %[<h1><a href='https://#{HERE.id}/?tok=<%= @tok %>'>begin</a></h1>]
   ].join("\n")
 
 
