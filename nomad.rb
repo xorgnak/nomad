@@ -308,17 +308,17 @@ class App
       type: @ua.device_type
     }
     Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
-    if !p.has_key? :tok
-      rnd, tok = [], [];
-      32.times { rnd << rand(16).to_s(16) }
-      @target = 'app'
-      @user = HERE.usr(rnd.join(''))
-      @zone = HERE.zone('0')
-      block('div', id: 'main') do
-        input type: 'tel', name: 'auth', placeholder: 'phone'
-        button id: 'auth', text: 'begin'
-      end
-    elsif p.has_key? :tok
+#    if !p.has_key? :tok
+#      rnd, tok = [], [];
+#      32.times { rnd << rand(16).to_s(16) }
+#      @target = 'app'
+#      @user = HERE.usr(rnd.join(''))
+#      @zone = HERE.zone('0')
+#      block('div', id: 'main') do
+#        input type: 'tel', name: 'auth', placeholder: 'phone'
+#        button id: 'auth', text: 'begin'
+#      end
+    if p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
