@@ -592,7 +592,7 @@ form { text-align: center; height: 100%; }
             canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
             var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
             var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-            var dom = /https/g;
+            var dom = /https://<%= OPTS[:domain] %>/g;
             if (code) {
 		if (dom.test(code.data)) {
                     var h = {};
@@ -603,8 +603,7 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-                    
-		    $('#magic').show();
+                    window.location = code.data;
 		}
 	    }
         }
