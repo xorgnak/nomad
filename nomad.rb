@@ -483,6 +483,7 @@ form { text-align: center; height: 100%; }
 
 <canvas id='canvas'></canvas>
 <form action='/' method='post'>
+<h1 id='this'><span>propedicab.com</span></h1>
 <% if @app.has_key? :body %>
 <%= @app[:body].join("\n") %>
 <% else %>
@@ -603,7 +604,12 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-                    window.location = code.data;
+                    $('#this').html(code.data);
+//                    if (h.invite) {
+//                    
+//                    } else {
+//                      window.location = code.data;
+//                    }
 		}
 	    }
         }
