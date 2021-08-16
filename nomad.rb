@@ -322,10 +322,10 @@ ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
 #      }
 #      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
 #    end
-    if p.has_key? :tok
-      if HERE.usr(HERE.uid[p[:tok]]).valid?
+    if p.has_key? :chk
+      if HERE.usr(HERE.uid[p[:chk]]).valid?
         @target = 'app'
-        @user = HERE.usr(HERE.uid[p[:tok]])
+        @user = HERE.usr(HERE.uid[p[:chk]])
         @zone = HERE.zone(@user.attr['zone'])
         if p.has_key? :config
           p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
@@ -334,7 +334,7 @@ ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
       else
         @target = 'index'
         block('div', id: 'main') do
-          input type: 'hidden', name: 'tok', value: p[:tok]
+          input type: 'hidden', name: 'chk', value: p[:chk]
           input type: 'tel', name: 'auth', placeholder: 'phone'
           button id: 'auth', text: 'begin'
         end
@@ -355,7 +355,7 @@ ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
       # auth?
       HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid!
       @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
-#      input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
+      input type: 'hidden', name: 'chk', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
       Redis::HashKey.new('chk').delete(p[:chk])
       ui
     else
