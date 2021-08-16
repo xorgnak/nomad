@@ -294,6 +294,7 @@ class App
 
   
   def initialize(r, p)
+    Redis.new.publish('DEBUG.App', "#{r} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
     @fingerprint['referrer'] = r.referrer || r.fullpath
