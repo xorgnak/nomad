@@ -353,7 +353,8 @@ class App
       @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
       input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
       Redis::HashKey.new('chk').delete(p[:chk])
-      block('div', id: 'main') { button id: 'ok', text: 'OK' }
+    #      block('div', id: 'main') { button id: 'ok', text: 'OK' }
+      @redirect = "/?tok=#{HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value}"
     else
       @target = 'index'
       rnd, tok = [], [];
