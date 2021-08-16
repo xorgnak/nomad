@@ -292,7 +292,18 @@ class App
     %[]
   ].join("\n")
 
-
+  def ui
+    input type: 'hidden', name: 'tok', value: p[:tok]
+    input type: 'hidden', name: 'id', value: @user.attr['id']
+    block('nav', style: 'position: fixed; bottom: 0;') do
+      button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
+      button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+      button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+      button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.b\
+ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+    end
+  end
+  
   
   def initialize(r, p)
     Redis.new.publish('DEBUG.App', "#{r.fullpath} #{p}")
@@ -319,14 +330,7 @@ class App
         if p.has_key? :config
           p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
         end
-        input type: 'hidden', name: 'tok', value: p[:tok]
-        input type: 'hidden', name: 'id', value: @user.attr['id']
-        block('nav', style: 'position: fixed; bottom: 0;') do
-          button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
-          button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
-          button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-          button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
-        end
+        ui
       else
         @target = 'index'
         block('div', id: 'main') do
@@ -351,10 +355,9 @@ class App
       # auth?
       HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid!
       @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
-      input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
+#      input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
       Redis::HashKey.new('chk').delete(p[:chk])
-    #      block('div', id: 'main') { button id: 'ok', text: 'OK' }
-      @redirect = "/?tok=#{HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value}"
+      ui
     else
       @target = 'index'
       rnd, tok = [], [];
