@@ -497,7 +497,7 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<% if @target != 'index' %>
+<% if @user %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
   <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   <% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
