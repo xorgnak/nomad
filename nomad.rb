@@ -293,7 +293,7 @@ class App
   ].join("\n")
 
   def ui
-    input type: 'hidden', name: 'tok', value: p[:tok]
+    input type: 'hidden', name: 'tok', value: @params[:tok]
     input type: 'hidden', name: 'id', value: @user.attr['id']
     block('nav', style: 'position: fixed; bottom: 0;') do
       button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
