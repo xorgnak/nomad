@@ -595,6 +595,7 @@ form { text-align: center; height: 100%; }
             var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
             var dom = /https://<%= OPTS[:domain] %>/g;
             if (code) {
+		$('#this').html('<code>' + code.data + '</code>');
 		if (dom.test(code.data)) {
                     var h = {};
                     var o = code.data.split('?');
@@ -604,7 +605,7 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-                    $('#this').html(code.data);
+                    $('#this').html('<code>' + JSON.stringify(h) + '</code>');
 //                    if (h.invite) {
 //                    
 //                    } else {
