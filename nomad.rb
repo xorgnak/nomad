@@ -310,14 +310,11 @@ class App
     Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
     if !p.has_key? :tok
       rnd, tok = [], [];
-      64.times { tok << rand(16).to_s(16) }
       32.times { rnd << rand(16).to_s(16) }
       @target = 'app'
-      HERE.uid[tok.join('')] = rnd.join('')
       @user = HERE.usr(rnd.join(''))
       @zone = HERE.zone('0')
       block('div', id: 'main') do
-        input type: 'hidden', name: 'tok', value: tok.join('')
         input type: 'tel', name: 'auth', placeholder: 'phone'
         button id: 'auth', text: 'begin'
       end
