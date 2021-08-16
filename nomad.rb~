@@ -310,16 +310,16 @@ class App
 #      }
 #      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
 #    end
-#    if !p.has_key? :tok
-#      rnd, tok = [], [];
-#      32.times { rnd << rand(16).to_s(16) }
-#      @user = HERE.usr(rnd.join(''))
-#      @zone = HERE.zone('0')
-#      block('div', id: 'main') do
-#        input type: 'tel', name: 'auth', placeholder: 'phone'
-#        button id: 'auth', text: 'begin'
-#      end
-    if p.has_key? :tok
+    if !p.has_key? :tok
+      rnd, tok = [], [];
+      32.times { rnd << rand(16).to_s(16) }
+      @user = HERE.usr(rnd.join(''))
+      @zone = HERE.zone('0')
+      block('div', id: 'main') do
+        input type: 'tel', name: 'auth', placeholder: 'phone'
+        button id: 'auth', text: 'begin'
+      end
+    elsif p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
@@ -365,18 +365,15 @@ class App
       block('div', id: 'main') { button id: 'ok', text: 'OK' }
     else
       @target = 'index'
-      rnd, tok = [], [];
-      32.times { rnd << rand(16).to_s(16) }
-      @user = HERE.usr(rnd.join(''))
-      @zone = HERE.zone('0')
+      # begin auth cycle
       block('div', id: 'main') {
         input type: 'tel', name: 'auth', placeholder: 'auth'
         button id: 'auth', text: 'auth'
       }
     end
     puts "#{@app}"
-#    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
-#    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
+    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
+    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
   end
   
   def redirect
