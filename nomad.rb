@@ -292,9 +292,6 @@ class App
   ].join("\n")
 
 
-  # PERSONAL ACCES TOKEN
-  # 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
-
   
   def initialize(r, p)
     @req, @fingerprint, @redirect = r, {}.merge(p), false
