@@ -291,6 +291,12 @@ class App
 #    %[<h1><input type='tel' name='auth' placeholder='phone'>],
 #    %[<button>begin</button></h1>]
   ].join("\n")
+
+
+  # PERSONAL ACCES TOKEN
+  # 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
+
+  
   def initialize(r, p)
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
@@ -331,6 +337,12 @@ class App
           button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
           button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
           button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+        end
+      else
+        block('div', id: 'main') do
+          input type: 'hidden', name: 'chk', value: p[:tok]
+          input type: 'tel', name: 'auth', placeholder: 'phone'
+          button id: 'auth', text: 'begin'
         end
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
