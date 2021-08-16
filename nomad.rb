@@ -24,6 +24,7 @@ REQS.each {|e| require e }
 
 
 class Here
+  LIVE = false
   include Redis::Objects
   hash_key :uid
   hash_key :ids
@@ -62,7 +63,7 @@ class Here
       end
       to.each do |t|
         Redis.new.publish "DEBUG.send_sms", "#{t}"
-        if h[:body] != ''
+        if LIVE == true && h[:body] != ''
           if h[:image]
             twilio.messages.create(
               to: t,
@@ -294,7 +295,7 @@ class App
 
   
   def initialize(r, p)
-      Redis.new.publish('DEBUG.App', "#{r} #{p}")
+    Redis.new.publish('DEBUG.App', "#{r} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
 #    if r.host != 'localhost' 
@@ -310,28 +311,16 @@ class App
 #      }
 #      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
 #    end
-#    if !p.has_key? :tok
-#      rnd, tok = [], [];
-#      32.times { rnd << rand(16).to_s(16) }
-#      @user = HERE.usr(rnd.join(''))
-#      @zone = HERE.zone('0')
-#      block('div', id: 'main') do
-#        input type: 'tel', name: 'auth', placeholder: 'phone'
-#        button id: 'auth', text: 'begin'
-#      end
     if p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
         @zone = HERE.zone(@user.attr['zone'])
-        p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
+        if p.has_key? :config
+          p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
+        end
         input type: 'hidden', name: 'tok', value: p[:tok]
         input type: 'hidden', name: 'id', value: @user.attr['id']
-#        block('div', id: 'main') do
-#          input type: 'text', name: 'cmd', placeholder: Time.now.utc
-#          button id: 'ok', text: 'OK'
-#        end
-#        @app[:body] << %[<code>#{@fingerprint}</code>]
         block('nav', style: 'position: fixed; bottom: 0;') do
           button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
           button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
@@ -339,6 +328,7 @@ class App
           button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
         end
       else
+        @target = 'index'
         block('div', id: 'main') do
           input type: 'hidden', name: 'tok', value: p[:tok]
           input type: 'tel', name: 'auth', placeholder: 'phone'
@@ -349,8 +339,8 @@ class App
       @target = 'auth?'
       # auth!
       chk = []; 10.times { chk << rand(9) }
-      u = HERE.usr(p[:auth])
-      u.challange chk.join('')
+      @user = HERE.usr(p[:auth])
+      @user.challange chk.join('')
       block('div', id: 'main') do
         input type: 'hidden', name: 'chk', value: chk.join('')
         input type: 'text', name: 'pin', placeholder: 'pin'
@@ -360,6 +350,7 @@ class App
       @target = 'auth!'
       # auth?
       HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid!
+      @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
       input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
       Redis::HashKey.new('chk').delete(p[:chk])
       block('div', id: 'main') { button id: 'ok', text: 'OK' }
@@ -374,7 +365,7 @@ class App
         button id: 'auth', text: 'auth'
       }
     end
-    puts "#{@app}"
+#    puts "#{@app}"
 #    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
 #    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
   end
@@ -497,7 +488,7 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<% if @user %>
+<% if @target == 'app' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
   <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   <% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
@@ -580,7 +571,6 @@ form { text-align: center; height: 100%; }
 <% end %>
 </form>
 <script>
-<% if @user %>
 //   $("#type").val("<%= @user.attr['type'] %>");
 //   $("#type").val("<%= @user.attr['type'] %>");
 
@@ -633,7 +623,6 @@ form { text-align: center; height: 100%; }
   }, false);
   if (u) { f.readAsDataURL(u); }
   });    
-<% end %>
 #{@app[:js].join("\n")}
 </script>
 </body>
