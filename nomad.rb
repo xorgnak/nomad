@@ -297,28 +297,29 @@ class App
       Redis.new.publish('DEBUG.App', "#{r} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
-    @fingerprint['referrer'] = r.referrer || r.fullpath
-    @ua = DeviceDetector.new(r.user_agent)
-    @fingerprint['ua'] = {
-      name: @ua.name,
-      ver: @ua.full_version,
-      os: @ua.os_name,
-      os_ver: @ua.os_full_version,
-      dev: @ua.device_name,
-      type: @ua.device_type
-    }
-    Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
-#    if !p.has_key? :tok
-#      rnd, tok = [], [];
-#      32.times { rnd << rand(16).to_s(16) }
-#      @target = 'app'
-#      @user = HERE.usr(rnd.join(''))
-#      @zone = HERE.zone('0')
-#      block('div', id: 'main') do
-#        input type: 'tel', name: 'auth', placeholder: 'phone'
-#        button id: 'auth', text: 'begin'
-#      end
-    if p.has_key? :tok
+#    if r.host != 'localhost' 
+#      @fingerprint['referrer'] = r.referrer || r.fullpath
+#      @ua = DeviceDetector.new(r.user_agent)
+#      @fingerprint['ua'] = {
+#        name: @ua.name,
+#        ver: @ua.full_version,
+#        os: @ua.os_name,
+#        os_ver: @ua.os_full_version,
+#        dev: @ua.device_name,
+#        type: @ua.device_type
+#      }
+#      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
+#    end
+    if !p.has_key? :tok
+      rnd, tok = [], [];
+      32.times { rnd << rand(16).to_s(16) }
+      @user = HERE.usr(rnd.join(''))
+      @zone = HERE.zone('0')
+      block('div', id: 'main') do
+        input type: 'tel', name: 'auth', placeholder: 'phone'
+        button id: 'auth', text: 'begin'
+      end
+    elsif p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
@@ -370,6 +371,7 @@ class App
         button id: 'auth', text: 'auth'
       }
     end
+    puts "#{@app}"
     @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
     HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
   end
@@ -492,16 +494,16 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<% if @user %>
+<% if @target != 'index' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
-<div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
-<% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
-<h1 id='rank' style='border: <%= @r[@user.attr['rank']] %>'>
+  <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
+  <% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
+    <h1 id='rank' style='border: <%= @r[@user.attr['rank']] %>'>
     <% @ic = { "pedicabber" => "stars", "staff" => "check_box_outline_blank", "influencer" => "change_history", "sponsor" => "circle" } %>
     <% @user.attr['lvl'].to_i.times do |t| %>
     <% if @user.attr['lvl'].to_i  > 5 %>
-  <span class='material-icons lvl lvl-up'><%= @ic[@user.attr['type']] %></span>
-  <% else %>
+<span class='material-icons lvl lvl-up'><%= @ic[@user.attr['type']] %></span>
+   <% else %>
   <span class='material-icons lvl'><%= @ic[@user.attr['type']] %></span>
   <% end %>
   <% end %>
@@ -688,6 +690,6 @@ begin
     APP.run!
   end
 rescue => e
-  puts "[ERROR] #{e.full_message}"
+  Redis.new.publish "ERROR", "#{e.full_message}"
   exit
 end
