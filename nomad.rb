@@ -294,7 +294,7 @@ class App
 
   
   def initialize(r, p)
-    Redis.new.publish('DEBUG.App', "#{r} #{p}")
+      Redis.new.publish('DEBUG.App', "#{r} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
     @fingerprint['referrer'] = r.referrer || r.fullpath
@@ -317,7 +317,7 @@ class App
       @user = HERE.usr(rnd.join(''))
       @zone = HERE.zone('0')
       block('div', id: 'main') do
-        input type: 'hidden', name: 'chk', value: tok.join('')
+        input type: 'hidden', name: 'tok', value: tok.join('')
         input type: 'tel', name: 'auth', placeholder: 'phone'
         button id: 'auth', text: 'begin'
       end
@@ -342,7 +342,7 @@ class App
         end
       else
         block('div', id: 'main') do
-          input type: 'hidden', name: 'chk', value: p[:tok]
+          input type: 'hidden', name: 'tok', value: p[:tok]
           input type: 'tel', name: 'auth', placeholder: 'phone'
           button id: 'auth', text: 'begin'
         end
