@@ -288,12 +288,13 @@ class App
     %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>]
   ].join("\n")
   BODY = [
-    %[<h1>works.</h1>]
+#    %[<h1><input type='tel' name='auth' placeholder='phone'>],
+#    %[<button>begin</button></h1>]
   ].join("\n")
   def initialize(r, p)
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
-    @fingerprint['referrer'] = r.referrer
+    @fingerprint['referrer'] = r.referrer || r.fullpath
     @ua = DeviceDetector.new(r.user_agent)
     @fingerprint['ua'] = {
       name: @ua.name,
@@ -304,7 +305,15 @@ class App
       type: @ua.device_type
     }
     Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
-    if p.has_key? :tok
+    if !p.has_key? :tok
+      rnd, tok = [], [];
+      64.times { tok << rand(16).to_s(16) }
+      32.times { rnd << rand(16).to_s(16) }
+      @target = 'app'
+      HERE.uid[tok.join('')] = rnd.join('')
+      @user = HERE.usr(rnd.join(''))
+      @zone = HERE.zone('0')
+    elsif p.has_key? :tok
       if HERE.usr(HERE.uid[p[:tok]]).valid?
         @target = 'app'
         @user = HERE.usr(HERE.uid[p[:tok]])
