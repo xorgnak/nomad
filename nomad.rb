@@ -288,8 +288,7 @@ class App
     %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>]
   ].join("\n")
   BODY = [
-#    %[<h1><input type='tel' name='auth' placeholder='phone'>],
-#    %[<button>begin</button></h1>]
+    %[<h1><a href='https://#{OPTS[:domain]}/?tok=<%= @tok %>'>begin</a></h1>]
   ].join("\n")
 
 
@@ -315,6 +314,7 @@ class App
       rnd, tok = [], [];
       64.times { tok << rand(16).to_s(16) }
       32.times { rnd << rand(16).to_s(16) }
+      @tok = tok.join('')
       @target = 'app'
       HERE.uid[tok.join('')] = rnd.join('')
       @user = HERE.usr(rnd.join(''))
