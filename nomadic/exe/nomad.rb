@@ -493,7 +493,7 @@ form { text-align: center; height: 100%; }
 <% end %>
 <input type='hidden' id='tgt' name='tgt' value='<%=  @user.attr['id'] %>'>
 <input type='hidden' id='team' name='team' value='<%=  @user.attr['team'] %>'>
-<h1 id='this' style='color: white;'><span><%= OPTS[:domain] %></span></h1>
+<h1 id='this' style='position: fixed; bottom: 0; width: 100%; color: white;'><span><%= OPTS[:domain] %></span></h1>
 <% if @target == 'app' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
   <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
