@@ -527,7 +527,7 @@ form { text-align: center; height: 100%; }
 <h1><input list='types' name='config[zone]' id='zone' placeholder='ZONE' value='<%= @user.attr['type'] %>'></h1>
 <h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
-  <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
+  <input type='hidden' id='img'  value='<%= @user.attr['img'] %>'>
   <input style='position: fixed; top: -100000px;' type='file' id='file'>
 </p>
 <button style='padding: 1%; border: thin solid white; height: 20%;' id='pic'>
