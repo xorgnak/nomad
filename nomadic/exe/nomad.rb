@@ -6,17 +6,8 @@ INFO = {
   release: 0
 }
 
-GEMS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra', 'device_detector', 'twilio-ruby']
-DEBS = ['multimon-ng', 'soundmodem']
 REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector', 'twilio-ruby']
 
-
-# install dependancies
-if ARGF.argv[0] == 'install'
-  puts "[INSTALL][INIT][#{Time.now.utc.to_f}]"
-  puts "[INSTALL][DEBS][#{Time.now.utc.to_f}]\n" + `su -c 'apt update && apt upgrade -y && apt install -y #{DEBS.join(' ')}'`
-  puts "[INSTALL][GEM][#{Time.now.utc.to_i}]" + `su -c 'gem install --no-rdoc --no-ri #{GEMS.join(' ')}'`
-end
 
 # load dependancies
 REQS.each {|e| require e }
@@ -24,6 +15,7 @@ REQS.each {|e| require e }
 
 
 class Here
+  LIVE = false
   include Redis::Objects
   hash_key :uid
   hash_key :ids
@@ -62,7 +54,7 @@ class Here
       end
       to.each do |t|
         Redis.new.publish "DEBUG.send_sms", "#{t}"
-        if h[:body] != ''
+        if ENV['LIVE'] == 'true' && h[:body] != ''
           if h[:image]
             twilio.messages.create(
               to: t,
@@ -238,13 +230,6 @@ class Here
       end
     end
     
-    def challange chk
-      p = []; 6.times { p << rand(9) }
-      Redis::HashKey.new('chk')[chk] = @id
-      self.pin.value = p.join('')
-      HERE.phone.send_sms to: @id, body: "pin: #{p.join('')}"
-    end
-    
     def valid!
       pool, t = [], [];
       (:a..:z).each { |e| pool << e }
@@ -281,7 +266,7 @@ class App
   HEAD = [
     %[<meta name="viewport" content="initial-scale=1, maximum-scale=1">],
     %[<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">],
-    %[<!-- <link rel="manifest" href="https://<%= ENV['DOMAIN'] %>/manifest.webmanifest" crossorigin="use-credentials" /> -->],
+    %[<!-- <link rel="manifest" href="https://<%= OPTS[:domain] %>/manifest.webmanifest" crossorigin="use-credentials" /> -->],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>],
     %[<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
@@ -291,10 +276,20 @@ class App
     %[]
   ].join("\n")
 
-
+  def ui
+    input type: 'hidden', name: 'id', value: @user.attr['id']
+    el('nav', style: 'position: fixed; bottom: 0;') {
+      button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
+      button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+      button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+      button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.b\
+ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+                                                      }
+  end
+  
   
   def initialize(r, p)
-      Redis.new.publish('DEBUG.App', "#{r} #{p}")
+    Redis.new.publish('DEBUG.App', "#{r.fullpath} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
 #    if r.host != 'localhost' 
@@ -309,71 +304,64 @@ class App
 #        type: @ua.device_type
 #      }
 #      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
-#    end
-    if !p.has_key? :tok
-      rnd, tok = [], [];
-      32.times { rnd << rand(16).to_s(16) }
-      @user = HERE.usr(rnd.join(''))
-      @zone = HERE.zone('0')
-      block('div', id: 'main') do
-        input type: 'tel', name: 'auth', placeholder: 'phone'
-        button id: 'auth', text: 'begin'
-      end
-    elsif p.has_key? :tok
-      if HERE.usr(HERE.uid[p[:tok]]).valid?
+  #    end
+    if p.has_key? :u
+      @target = 'profile'
+      @user = HERE.usr(HERE.ids[p[:u]])
+      @zone = HERE.zone(@user.attr['zone'])
+      el('h1') {"this is a test"}
+    elsif p.has_key? :chk
+      if HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid?
         @target = 'app'
-        @user = HERE.usr(HERE.uid[p[:tok]])
+        @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
         @zone = HERE.zone(@user.attr['zone'])
-        p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
-        input type: 'hidden', name: 'tok', value: p[:tok]
-        input type: 'hidden', name: 'id', value: @user.attr['id']
-#        block('div', id: 'main') do
-#          input type: 'text', name: 'cmd', placeholder: Time.now.utc
-#          button id: 'ok', text: 'OK'
-#        end
-#        @app[:body] << %[<code>#{@fingerprint}</code>]
-        block('nav', style: 'position: fixed; bottom: 0;') do
-          button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
-          button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
-          button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-          button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+        if p.has_key? :config
+          p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
         end
+        input type: 'hidden', name: 'chk', value: p[:chk]
+        ui
       else
-        block('div', id: 'main') do
-          input type: 'hidden', name: 'tok', value: p[:tok]
-          input type: 'tel', name: 'auth', placeholder: 'phone'
-          button id: 'auth', text: 'begin'
-        end
+        @redirect = '/'
       end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
       @target = 'auth?'
       # auth!
       chk = []; 10.times { chk << rand(9) }
-      u = HERE.usr(p[:auth])
-      u.challange chk.join('')
-      block('div', id: 'main') do
-        input type: 'hidden', name: 'chk', value: chk.join('')
+      cha = []; 10.times { cha << rand(9) }
+      @user = HERE.usr(p[:auth])
+      p = []; 6.times { p << rand(9) }
+      Redis::HashKey.new('cha')[cha.join('')] = chk.join('')
+      Redis::HashKey.new('chk')[chk.join('')] = @user.id
+      @user.pin.value = p.join('')
+      HERE.phone.send_sms to: @user.id, body: "pin: #{p.join('')}"
+      el('div', id: 'main') {
+        input type: 'hidden', name: 'cha', value: cha.join('')
         input type: 'text', name: 'pin', placeholder: 'pin'
         button id: 'pin', text: 'pin'
-      end
-    elsif p.has_key?(:pin) && HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).pin == p[:pin]
+      }
+    elsif p.has_key?(:pin) && HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]]).pin == p[:pin]
       @target = 'auth!'
       # auth?
-      HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid!
-      input type: 'hidden', name: 'tok', value: HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).token.value
-      Redis::HashKey.new('chk').delete(p[:chk])
-      block('div', id: 'main') { button id: 'ok', text: 'OK' }
+      HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]]).valid!
+      @user = HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]])
+      input type: 'hidden', name: 'chk', value: Redis::HashKey.new('cha')[p[:cha]]
+      Redis::HashKey.new('cha').delete(p[:cha])
+      ui
     else
       @target = 'index'
-      # begin auth cycle
-      block('div', id: 'main') {
+      rnd = [];
+      32.times { rnd << rand(16).to_s(16) }
+      @user = HERE.usr(rnd.join(''))
+      @zone = HERE.zone('0')
+      el('div', id: 'main') {
+#        input type: 'hidden', name: 'chk', value: rnd.join('') 
         input type: 'tel', name: 'auth', placeholder: 'auth'
         button id: 'auth', text: 'auth'
       }
     end
-    puts "#{@app}"
-    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
-    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
+#    puts "#{@app}"
+#    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
+#    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
   end
   
   def redirect
@@ -382,7 +370,7 @@ class App
   def qrcode h={}
     
   end
-  def block t, h={}, &b
+  def el t, h={}, &b
     bl = []; h.each_pair { |k,v| bl << %[#{k}='#{v}'] }
     return %[<#{t} #{bl.join(' ')}>#{b.call()}</#{t}>]
   end
@@ -494,7 +482,8 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<% if @target != 'index' %>
+<h1 id='this' style='color: white;'><span><%= OPTS[:domain] %></span></h1>
+<% if @target == 'app' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
   <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   <% @r = { nil => "none", "1" => "thick solid white", "2" => "thick double white", "3" => "thick dotted white" } %>
@@ -577,7 +566,6 @@ form { text-align: center; height: 100%; }
 <% end %>
 </form>
 <script>
-<% if @user %>
 //   $("#type").val("<%= @user.attr['type'] %>");
 //   $("#type").val("<%= @user.attr['type'] %>");
 
@@ -599,8 +587,9 @@ form { text-align: center; height: 100%; }
             canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
             var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
             var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-            var dom = /https/g;
+            var dom = /<%= OPTS[:domain] %>/g;
             if (code) {
+		$('#this').html('<code>' + code.data + '</code>');
 		if (dom.test(code.data)) {
                     var h = {};
                     var o = code.data.split('?');
@@ -610,8 +599,12 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-                    
-		    $('#magic').show();
+                    $('#this').html('<code>' + JSON.stringify(h) + '</code>');
+//                    if (h.invite) {
+//                    
+//                    } else {
+//                      window.location = code.data;
+//                    }
 		}
 	    }
         }
@@ -630,7 +623,6 @@ form { text-align: center; height: 100%; }
   }, false);
   if (u) { f.readAsDataURL(u); }
   });    
-<% end %>
 #{@app[:js].join("\n")}
 </script>
 </body>
@@ -672,12 +664,12 @@ HERE = Here.new(OPTS.to_hash)
 
 class APP < Sinatra::Base
   set :port, OPTS[:port]
-  before { @app = App.new(request, params) }
-  get('/favicon.ico') {}
-  get('/manifest.webmanifest') { @app.manifest params[:tok] }
-  get('/') { @app.html }
-  post('/') { if @app.redirect; redirect @app.redirect; else; @app.html; end }
-  get('/:n') { @app.html }
+  before { }
+  get('/favicon.ico') { return '' }
+  get('/manifest.webmanifest') { App.new(request, params).manifest params[:tok] }
+  get('/') { App.new(request, params).html }
+  post('/') { @app = App.new(request, params); if @app.redirect; redirect @app.redirect; else; @app.html; end }
+  get('/:n') { App.new(request, params).html }
 end
 
 begin

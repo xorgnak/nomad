@@ -10,8 +10,8 @@ DISTRO_NAME='nomadic'
 DISTRO_VARIANT='local'
 DISTRO_PRETTY_NAME='Nomadic Linux'
 DISTRO_HOSTNAME='nomad'
-DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii'
-DISTRO_GEMS='pry sinatra redis-objects cinch gmail'
+DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii multimon-ng soundmodem'
+DISTRO_GEMS='pry sinatra redis-objects cinch json listen paho-mqtt slop device_detector twilio-ruby'
 
 X="[\033[0;34m$DISTRO_NAME\033[0m]"
 
@@ -21,10 +21,13 @@ if [[ $2 != '--google' ]]; then
 else
     echo -e "$X HOSTNAME: `hostname`"
 fi 
+
 echo -e "$X DEBS"
 apt-get -qq update
 apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
 echo -e "$X GEMS"
+
+#gem install $DISTRO_GEMS 2>1 /dev/null
 gem install --no-rdoc --no-ri $DISTRO_GEMS 2>1 /dev/null
 
 echo -e "$X SCREEN"
@@ -37,7 +40,7 @@ hardstatus on
 hardstatus alwayslastline
 screen -t emacs 0 emacs -nw --visit ~/index.org
 screen -t bash 1 bash
-screen -t pry 2 pry
+screen -t '#' 9 redis-cli monitor
 select 0
 END
 chown $USERNAME:$USERNAME $DIR/.screenrc
@@ -193,25 +196,37 @@ chown $USERNAME:$USERNAME $DIR/.prompt
 echo -e "$X BASH"
 if [[ $2 == '--live' ]]; then
 cat << 'END' >> $DIR/.bashrc
+##### NOMADIC begin #####
+cat /etc/logo
+hostname
+uname -a
 source ~/.prompt
 function leah() { sudo su -c "source /root/leah.sh && $*"; }
+##### NOMADIC begin #####
 END
 else
 cat << 'END' >> $DIR/.bashrc
+##### NOMADIC begin #####
+cat /etc/logo
+hostname
+uname -a
 source ~/.prompt
 function leah() { su -c "source /root/leah.sh && $*"; }
+##### NOMADIC end #####
 END
 fi
 chown $USERNAME:$USERNAME $DIR/.bashrc
 
 echo -e "$X PROFILE"
 cat << END >> $DIR/.profile
-screen
+##### NOMADIC begin #####
+#nomad `date`
+##### NOMADIC end #####
 END
 chown $USERNAME:$USERNAME $DIR/.profile
 
 echo -e "$X LEAH"
-cat << 'END' > /root/leah.sh
+cat << 'END' > /usr/bin/leah
 #!/bin/bash
 AUTOSTART=~/.autostart.sh
 ANON="false"
@@ -274,44 +289,47 @@ function mnt() {
 
 echo -e "############################\n# Dont do anything stupid. #\n############################"
 END
+chmod +x /usr/bin/leah
 
 ##
 # TRAMP STAMP
 
+echo -e "$X LOGO"
+
+cat << END > /etc/logo
+############ NOMADIC #############
+#########  #######################
+########    ######################
+########    ########  +###########
+#########  #@  ####    ###########
+##########   ; +###    ###########
+#########+   .  ####  ;@  ########
+#########     + +####      #######
+#########        ####      #######
+#########      #####;    # ;######
+#######:  +     ####       #######
+######   ##     ###  +    ########
+#####  ####,    #.  ##:   ;#######
+######; ###    ##  ###+   ########
+####### ##;    ### +##    ########
+######## #      ### ##    ########
+########    :   ###.;.     #######
+#########   ##  ####   #   #######
+#########   ##,  ###: .##  #######
+#########  ####  ###.  ##, ;######
+#########   ###, +##   ###  ######
+########: . :###  ##   ###: ######
+#########  # ###: ## .# ###  #####
+##################################
+############## LINUX #############
+END
+
 echo -e "$X ISSUE"
-
 cat << END > /etc/issue
-The programs included with the Debian GNU/Linux system are free software; the exact distribution terms for each program are described in the individual files in /usr/share/doc/*/copyright. Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent permitted by applicable law.
-
-         ############ NOMADIC #############
-         #########  #######################
-         ########    ######################
-         ########    ########  +###########
-         #########  #@  ####    ###########
-         ##########   ; +###    ###########
-         #########+   .  ####  ;@  ########
-         #########     + +####      #######
-         #########        ####      #######
-         #########      #####;    # ;######
-         #######:  +     ####       #######
-         ######   ##     ###  +    ########
-         #####  ####,    #.  ##:   ;#######
-         ######; ###    ##  ###+   ########
-         ####### ##;    ### +##    ########
-         ######## #      ### ##    ########
-         ########    :   ###.;.     #######
-         #########   ##  ####   #   #######
-         #########   ##,  ###: .##  #######
-         #########  ####  ###.  ##, ;######
-         #########   ###, +##   ###  ######
-         ########: . :###  ##   ###: ######
-         #########  # ###: ## .# ###  #####
-         ##################################
-         ############## LINUX #############
-   
+`cat /etc/logo`
 $DISTRO_PRETTY_NAME 
 (`uname -a`)
 This image was born on: `date`
-May the force be with you...
+No warranty.  No help. May the force be with you.
 END
 echo -e "$X DONE!"
