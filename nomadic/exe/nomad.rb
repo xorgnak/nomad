@@ -12,7 +12,7 @@ REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/
 # load dependancies
 REQS.each {|e| require e }
 
-
+Dir['lib/*'].each {|e| load e }
 
 class Here
   LIVE = false
@@ -282,9 +282,8 @@ class App
       button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
       button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
       button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-      button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.b\
-ody').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
-                                                      }
+      button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
+    }
   end
   
   
@@ -469,6 +468,16 @@ form { text-align: center; height: 100%; }
 #rank { background-color: <%= @user.attr['color'] || 'black' %>; }
 .lvl { margin: 3%; padding: 2%; color: white; }
 .lvl-up { color: gold; }
+
+.vet { border: thick dotted white; }
+.standard { border-style: thick double white; }
+.new { border-style: thick solid white; }
+
+.pedicabber { background-color: orange; }
+.sponsor { background-color: green; }
+.influencer { background-color: red; }
+.pedicabber { background-color: blue; }
+
 #{@app[:css].join("\n")}
 </style>
 #{HEAD}
@@ -482,6 +491,8 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
+<input type='hidden' id='tgt' name='tgt' value='<%=  @user.attr['id'] %>'>
+<input type='hidden' id='team' name='team' value='<%=  @user.attr['team'] %>'>
 <h1 id='this' style='color: white;'><span><%= OPTS[:domain] %></span></h1>
 <% if @target == 'app' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
@@ -512,8 +523,8 @@ form { text-align: center; height: 100%; }
 </datalist> 
 <h1><input type='text' name='config[name]' id='name' placeholder='NAME' value='<%= @user.attr['name'] %>'></h1> 
 <h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH' value='<%= @user.attr['pitch'] %>'></h1>
-<h1><input list='zones' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'></h1>
-<h1><input list='types' name='config[zone]' id='zone' placeholder='ZONE' value='<%= @user.attr['zone'] %>'></h1>
+<h1><input list='zones' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['zone'] %>'></h1>
+<h1><input list='types' name='config[zone]' id='zone' placeholder='ZONE' value='<%= @user.attr['type'] %>'></h1>
 <h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
   <input type='hidden' id='img' name='config[img]' value='<%= @user.attr['img'] %>'>
@@ -525,22 +536,17 @@ form { text-align: center; height: 100%; }
 </div>
 
 <div id='zap' class='body' style='display: none;'>
-<datalist id='classes'>                                                                                                                      
-<% @user.classes.members.each do |e| %>
+
+<datalist id='types'>
+<% @user.types.members.each do |e| %>
 <option value='<%= e %>'>
-<% end %>                                                                                                                                    
-</datalist>
-<datalist id='types'>                                                                                                                      
-<% @user.types.members.each do |e| %>                                                                                                        
-<option value='<%= e %>'>                                                                                                                    
-<% end %>                                                                                                                                    
-</datalist>
-
-<datalist id='items'>                                                                                                                        
-<% @user.inventory.members.each do |e| %>
-<option value='<%= e %>'>                                                                                                                    
 <% end %>
+</datalist>
 
+<datalist id='zones'>
+<% @user.zones.members.each do |e| %>
+<option value='<%= e %>'>
+<% end %>
 </datalist>
 
 <h1 id='boss'>
@@ -553,13 +559,13 @@ form { text-align: center; height: 100%; }
 <% end %>
 </h1>
 
-<fieldset>
-<legend>badge</legend>
+<fieldset style='border: thin solid white; color: white;'>
+<legend style='border: thin solid white; color: white;'>badge</legend>
 <% if @user.perm[@zone.id].to_i > 1 %>
-<h1><input name='zap[badge]' placeholder='BADGE'></h1>
+<h1><input name='badge[new]' placeholder='BADGE'></h1>
 <% end %>
 <% @user.badges.each do |e| %>
-<span id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></span>
+<p id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></p>
 <% end %>
 </fieldset>
 </div>
@@ -599,12 +605,11 @@ form { text-align: center; height: 100%; }
 			var oo = v.split('=');
 			h[oo[0]] = oo[1]
                     });
-                    $('#this').html('<code>' + JSON.stringify(h) + '</code>');
-//                    if (h.invite) {
-//                    
-//                    } else {
-//                      window.location = code.data;
-//                    }
+                    $('#this').html('<h1 class=" + h.c + " + h.l + " + ">' + h.u + '</h1>');
+                    if (h.invite) {
+                      $("#team").val(h.invite);
+                    }
+                    $('#magic').css('background-color', 'orange');
 		}
 	    }
         }
