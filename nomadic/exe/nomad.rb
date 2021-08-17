@@ -606,10 +606,11 @@ form { text-align: center; height: 100%; }
 			h[oo[0]] = oo[1]
                     });
                     $('#this').html('<h1 class=" + h.c + " + h.l + " + ">' + h.u + '</h1>');
+                    $('#tgt').val(h.u);
                     if (h.invite) {
                       $("#team").val(h.invite);
                     }
-                    $('#magic').css('background-color', 'orange');
+                    $('#magic').click();
 		}
 	    }
         }
