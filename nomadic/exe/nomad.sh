@@ -201,6 +201,7 @@ cat /etc/logo
 hostname
 uname -a
 source ~/.prompt
+alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
 function leah() { sudo su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC begin #####
 END
@@ -211,6 +212,7 @@ cat /etc/logo
 hostname
 uname -a
 source ~/.prompt
+alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
 function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
