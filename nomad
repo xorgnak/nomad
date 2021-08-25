@@ -6,7 +6,7 @@ if [ "$1" = 'install' ]; then
     sudo cp -fRvv nomadic /usr/share/
     sudo cp -fvv nomad /usr/bin/
     sudo ./nomadic/exe/nomad.sh
-    (crontab -l; echo "@reboot /usr/bin/nomad") | crontab -
+    (sudo crontab -l; echo "@reboot /usr/bin/nomad") | sudo crontab -
     sudo service nginx restart
     mkdir -p ~/.config/autostart
     cat << END > ~/.config/autostart/chromium-browser.desktop
