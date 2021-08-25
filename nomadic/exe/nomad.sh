@@ -195,6 +195,7 @@ hostname
 uname -a
 source ~/.prompt
 alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
+function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git }
 function leah() { sudo su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC begin #####
 END
@@ -206,6 +207,7 @@ hostname
 uname -a
 source ~/.prompt
 alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
+function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git }
 function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
@@ -286,6 +288,47 @@ echo -e "############################\n# Dont do anything stupid. #\n###########
 END
 chmod +x /usr/bin/leah
 
+mkdir -p /etc/nginx/sites-enabled
+cat << END > /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+        worker_connections 768;
+        multi_accept on;                                                                                    
+}
+
+http {
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE                                    
+        ssl_prefer_server_ciphers on;
+        access_log /var/log/nginx/access.log;
+        error_log /var/log/nginx/error.log;
+        gzip on;
+server {
+listen 80;
+listen [::]:80;
+server_name localhost `cat /etc/hostname`.local;
+location / {
+    proxy_pass_header  Set-Cookie;
+    proxy_set_header   Host               \$host;
+    proxy_set_header   X-Real-IP          \$remote_addr;
+    proxy_set_header   X-Forwarded-Proto  \$scheme;
+    proxy_set_header   X-Forwarded-For    \$proxy_add_x_forwarded_for;
+    proxy_pass http://127.0.0.1:4567/;
+    proxy_buffering off;
+  }
+}
+}
+END
+service nginx restart
 ##
 # TRAMP STAMP
 

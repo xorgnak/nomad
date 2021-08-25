@@ -317,6 +317,12 @@ class App
         if p.has_key? :config
           p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
         end
+        if p.has_key? :badges
+          p[:badges].each_pair { |k,v| if v != ''; @user.badges.incr(k); end }
+        end
+        b = 0; @user.badges.members().to_h.each_pair do |k,v|
+          b += v
+        end
         input type: 'hidden', name: 'chk', value: p[:chk]
         ui
       else
@@ -550,6 +556,9 @@ form { text-align: center; height: 100%; }
 </datalist>
 
 <h1 id='boss'>
+<% if @user.perm[@zone.id].to_i > 0 %>
+<input name='config[rank]' id='rank' placeholder='RANK' value='<%= @user.attr['rank'] %>' width='1' style='width: 5%;'>
+<% end %>
 <% if @user.perm[@zone.id].to_i > 1 %>
 <input list='classes' name='config[class]' id='class' placeholder='CLASS' value='<%= @user.attr['class'] %>' style='width: 15%;'>
 <input list='types' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['type'] %>'>
@@ -670,6 +679,7 @@ HERE = Here.new(OPTS.to_hash)
 
 class APP < Sinatra::Base
   set :port, OPTS[:port]
+  set :bind, '0.0.0.0'
   before { }
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { App.new(request, params).manifest params[:tok] }
