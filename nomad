@@ -2,14 +2,28 @@
 
 if [ "$1" = 'install' ]; then
     rm -f nomadic/exe/*~
-    rm -f nomadic/exe/*~
+    rm -f nomadic/lib/*~
     sudo cp -fRvv nomadic /usr/share/
     sudo cp -fvv nomad /usr/bin/
-elif [ "$1" = 'nomadic' ]; then
     sudo ./nomadic/exe/nomad.sh
-elif [ "$1" = 'autostart' ]; then
     (crontab -l; echo "@reboot /usr/bin/nomad") | crontab -
-elif [ "$1" = 'kiosk' ]; then
+    sudo cat << END > /etc/nginx/sites-enabled/default
+server {
+       listen 80 ;
+       listen [::]:80;
+       server_name localhost `cat /etc/hostname`.local;
+       location / {
+         proxy_pass_header  Set-Cookie;
+         proxy_set_header   Host               $host;
+         proxy_set_header   X-Real-IP          $remote_addr;
+         proxy_set_header   X-Forwarded-Proto  $scheme;
+         proxy_set_header   X-Forwarded-For    $proxy_add_x_forwarded_for;
+         proxy_pass http://127.0.0.1:4567/;
+         proxy_buffering off;
+       }
+}
+END
+    sudo service nginx restart
     mkdir -p ~/.config/autostart
     cat << END > ~/.config/autostart/chromium-browser.desktop
 [Desktop Entry]	 
