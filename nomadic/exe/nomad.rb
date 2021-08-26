@@ -272,7 +272,7 @@ class App
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>],
     %[<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>],
-    %[<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>]
+    %[<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.2/peerjs.min.js" integrity="sha512-4wTQ8feow93K3qVGVXUGLULDB9eAULiG+xdbaQH8tYZlXxYv9ij+evblXD0EOqmGWT8NBTd1vQGsURvrQzmKeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>]
   ].join("\n")
   BODY = [
     %[]
@@ -585,8 +585,8 @@ form { text-align: center; height: 100%; }
 </form>
 <script>
 
-		     function encrypt(s) { CryptoJS.encrypt(s, '<%= @user.attr[:cha] %>'); }
-		     function decrypt(s) { CryptoJS.decrypt(s, '<%= @user.attr[:cha] %>').toString(CryptoJS.enc.Utf8); }
+		     function encrypt(s) { CryptoJS.AES.encrypt(s, '<%= @user.attr[:cha] %>').toString(); }
+		     function decrypt(s) { CryptoJS.AES.decrypt(s, '<%= @user.attr[:cha] %>').toString(CryptoJS.enc.Utf8); }
 
 		     var lastPeerId = null;
 		     var peer = null; // own peer object
