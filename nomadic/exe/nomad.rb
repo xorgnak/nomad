@@ -818,7 +818,7 @@ begin
   if OPTS[:interactive]
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     Process.detach( fork { APP.run! } )
-    Process.detach( fork { BOT.start } )
+#    Process.detach( fork { BOT.start } )
     Pry.config.prompt_name = :nomad
     Pry.start(OPTS[:domain])
   else
