@@ -6,7 +6,7 @@ INFO = {
   release: 0
 }
 
-REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector', 'twilio-ruby']
+REQS = ['json', 'listen', 'redis-objects', 'paho-mqtt', 'slop', 'pry', 'sinatra/base', 'device_detector', 'twilio-ruby', 'cinch']
 
 
 # load dependancies
@@ -688,7 +688,7 @@ class APP < Sinatra::Base
   get('/:n') { App.new(request, params).html }
 end
 
-bot = Cinch::Bot.new do
+BOT = Cinch::Bot.new do
   configure do |c|
     c.server   = "localhost"
     c.nick     = "cat"
@@ -696,29 +696,34 @@ bot = Cinch::Bot.new do
   end
 
   helpers do
-    def is_admin?(user)
-      true if user.nick == $admin
-    end
-  end
 
+  end
+  
   on :message, /^!join (.+)/ do |m, channel|
-    bot.join(channel) if is_admin?(m.user)
+    bot.join(channel)
   end
 
   on :message, /^!part(?: (.+))?/ do |m, channel|
     channel = channel || m.channel
 
     if channel
-      bot.part(channel) if is_admin?(m.user)
+      bot.part(channel)
     end
   end
+
+  on :message, /^#/ do |m, channel|
+    puts "#{m}"
+  end
+  
 end
+
 
 
 begin
   if OPTS[:interactive]
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     Process.detach( fork { APP.run! } )
+    Process.detach( fork { BOT.start } )
     Pry.config.prompt_name = :nomad
     Pry.start(OPTS[:domain])
   else
