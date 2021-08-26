@@ -270,7 +270,9 @@ class App
     %[<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>],
     %[<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
-    %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>]
+    %[<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>],
+    %[<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>],
+    %[<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>]
   ].join("\n")
   BODY = [
     %[]
@@ -349,6 +351,7 @@ class App
       # auth?
       HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]]).valid!
       @user = HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]])
+      @user.attr[:cha] = p[:cha]
       input type: 'hidden', name: 'chk', value: Redis::HashKey.new('cha')[p[:cha]]
       Redis::HashKey.new('cha').delete(p[:cha])
       ui
@@ -581,8 +584,98 @@ form { text-align: center; height: 100%; }
 <% end %>
 </form>
 <script>
-//   $("#type").val("<%= @user.attr['type'] %>");
-//   $("#type").val("<%= @user.attr['type'] %>");
+
+		     function encrypt(s) { CryptoJS.encrypt(s, '<%= @user.attr[:cha] %>'); }
+		     function decrypt(s) { CryptoJS.decrypt(s, '<%= @user.attr[:cha] %>').toString(CryptoJS.enc.Utf8); }
+
+		     var lastPeerId = null;
+		     var peer = null; // own peer object
+		     var conn = null;
+
+		     function initialize() {
+			 
+		     peer = new Peer(null, { debug: 2 });
+		     peer.on('open', function (id) {
+                         // Workaround for peer.reconnect deleting previous id
+                         if (peer.id === null) {
+                             console.log('Received null id from peer open');
+                             peer.id = lastPeerId;
+                         } else {
+                             lastPeerId = peer.id;
+                         }
+			 
+                         console.log('ID: ' + peer.id);
+                     });
+                     peer.on('connection', function (c) {
+                         // Disallow incoming connections
+                         c.on('open', function() {
+                             c.send("Sender does not accept incoming connections");
+                             setTimeout(function() { c.close(); }, 500);
+                         });
+                     });
+                     peer.on('disconnected', function () {
+                         console.log('Connection lost. Please reconnect.');
+                         peer.id = lastPeerId;
+                         peer._lastServerId = lastPeerId;
+                         peer.reconnect();
+                     });
+                     peer.on('close', function() {
+                         conn = null;
+                         console.log('Connection destroyed');
+                     });
+                     peer.on('error', function (err) {
+                         console.log(err);
+                     });
+                    };
+		   
+                   /**
+                    * Create the connection between the two Peers.
+                    *
+                    * Sets up callbacks that handle any events related to the
+                    * connection and data received on it.
+                    */
+                   function peer(p) {
+                       // Close old connection
+                       if (conn) {
+                           conn.close();
+                       }
+		       
+                       // Create connection to destination peer specified in the input field
+                       conn = peer.connect(p, {
+                           reliable: true
+                       });
+		       
+                       conn.on('open', function () {
+                           console.log("Connected " + conn);
+			   
+                           // Check URL params for comamnds that should be sent immediately
+                           var command = getUrlParam("command");
+                           if (command)
+                               console.log('command', command);
+                       });
+                       // Handle incoming data (messages only since this is the signal sender)
+                       conn.on('data', function (data) {
+                           console.log('data', data);
+                       });
+                       conn.on('close', function () {
+                           console.log('data', data);
+                       });
+                   };
+		     function p2p(msg) {
+			 if (conn && conn.open) {
+			     conn.send(msg);
+			     console.log("sent" + msg);
+			 } else {
+			     console.log('Connection is closed');
+			 }
+		     }
+
+
+		     
+
+
+
+
 
     $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
@@ -638,6 +731,8 @@ form { text-align: center; height: 100%; }
   }, false);
   if (u) { f.readAsDataURL(u); }
   });    
+  
+
 #{@app[:js].join("\n")}
 </script>
 </body>
