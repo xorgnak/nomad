@@ -194,8 +194,8 @@ cat /etc/logo
 hostname
 uname -a
 source ~/.prompt
-alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
-function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git }
+alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
+function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
 function leah() { sudo su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC begin #####
 END
@@ -206,8 +206,8 @@ cat /etc/logo
 hostname
 uname -a
 source ~/.prompt
-alias commit="rm -f nomadic/bin*~ && rm -f *~ && git add . && git commit && git push"
-function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git }
+alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
+function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
 function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
@@ -288,7 +288,6 @@ echo -e "############################\n# Dont do anything stupid. #\n###########
 END
 chmod +x /usr/bin/leah
 
-mkdir -p /etc/nginx/sites-enabled
 cat << END > /etc/nginx/nginx.conf
 user www-data;
 worker_processes auto;
@@ -326,6 +325,13 @@ location / {
     proxy_buffering off;
   }
 }
+
+#
+# configure domains with certbot
+#
+
+include /etc/nginx/sites-enabled/*;
+
 }
 END
 service nginx restart
@@ -370,4 +376,7 @@ $DISTRO_PRETTY_NAME
 This image was born on: `date`
 No warranty.  No help. May the force be with you.
 END
+
+chown $USERNAME:$USERNAME $DIR/*
+chown $USERNAME:$USERNAME $DIR/.*
 echo -e "$X DONE!"
