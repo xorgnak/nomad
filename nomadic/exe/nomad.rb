@@ -783,34 +783,34 @@ class APP < Sinatra::Base
   get('/:n') { App.new(request, params).html }
 end
 
-BOT = Cinch::Bot.new do
-  configure do |c|
-    c.server   = "localhost"
-    c.nick     = "cat"
-    c.channels = ["#box"]
-  end
-
-  helpers do
-
-  end
-  
-  on :message, /^!join (.+)/ do |m, channel|
-    bot.join(channel)
-  end
-
-  on :message, /^!part(?: (.+))?/ do |m, channel|
-    channel = channel || m.channel
-
-    if channel
-      bot.part(channel)
-    end
-  end
-
-  on :message, /^#/ do |m, channel|
-    puts "#{m}"
-  end
-  
-end
+#BOT = Cinch::Bot.new do
+#  configure do |c|
+#    c.server   = "localhost"
+#    c.nick     = "cat"
+#    c.channels = ["#box"]
+#  end
+#
+#  helpers do
+#
+#  end
+#  
+#  on :message, /^!join (.+)/ do |m, channel|
+#    bot.join(channel)
+#  end
+#
+#  on :message, /^!part(?: (.+))?/ do |m, channel|
+#    channel = channel || m.channel
+#
+#    if channel
+#      bot.part(channel)
+#    end
+#  end
+#
+#  on :message, /^#/ do |m, channel|
+#    puts "#{m}"
+#  end
+#  
+#end
 
 
 
