@@ -14,15 +14,15 @@ DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis
 DISTRO_GEMS='pry sinatra redis-objects cinch json listen paho-mqtt slop device_detector twilio-ruby'
 
 X="[\033[0;34m$DISTRO_NAME\033[0m]"
-
+if [ "$FULL" = true ]; then 
 echo -e "$X DEBS"
 apt-get -qq update
 apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
 echo -e "$X GEMS"
-
 #gem install $DISTRO_GEMS 2>1 /dev/null
 gem install --no-rdoc --no-ri $DISTRO_GEMS 2>1 /dev/null
-
+fi
+   
 echo -e "$X SCREEN"
 cat << END > $DIR/.screenrc 
 shell -${SHELL}
