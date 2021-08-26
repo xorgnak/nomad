@@ -688,6 +688,33 @@ class APP < Sinatra::Base
   get('/:n') { App.new(request, params).html }
 end
 
+bot = Cinch::Bot.new do
+  configure do |c|
+    c.server   = "localhost"
+    c.nick     = "cat"
+    c.channels = ["#box"]
+  end
+
+  helpers do
+    def is_admin?(user)
+      true if user.nick == $admin
+    end
+  end
+
+  on :message, /^!join (.+)/ do |m, channel|
+    bot.join(channel) if is_admin?(m.user)
+  end
+
+  on :message, /^!part(?: (.+))?/ do |m, channel|
+    channel = channel || m.channel
+
+    if channel
+      bot.part(channel) if is_admin?(m.user)
+    end
+  end
+end
+
+
 begin
   if OPTS[:interactive]
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
