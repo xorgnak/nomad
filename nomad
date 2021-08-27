@@ -5,7 +5,7 @@ if [ "$1" = 'install' ]; then
     rm -f nomadic/lib/*~
     sudo cp -fRvv nomadic /usr/share/
     sudo cp -fvv nomad /usr/bin/
-    sudo ./nomadic/exe/nomad.sh
+    sudo ./nomadic/exe/nomad.sh $*
     (sudo crontab -l; echo "@reboot /usr/bin/nomad") | sudo crontab -
     sudo service nginx restart
     mkdir -p ~/.config/autostart

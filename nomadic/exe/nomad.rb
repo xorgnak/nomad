@@ -351,7 +351,7 @@ class App
       @user.attr[:phone] = p[:auth]
       HERE.phone.send_sms to: au, body: "pin: #{x.join('')}"
       el('div', id: 'main') {
-        input type: 'hidden', name: 'tgt', value: Redis::HashKey.new('dir')
+        input type: 'hidden', name: 'tgt', value: Redis::HashKey.new('dir')[au]
         input type: 'hidden', name: 'cha', value: cha.join('')
         input type: 'text', name: 'pin', placeholder: 'pin'
         button id: 'pin', text: 'pin'
