@@ -587,14 +587,16 @@ form { text-align: center; height: 100%; }
 
 		     function encrypt(s) { CryptoJS.AES.encrypt(s, '<%= @user.attr[:cha] %>').toString(); }
 		     function decrypt(s) { CryptoJS.AES.decrypt(s, '<%= @user.attr[:cha] %>').toString(CryptoJS.enc.Utf8); }
-
+                     var me = { timestamp: '<%= Time.now.utc.to_i %>' };
+                     var client;
 		     var lastPeerId = null;
 		     var peer = null; // own peer object
 		     var conn = null;
-
-		     function initialize() {
-			 
-		     peer = new Peer(null, { debug: 2 });
+                     <% if @target == 'app' %>
+		     peer = new Peer('<%= @user.id %>', { debug: 2 });
+                     <% else %>
+                     peer = new Peer(null, { debug: 2 });
+                     <% end %>
 		     peer.on('open', function (id) {
                          // Workaround for peer.reconnect deleting previous id
                          if (peer.id === null) {
@@ -603,18 +605,21 @@ form { text-align: center; height: 100%; }
                          } else {
                              lastPeerId = peer.id;
                          }
-			 
+                         me.id = peer.id;
+                         client = new Paho.MQTT.Client('wss://vango.me', 8083, peer.id);
+client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
+client.connect({onSuccess:onConnect});
                          console.log('ID: ' + peer.id);
                      });
                      peer.on('connection', function (c) {
-                         // Disallow incoming connections
-                         c.on('open', function() {
-                             c.send("Sender does not accept incoming connections");
-                             setTimeout(function() { c.close(); }, 500);
+                         console.log('connection', c); 
+                         c.on('open', function(cx) {
+                           console.log('open', cx);
+                           c.send(JSON.stringify(me));
                          });
                      });
                      peer.on('disconnected', function () {
-                         console.log('Connection lost. Please reconnect.');
                          peer.id = lastPeerId;
                          peer._lastServerId = lastPeerId;
                          peer.reconnect();
@@ -634,7 +639,7 @@ form { text-align: center; height: 100%; }
                     * Sets up callbacks that handle any events related to the
                     * connection and data received on it.
                     */
-                   function peer(p) {
+                   function connect(p) {
                        // Close old connection
                        if (conn) {
                            conn.close();
@@ -657,8 +662,8 @@ form { text-align: center; height: 100%; }
                        conn.on('data', function (data) {
                            console.log('data', data);
                        });
-                       conn.on('close', function () {
-                           console.log('data', data);
+                       conn.on('close', function (d) {
+                           console.log('close', d);
                        });
                    };
 		     function p2p(msg) {
@@ -671,11 +676,33 @@ form { text-align: center; height: 100%; }
 		     }
 
 
-		     
 
 
 
+// called when the client connects
+function onConnect() {
+  // Once a connection has been made, make a subscription and send a message.
+  console.log("onConnect");
+  client.subscribe("World");
+  message = new Paho.MQTT.Message(JSON.stringify(me));
+  message.destinationName = "<%= OPTS[:domain] %>";
+  client.send(message);
+  $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=");
+}
 
+// called when the client loses its connection
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+  }
+}
+
+// called when a message arrives
+function onMessageArrived(message) {
+  console.log("onMessageArrived:"+message.payloadString);
+}		     
+
+initialize();
 
     $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.attr['id'] %>");
     var video = document.createElement("video");
