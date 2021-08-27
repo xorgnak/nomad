@@ -284,7 +284,6 @@ class App
       button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
       button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
       button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-      button id: 'magic', class: 'material-icons func ui', text: 'auto_fix_high', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#zap').show()] }
     }
   end
   
@@ -582,9 +581,11 @@ form { text-align: center; height: 100%; }
 </form>
 <script>
 
-function encrypt(s) { CryptoJS.AES.encrypt(s, '<%= @user.id %>').toString(); }
-function decrypt(s) { CryptoJS.AES.decrypt(s, '<%= @user.id %>').toString(CryptoJS.enc.Utf8); }
+// CryptoJS.AES.encrypt(s, '<%= @user.id %>').toString();
+// CryptoJS.AES.decrypt(s, '<%= @user.id %>').toString(CryptoJS.enc.Utf8);
+
 var me = { timestamp: '<%= Time.now.utc.to_i %>' };
+var you = {};
 var client;
 var lastPeerId = null;
 var peer = null; // own peer object
@@ -602,16 +603,15 @@ peer.on('open', function (id) {
       lastPeerId = peer.id;
   }
     me.id = peer.id;
-    client = new Paho.MQTT.Client('vango.me', 8083, peer.id);
-    client.onConnectionLost = onConnectionLost;
-    client.onMessageArrived = onMessageArrived;
-    client.connect({ onSuccess: onConnect, useSSL: true });
-    console.log('ID: ' + peer.id);
+    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
+    console.log('ME: ' + me);
+    
 });
 peer.on('connection', function (c) {
     console.log('connection', c); 
     c.on('open', function(cx) {
         console.log('open', cx);
+        you = JSON.parse(cx);
         c.send(JSON.stringify(me));
     });
 });
@@ -641,18 +641,17 @@ function connect(p) {
     
     conn.on('open', function () {
         console.log("Connected " + conn);
-	
         // Check URL params for comamnds that should be sent immediately
         var command = getUrlParam("command");
-        if (command)
-            console.log('command', command);
+        if (command) { console.log('command', command); }
+        peer(JSON.stringify(me));             
     });
-    // Handle incoming data (messages only since this is the signal sender)
     conn.on('data', function (data) {
-        console.log('data', data);
+       var you = JSON.parse(data)
+        console.log('you', you);
     });
     conn.on('close', function (d) {
-                           console.log('close', d);
+        console.log('close', d);
     });
 };
 function peer(msg) {
@@ -664,32 +663,6 @@ function peer(msg) {
     }
 }
 		     
-		     
-
-
-
-// called when the client connects
-function onConnect() {
-    // Once a connection has been made, make a subscription and send a message.
-    console.log("onConnect");
-    client.subscribe("/user/<%= @user.id %>/client");
-    message = new Paho.MQTT.Message(JSON.stringify(me));
-    message.destinationName = "/user/";
-    client.send(message);
-    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.id %>");
-}
-
-// called when the client loses its connection
-function onConnectionLost(responseObject) {
-    if (responseObject.errorCode !== 0) {
-	console.log("onConnectionLost:"+responseObject.errorMessage);
-    }
-}
-		     
-function onMessageArrived(message) {
-  console.log("onMessageArrived:"+message.payloadString);
-}		     
-
 var video = document.createElement("video");
 var canvasElement = document.getElementById("canvas");
 var canvas = canvasElement.getContext("2d");
@@ -724,6 +697,7 @@ function tick() {
                 if (h.invite) {
                     $("#team").val(h.invite);
                 }
+                connect(h.u);
                 $('#this').show();
 	    } else {
 		$('#this').hide();
