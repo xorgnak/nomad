@@ -602,10 +602,10 @@ peer.on('open', function (id) {
       lastPeerId = peer.id;
   }
     me.id = peer.id;
-    client = new Paho.MQTT.Client('wss://vango.me', 8083, peer.id);
+    client = new Paho.MQTT.Client('vango.me', 8083, peer.id);
     client.onConnectionLost = onConnectionLost;
     client.onMessageArrived = onMessageArrived;
-    client.connect({onSuccess:onConnect});
+    client.connect({ onSuccess: onConnect, useSSL: true });
     console.log('ID: ' + peer.id);
 });
 peer.on('connection', function (c) {
