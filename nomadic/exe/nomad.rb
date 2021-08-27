@@ -223,10 +223,9 @@ class Here
         pool, i = [], [];
         (:A..:Z).each {|e| pool << e }
         (0..9).each {|e| pool << e }
-        5.times { i << pool.sample }
+        20.times { i << pool.sample }
         self.attr[:id] = i.join('')
         HERE.ids[i.join('')] = @id
-        self.attr['zone'] = 'none'
       end
     end
     
@@ -266,7 +265,7 @@ class App
   HEAD = [
     %[<meta name="viewport" content="initial-scale=1, maximum-scale=1">],
     %[<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">],
-    %[<!-- <link rel="manifest" href="https://<%= OPTS[:domain] %>/manifest.webmanifest" crossorigin="use-credentials" /> -->],
+    %[<link rel="manifest" href="https://<%= OPTS[:domain] %>/manifest.webmanifest" crossorigin="use-credentials" />],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>],
     %[<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.js"></script>],
     %[<script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>],
@@ -282,10 +281,13 @@ class App
     input type: 'hidden', name: 'id', value: @user.id
     el('nav', style: 'position: fixed; bottom: 0;') {
       button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
+      if @user.valid?
+        button id: 'config', class: 'material-icons func ui', text: 'menu', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+        button id: 'badge', class: 'material-icons func ui', text: 'qr_code_2', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+      else
       button id: 'init', class: 'material-icons func ui', text: 'menu', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#auth').show()] }
       input id: 'auth', placeholder: 'PHONE', name: 'auth', style: 'display: none;'
-      button id: 'config', class: 'material-icons func ui', style: 'display: none;', text: 'menu', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
-      button id: 'badge', class: 'material-icons func ui', text: 'qr_code_2', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
+      end
     }
   end
   
@@ -310,58 +312,66 @@ class App
     if p.has_key? :u
       @target = 'profile'
       @user = HERE.usr(HERE.ids[p[:u]])
-      @zone = HERE.zone(@user.attr['zone'])
       el('h1') {"this is a test"}
-    elsif p.has_key? :chk
-      if HERE.usr(Redis::HashKey.new('chk')[p[:chk]]).valid?
+    elsif p.has_key?(:chk) && HERE.usr(p[:tgt]).valid?
         @target = 'app'
-        @user = HERE.usr(Redis::HashKey.new('chk')[p[:chk]])
-        @zone = HERE.zone(@user.attr['zone'])
+        @user = HERE.usr(p[:tgt])
         if p.has_key? :config
           p[:config].each_pair { |k,v| if v != ''; @user.attr[k] = v; end }
         end
         if p.has_key? :badges
-          p[:badges].each_pair { |k,v| if v != ''; @user.badges.incr(k); end }
+          if p[:at] != p[:tgt]
+            p[:badges].each_pair { |k,v| if v != ''; HERE.usr(p[:at]).badges.incr(k); end }
+          end
+          p[:badges].each_pair { |k,v| if v != ''; HERE.usr(p[:tgt]).badges.incr(k); end }
         end
-        b = 0; @user.badges.members().to_h.each_pair do |k,v|
+        b = 0; @user.badges.members(with_scores: true).to_h.each_pair do |k,v|
           b += v
         end
+        @user.attr['badges'] = b;
         input type: 'hidden', name: 'chk', value: p[:chk]
+        input type: 'hidden', name: 'tgt', value: p[:tgt]
+        input type: 'hidden', name: 'at', value: p[:tgt]
         ui
-      else
-        @redirect = '/'
-      end
     elsif p.has_key?(:auth) && p[:auth] != '' && !HERE.banned.include?(p[:auth])
+      a = p[:auth].gsub('-', '').gsub('(', '').gsub(')', '').gsub(' ', '')
+      au = "+1#{a}"
       @target = 'auth?'
       # auth!
       chk = []; 10.times { chk << rand(9) }
       cha = []; 10.times { cha << rand(9) }
-      @user = HERE.usr(p[:auth])
-      p = []; 6.times { p << rand(9) }
+      @user = HERE.usr(p[:tgt])
+      x = []; 6.times { x << rand(9) }
+      if !Redis::HashKey.new('dir').has_key? au
+        Redis::HashKey.new('dir')[au] = p[:tgt]
+      end
       Redis::HashKey.new('cha')[cha.join('')] = chk.join('')
-      Redis::HashKey.new('chk')[chk.join('')] = @user.id
-      @user.pin.value = p.join('')
-      HERE.phone.send_sms to: @user.id, body: "pin: #{p.join('')}"
+      Redis::HashKey.new('chk')[chk.join('')] = cha.join('')
+      @user.pin.value = x.join('')
+      @user.attr[:phone] = p[:auth]
+      HERE.phone.send_sms to: au, body: "pin: #{x.join('')}"
       el('div', id: 'main') {
+        input type: 'hidden', name: 'tgt', value: Redis::HashKey.new('dir')
         input type: 'hidden', name: 'cha', value: cha.join('')
         input type: 'text', name: 'pin', placeholder: 'pin'
         button id: 'pin', text: 'pin'
       }
-    elsif p.has_key?(:pin) && HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]]).pin == p[:pin]
+    elsif p.has_key?(:pin) && HERE.usr(p[:tgt]).pin == p[:pin]
       @target = 'auth!'
       # auth?
-      HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]]).valid!
-      @user = HERE.usr(Redis::HashKey.new('chk')[Redis::HashKey.new('cha')[p[:cha]]])
-      @user.attr[:cha] = p[:cha]
-      input type: 'hidden', name: 'chk', value: Redis::HashKey.new('cha')[p[:cha]]
+      HERE.usr(p[:tgt]).valid!
+      @user = HERE.usr(p[:tgt])
       Redis::HashKey.new('cha').delete(p[:cha])
-      ui
+      input type: 'hidden', name: 'chk', value: p[:chk]
+      input type: 'hidden', name: 'tgt', value: p[:tgt]
+      input type: 'hidden', name: 'at', id: 'at', value: p[:tgt]
+      button text: 'BEGIN'
     else
       @target = 'index'
       rnd = [];
       32.times { rnd << rand(16).to_s(16) }
+      input type: 'hidden', name: 'tgt', value: p[:tgt] || rnd.join('')
       @user = HERE.usr(rnd.join(''))
-      @zone = HERE.zone('0')
       ui
     end
     #    puts "#{@app}"
@@ -412,7 +422,7 @@ class App
     "background_color": "#f69435",
     "display": "fullscreen",
     "scope": "/",
-    "start_url": "/?tok=<%= t %>",
+    "start_url": "/?tgt=<%= t %>",
     "name": "propedicab.com",
     "short_name": "pedicab",
     "description": "the propedicab.com user interface",
@@ -499,8 +509,6 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<input type='hidden' id='tgt' name='tgt' value='<%=  @user.id %>'>
-<input type='hidden' id='team' name='team' value='<%=  @user.attr['team'] %>'>
 <h1 id='this' style='position: fixed; bottom: 0; width: 100%; color: white;'><span><%= OPTS[:domain] %></span></h1>
 <% if @target == 'app' %>
 <div id='wrap' class='body' style='display: none; width: 100%;'>
@@ -509,7 +517,7 @@ form { text-align: center; height: 100%; }
     <h1 id='rank' style='border: <%= @r[@user.attr['rank']] %>'>
     <% @ic = { "pedicabber" => "stars", "staff" => "check_box_outline_blank", "influencer" => "change_history", "sponsor" => "circle" } %>
     <% @user.attr['lvl'].to_i.times do |t| %>
-    <% if @user.attr['lvl'].to_i  > 5 %>
+    <% if @user.attr['badges'].to_i  > 5 %>
 <span class='material-icons lvl lvl-up'><%= @ic[@user.attr['type']] %></span>
    <% else %>
   <span class='material-icons lvl'><%= @ic[@user.attr['type']] %></span>
@@ -531,8 +539,6 @@ form { text-align: center; height: 100%; }
 </datalist> 
 <h1><input type='text' name='config[name]' id='name' placeholder='NAME' value='<%= @user.attr['name'] %>'></h1> 
 <h1><input type='text' name='config[pitch]' id='pitch' placeholder='PITCH' value='<%= @user.attr['pitch'] %>'></h1>
-<h1><input list='zones' name='config[type]' id='type' placeholder='TYPE' value='<%= @user.attr['zone'] %>'></h1>
-<h1><input list='types' name='config[zone]' id='zone' placeholder='ZONE' value='<%= @user.attr['type'] %>'></h1>
 <h1><input type='text' id='social' name='config[social]' value='<%= @user.attr['social'] %>' placeholder='LINK'></h1>
 <p>
   <input type='hidden' id='img'  value='<%= @user.attr['img'] %>'>
@@ -556,9 +562,10 @@ form { text-align: center; height: 100%; }
 <option value='<%= e %>'>
 <% end %>
 </datalist>
-
+<% if @fingerprint.has_key? :zone %>
 <h1 id='boss'>
-<% if @user.perm[@zone.id].to_i > 0 %>
+
+<% if @user.perm[@params[:zone]].to_i > 0 %>
 <input name='config[rank]' id='rank' placeholder='RANK' value='<%= @user.attr['rank'] %>' width='1' style='width: 5%;'>
 <% end %>
 <% if @user.perm[@zone.id].to_i > 1 %>
@@ -569,7 +576,6 @@ form { text-align: center; height: 100%; }
 <input type='number' name='config[lvl]' id='lvl' placeholder='LVL' value='<%= @user.attr['lvl'] %>' style='width: 15%;'>
 <% end %>
 </h1>
-
 <fieldset style='border: thin solid white; color: white;'>
 <legend style='border: thin solid white; color: white;'>badge</legend>
 <% if @user.perm[@zone.id].to_i > 1 %>
@@ -579,6 +585,7 @@ form { text-align: center; height: 100%; }
 <p id='badge-<%= e %>' class='badge'><input type='checkbox' name='badge[<%= e %>]'><span class='material-icons'><%= e %></span></p>
 <% end %>
 </fieldset>
+<% end %>
 </div>
 <% end %>
 </form>
@@ -771,7 +778,7 @@ class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   before { }
   get('/favicon.ico') { return '' }
-  get('/manifest.webmanifest') { App.new(request, params).manifest params[:tok] }
+  get('/manifest.webmanifest') { App.new(request, params).manifest params[:tgt] }
   get('/') { App.new(request, params).html }
   post('/') { @app = App.new(request, params); if @app.redirect; redirect @app.redirect; else; @app.html; end }
   get('/:n') { App.new(request, params).html }
