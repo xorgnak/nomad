@@ -590,6 +590,8 @@ var lastPeerId = null;
 var peer = null; // own peer object
 var conn = null;
 
+function initialize() {
+
 peer = new Peer('<%= @user.id %>', { debug: 2 });
 
 peer.on('open', function (id) {
@@ -743,9 +745,12 @@ $(document).on('change', '#file', function() {
     }, false);
     if (u) { f.readAsDataURL(u); }
 });    
-  
+}  
 
+// load user stuff
 #{@app[:js].join("\n")}
+// and go!
+initialize();
 </script>
 </body>
 </html>]).result(binding)
