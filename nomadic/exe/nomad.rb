@@ -293,19 +293,19 @@ class App
     Redis.new.publish('DEBUG.App', "#{r.fullpath} #{p}")
     @req, @fingerprint, @redirect = r, {}.merge(p), false
     @app = Hash.new {|h,k| h[k] = []}
-#    if r.host != 'localhost' 
-#      @fingerprint['referrer'] = r.referrer || r.fullpath
-#      @ua = DeviceDetector.new(r.user_agent)
-#      @fingerprint['ua'] = {
-#        name: @ua.name,
-#        ver: @ua.full_version,
-#        os: @ua.os_name,
-#        os_ver: @ua.os_full_version,
-#        dev: @ua.device_name,
-#        type: @ua.device_type
-#      }
-#      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
-  #    end
+    if r.host != 'localhost' 
+      @fingerprint['referrer'] = r.referrer || r.fullpath
+      @ua = DeviceDetector.new(r.user_agent)
+      @fingerprint['ua'] = {
+        name: @ua.name,
+        ver: @ua.full_version,
+        os: @ua.os_name,
+        os_ver: @ua.os_full_version,
+        dev: @ua.device_name,
+        type: @ua.device_type
+      }
+      Redis.new.publish "App.initialize", "#{@fingerprint} #{p}"
+    end
     if p.has_key? :u
       @target = 'profile'
       @user = HERE.usr(HERE.ids[p[:u]])
@@ -361,15 +361,12 @@ class App
       32.times { rnd << rand(16).to_s(16) }
       @user = HERE.usr(rnd.join(''))
       @zone = HERE.zone('0')
-      el('div', id: 'main') {
-#        input type: 'hidden', name: 'chk', value: rnd.join('') 
-        input type: 'tel', name: 'auth', placeholder: 'auth'
-        button id: 'auth', text: 'auth'
-      }
     end
-#    puts "#{@app}"
-#    @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
-#    HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
+    #    puts "#{@app}"
+    if @fingerprint.has_key? 'ua' 
+      @fingerprint['ua'].each_pair { |k,v| HERE.obj(@target).fingerprint(k).incr(v) }
+      HERE.obj(@target).referrer.incr(@fingerprint['referrer'])
+    end
   end
   
   def redirect
@@ -500,7 +497,7 @@ form { text-align: center; height: 100%; }
 <% else %>
 <%= BODY %>
 <% end %>
-<input type='hidden' id='tgt' name='tgt' value='<%=  @user.attr['id'] %>'>
+<input type='hidden' id='tgt' name='tgt' value='<%=  @user.id %>'>
 <input type='hidden' id='team' name='team' value='<%=  @user.attr['team'] %>'>
 <h1 id='this' style='position: fixed; bottom: 0; width: 100%; color: white;'><span><%= OPTS[:domain] %></span></h1>
 <% if @target == 'app' %>
@@ -585,179 +582,169 @@ form { text-align: center; height: 100%; }
 </form>
 <script>
 
-		     function encrypt(s) { CryptoJS.AES.encrypt(s, '<%= @user.attr[:cha] %>').toString(); }
-		     function decrypt(s) { CryptoJS.AES.decrypt(s, '<%= @user.attr[:cha] %>').toString(CryptoJS.enc.Utf8); }
-                     var me = { timestamp: '<%= Time.now.utc.to_i %>' };
-                     var client;
-		     var lastPeerId = null;
-		     var peer = null; // own peer object
-		     var conn = null;
-                     <% if @target == 'app' %>
-		     peer = new Peer('<%= @user.id %>', { debug: 2 });
-                     <% else %>
-                     peer = new Peer(null, { debug: 2 });
-                     <% end %>
-		     peer.on('open', function (id) {
-                         // Workaround for peer.reconnect deleting previous id
-                         if (peer.id === null) {
-                             console.log('Received null id from peer open');
-                             peer.id = lastPeerId;
-                         } else {
-                             lastPeerId = peer.id;
-                         }
-                         me.id = peer.id;
-                         client = new Paho.MQTT.Client('wss://vango.me', 8083, peer.id);
-client.onConnectionLost = onConnectionLost;
-client.onMessageArrived = onMessageArrived;
-client.connect({onSuccess:onConnect});
-                         console.log('ID: ' + peer.id);
-                     });
-                     peer.on('connection', function (c) {
-                         console.log('connection', c); 
-                         c.on('open', function(cx) {
-                           console.log('open', cx);
-                           c.send(JSON.stringify(me));
-                         });
-                     });
-                     peer.on('disconnected', function () {
-                         peer.id = lastPeerId;
-                         peer._lastServerId = lastPeerId;
-                         peer.reconnect();
-                     });
-                     peer.on('close', function() {
-                         conn = null;
-                         console.log('Connection destroyed');
-                     });
-                     peer.on('error', function (err) {
-                         console.log(err);
-                     });
-                    };
-		   
-                   /**
-                    * Create the connection between the two Peers.
-                    *
-                    * Sets up callbacks that handle any events related to the
-                    * connection and data received on it.
-                    */
-                   function connect(p) {
-                       // Close old connection
-                       if (conn) {
-                           conn.close();
-                       }
-		       
-                       // Create connection to destination peer specified in the input field
-                       conn = peer.connect(p, {
-                           reliable: true
-                       });
-		       
-                       conn.on('open', function () {
-                           console.log("Connected " + conn);
-			   
-                           // Check URL params for comamnds that should be sent immediately
-                           var command = getUrlParam("command");
-                           if (command)
-                               console.log('command', command);
-                       });
-                       // Handle incoming data (messages only since this is the signal sender)
-                       conn.on('data', function (data) {
-                           console.log('data', data);
-                       });
-                       conn.on('close', function (d) {
+function encrypt(s) { CryptoJS.AES.encrypt(s, '<%= @user.id %>').toString(); }
+function decrypt(s) { CryptoJS.AES.decrypt(s, '<%= @user.id %>').toString(CryptoJS.enc.Utf8); }
+var me = { timestamp: '<%= Time.now.utc.to_i %>' };
+var client;
+var lastPeerId = null;
+var peer = null; // own peer object
+var conn = null;
+
+peer = new Peer('<%= @user.id %>', { debug: 2 });
+
+peer.on('open', function (id) {
+  if (peer.id === null) {
+      console.log('Received null id from peer open');
+      peer.id = lastPeerId;
+  } else {
+      lastPeerId = peer.id;
+  }
+    me.id = peer.id;
+    client = new Paho.MQTT.Client('wss://vango.me', 8083, peer.id);
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+    client.connect({onSuccess:onConnect});
+    console.log('ID: ' + peer.id);
+});
+peer.on('connection', function (c) {
+    console.log('connection', c); 
+    c.on('open', function(cx) {
+        console.log('open', cx);
+        c.send(JSON.stringify(me));
+    });
+});
+peer.on('disconnected', function () {
+    peer.id = lastPeerId;
+    peer._lastServerId = lastPeerId;
+    peer.reconnect();
+});
+peer.on('close', function() {
+    conn = null;
+    console.log('Connection destroyed');
+});
+peer.on('error', function (err) {
+    console.log(err);
+});
+
+function connect(p) {
+    // Close old connection
+    if (conn) {
+        conn.close();
+    }
+    
+    // Create connection to destination peer specified in the input field
+    conn = peer.connect(p, {
+        reliable: true
+    });
+    
+    conn.on('open', function () {
+        console.log("Connected " + conn);
+	
+        // Check URL params for comamnds that should be sent immediately
+        var command = getUrlParam("command");
+        if (command)
+            console.log('command', command);
+    });
+    // Handle incoming data (messages only since this is the signal sender)
+    conn.on('data', function (data) {
+        console.log('data', data);
+    });
+    conn.on('close', function (d) {
                            console.log('close', d);
-                       });
-                   };
-		     function p2p(msg) {
-			 if (conn && conn.open) {
-			     conn.send(msg);
-			     console.log("sent" + msg);
-			 } else {
-			     console.log('Connection is closed');
-			 }
-		     }
-
-
+    });
+};
+function peer(msg) {
+    if (conn && conn.open) {
+	conn.send(msg);
+	console.log("sent" + msg);
+    } else {
+	console.log('Connection is closed');
+    }
+}
+		     
+		     
 
 
 
 // called when the client connects
 function onConnect() {
-  // Once a connection has been made, make a subscription and send a message.
-  console.log("onConnect");
-  client.subscribe("World");
-  message = new Paho.MQTT.Message(JSON.stringify(me));
-  message.destinationName = "<%= OPTS[:domain] %>";
-  client.send(message);
-  $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=");
+    // Once a connection has been made, make a subscription and send a message.
+    console.log("onConnect");
+    client.subscribe("/user/<%= @user.id %>/client");
+    message = new Paho.MQTT.Message(JSON.stringify(me));
+    message.destinationName = "/user/";
+    client.send(message);
+    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.id %>");
 }
 
 // called when the client loses its connection
 function onConnectionLost(responseObject) {
-  if (responseObject.errorCode !== 0) {
-    console.log("onConnectionLost:"+responseObject.errorMessage);
-  }
+    if (responseObject.errorCode !== 0) {
+	console.log("onConnectionLost:"+responseObject.errorMessage);
+    }
 }
-
-// called when a message arrives
+		     
 function onMessageArrived(message) {
   console.log("onMessageArrived:"+message.payloadString);
 }		     
 
 initialize();
 
-    $('#qrcode').qrcode("https://<%= OPTS[:domain] %>/?u=<%= @user.attr['id'] %>");
-    var video = document.createElement("video");
-    var canvasElement = document.getElementById("canvas");
-    var canvas = canvasElement.getContext("2d");
+var video = document.createElement("video");
+var canvasElement = document.getElementById("canvas");
+var canvas = canvasElement.getContext("2d");
     // Use facingMode: environment to attemt to get the front camera on phones
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-	video.srcObject = stream;
-	video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-	video.play();
-	requestAnimationFrame(tick);
-    });
-    function tick() {
-	if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvasElement.height = video.videoHeight;
-            canvasElement.width = video.videoWidth;
-            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-            var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-            var dom = /<%= OPTS[:domain] %>/g;
-            if (code) {
-		$('#this').html('<code>' + code.data + '</code>');
-		if (dom.test(code.data)) {
-                    var h = {};
-                    var o = code.data.split('?');
-                    var kv = o[1].split('&');
-                    var u;
-                    kv.forEach(function(v, i, obj) {
-			var oo = v.split('=');
-			h[oo[0]] = oo[1]
-                    });
-                    $('#this').html('<h1 class=" + h.c + " + h.l + " + ">' + h.u + '</h1>');
-                    $('#tgt').val(h.u);
-                    if (h.invite) {
-                      $("#team").val(h.invite);
-                    }
-                    $('#magic').click();
-		}
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+    video.srcObject = stream;
+    video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+    video.play();
+    requestAnimationFrame(tick);
+});
+function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvasElement.height = video.videoHeight;
+        canvasElement.width = video.videoWidth;
+        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+        var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+        var dom = /<%= OPTS[:domain] %>/g;
+        if (code) {
+	    $('#this').html('<code>' + code.data + '</code>');
+	    if (dom.test(code.data)) {
+                var h = {};
+                var o = code.data.split('?');
+                var kv = o[1].split('&');
+                var u;
+                kv.forEach(function(v, i, obj) {
+		    var oo = v.split('=');
+		    h[oo[0]] = oo[1]
+                });
+                $('#this').html("<div class='" + h.c + "-" + h.l + "'><h1>" + h.c + "</h1><h3>" + h.l + "</h3></div>");
+                $('#tgt').val(h.u);
+                if (h.invite) {
+                    $("#team").val(h.invite);
+                }
+                $('#this').show();
+	    } else {
+		$('#this').hide();
 	    }
-        }
-        requestAnimationFrame(tick);
+	}
     }
-  $(document).on('click', '#pic', function(ev) {
-  ev.preventDefault();
-  $('#file').click();
-  });
-  $(document).on('change', '#file', function() {
-  var u = $('#file')[0].files[0];
-  var f = new FileReader();
-  f.addEventListener('load', function() {
-  $('#preview').attr('src', f.result);
-  $('#img').val(f.result);
-  }, false);
-  if (u) { f.readAsDataURL(u); }
-  });    
+    requestAnimationFrame(tick);
+}
+$(document).on('click', '#pic', function(ev) {
+    ev.preventDefault();
+    $('#file').click();
+});
+$(document).on('change', '#file', function() {
+    var u = $('#file')[0].files[0];
+    var f = new FileReader();
+    f.addEventListener('load', function() {
+	$('#preview').attr('src', f.result);
+	$('#img').val(f.result);
+    }, false);
+    if (u) { f.readAsDataURL(u); }
+});    
   
 
 #{@app[:js].join("\n")}
