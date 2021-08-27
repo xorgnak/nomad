@@ -279,11 +279,13 @@ class App
   ].join("\n")
 
   def ui
-    input type: 'hidden', name: 'id', value: @user.attr['id']
+    input type: 'hidden', name: 'id', value: @user.id
     el('nav', style: 'position: fixed; bottom: 0;') {
       button id: 'close', class: 'material-icons ui', text: 'close', style: 'display: none;'
-      button id: 'badge', class: 'material-icons func ui', text: 'badge', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
-      button id: 'config', class: 'material-icons func ui', text: 'settings', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+      button id: 'init', class: 'material-icons func ui', text: 'menu', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#auth').show()] }
+      input id: 'auth', placeholder: 'PHONE', name: 'auth', style: 'display: none;'
+      button id: 'config', class: 'material-icons func ui', style: 'display: none;', text: 'menu', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#conf').show()] }
+      button id: 'badge', class: 'material-icons func ui', text: 'qr_code_2', events: { click: %[$('.body').hide(); $('.func').hide(); $('#close').show(); $('#wrap').show()] }
     }
   end
   
@@ -360,6 +362,7 @@ class App
       32.times { rnd << rand(16).to_s(16) }
       @user = HERE.usr(rnd.join(''))
       @zone = HERE.zone('0')
+      ui
     end
     #    puts "#{@app}"
     if @fingerprint.has_key? 'ua' 
