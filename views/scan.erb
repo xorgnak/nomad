@@ -1,0 +1,38 @@
+
+var video = document.createElement("video");
+var canvasElement = document.getElementById("canvas");
+var canvas = canvasElement.getContext("2d");
+// Use facingMode: environment to attemt to get the front camera on phones
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+    log('starting qr scanner...');
+    video.srcObject = stream;
+    video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+    video.play();
+    log('qr scanner started.');
+    requestAnimationFrame(tick);
+});
+function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+	canvasElement.height = video.videoHeight;
+	canvasElement.width = video.videoWidth;
+	canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+	var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+	var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+	var dom = /<%= OPTS[:domain] %>/g;
+	if (code) {
+	    if (dom.test(code.data)) {
+		var h = {};
+		var o = code.data.split('?');
+		var kv = o[1].split('&');
+		var u;
+		kv.forEach(function(v, i, obj) {
+		    var oo = v.split('=');
+		    h[oo[0]] = oo[1]
+		});
+		log('found: ' + h.u);
+		mine(h.u);
+	    }
+	}
+    }
+    requestAnimationFrame(tick);
+} 
