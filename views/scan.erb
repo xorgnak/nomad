@@ -30,6 +30,8 @@ function tick() {
 		    h[oo[0]] = oo[1]
 		});
 		log('found: ' + h.u);
+		$('#target').val(h.u);
+		$('#magic').show();
 		mine(h.u);
 	    }
 	}

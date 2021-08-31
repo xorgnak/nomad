@@ -1,0 +1,20 @@
+<% if @user.attr.has_key? :link %>
+<h1><a href='<%= @user.attr[:link] %>'>FOLLOW</a></h1>
+<% end %>
+
+<% if @user.attr.has_key? :youtube %>
+<div><%= @user.attr[:youtube] %></div>
+<% end %>
+
+<% if @user.attr.has_key? :image %>
+<img src='<%= @user.attr[:image] %>'>
+<% end %>
+
+<% if @user.attr.has_key? :pitch %>
+<div><%= @user.attr[:pitch] %></div>
+<% end %>
+
+
+<% if @user.attr.has_key? :contact %>
+<h1><a href='<%= @user.attr[:contact] %>'>CONTACT</a></h1>
+<% end %>

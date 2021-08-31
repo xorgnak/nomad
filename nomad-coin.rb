@@ -3,7 +3,9 @@
 ID_SIZE = 16
 VAULT_SIZE = 8
 
+
 FEES = { xfer: 1 }
+
 
 BADGES = ['backpack', 'campaign', 'coronavirus', 'directions', 'explore', 'bike_scooter', 'directions_bike', 'home_repair_service', 'restaurant', 'fastfood', 'local_cafe', 'local_bar', 'local_pizza', 'set_meal', 'celebration', 'nightlife', 'sports_bar', 'outdoor_grill', 'smoking_rooms', 'medical_services', 'offline_bolt', 'highlight', 'palette', 'night_shelter', 'radio', 'local_fire_department', 'fire_extinguisher', 'biotech', 'festival', 'carpenter', 'child_friendly', 'self_improvement', 'memory', 'spa', 'loyalty', 'support_agent', 'local_shipping', 'two_wheeler', 'drive_eta', 'airport_shuttle', 'agriculture', 'carpenter', 'plumbing', 'history_edu', 'construction', 'speed', 'sports_score', 'tour']
 
@@ -91,6 +93,7 @@ class U
   include Redis::Objects
   sorted_set :wallet
   sorted_set :awards
+  sorted_set :stripes
   sorted_set :badges
   sorted_set :stat
   sorted_set :boss
@@ -121,6 +124,39 @@ class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   set :server, 'thin'
   helpers do
+    def colors b,f,d
+      bg = {
+        1 => 'white',
+        3 => 'blue',
+        4 => 'green',
+        5 => 'red'
+      }
+
+      fg = {
+        1 => 'purple',
+        2 => 'orange',
+        3 => 'yellow',
+        4 => 'green'
+      }
+      bd = {
+        1 => 'silver',
+        2 => 'gold'
+      }
+      h =  {
+        fg: fg[f.to_i] || 'gold',
+        bg: bg[b.to_i] || 'black',
+        bd: bd[d.to_i] || 'red'
+      }
+    end
+    def patch b,f,d,p,r
+      cl = colors(b,f,d)
+      bd = ['none', 'solid', 'dotted']
+      s = [%[background-color: #{cl[:bg]};]];
+      s << %[color: #{cl[:fg]};]
+      s << %[border: thick #{bd[p.to_i] || 'dashed'} #{cl[:bd]};]
+      s << %[border-radius: #{r}px;]
+      return { style: s.join(' '), colors: cl, }
+    end
     def id *i
       if i[0]
         return i[0]
@@ -129,9 +165,20 @@ class APP < Sinatra::Base
         return ii.join('')
       end
     end
+    def lvl i
+      r, u = [], U.new(i);
+      k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
+      u.attr[:lvl].to_i.times {
+        r << %[<span class='material-icons pin'>#{k[u.attr[:pin].to_i]}</span>]
+      }
+      p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
+      return %[<h1 class='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
+    end
+    
     def pool
       Redis::Set.new('POOL')
     end
+    
     def stats u
       r = [%[<h1 id='stats'>]]
       r << %[<span class='stat'><span>lvl</span><span>#{U.new(u).stat[:lvl]}</span></span>]
@@ -143,24 +190,33 @@ class APP < Sinatra::Base
     def awards u
 
     end
-    def badges u
-
+    def badges i
+      r, u = [], U.new(i)
+      u.badges.members(with_scores: true).to_h.each_pair do |k,v|
+        p = patch(v, u.awards[k], u.boss[k], u.stripes[k], 1000);
+        r << %[<span class='material-icons badge' style='#{p[:style]}'>#{k}</span>]
+      end
+      return %[<div id='badges'>#{r.join('')}</div>]
     end
   end
   before {}
   get('/favicon.ico') { return '' }
-  get('/') { @id = id(params[:u]); pool << @id; erb :index }
+  get('/manifest.webmanifest') { erb :manifest }
+  get('/') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
+  get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :goto }
   post('/') do
     Redis.new.publish 'POST', "#{params}"
     @id = id(params[:u]);
-
+    @user = U.new(@id);
     if params.has_key? :config
-      params[:config].each_pair { |k,v|  }
+      params[:config].each_pair { |k,v| @user.attr[k] = v }
     end
     if params.has_key? :magic
       params[:magic].each_pair { |k,v|  }
     end
-    
+    if params.has_key? :give
+      U.new(params[:give][:target]).badges.incr(params[][:give[:badge]])
+    end
     erb :index
   end
 end
