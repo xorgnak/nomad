@@ -99,6 +99,7 @@ class U
   sorted_set :boss
   hash_key :attr
   counter :coins
+  list :log
   def initialize i
     @id = i
   end
@@ -192,8 +193,12 @@ class APP < Sinatra::Base
     end
     def badges i
       r, u = [], U.new(i)
-      u.badges.members(with_scores: true).to_h.each_pair do |k,v|
-        p = patch(v, u.awards[k], u.boss[k], u.stripes[k], 1000);
+      @bgs = u.badges.members(with_scores: true).to_h
+      @bss = u.boss.members(with_scores: true).to_h
+      @awd = u.awards.members(with_scores: true).to_h
+      @stp = u.stripes.members(with_scores: true).to_h
+      @bgs.each_pair do |k,v|
+        p = patch(v, @awd[k], @bss[k], @stp[k], 1000);
         r << %[<span class='material-icons badge' style='#{p[:style]}'>#{k}</span>]
       end
       return %[<div id='badges'>#{r.join('')}</div>]
@@ -207,15 +212,22 @@ class APP < Sinatra::Base
   post('/') do
     Redis.new.publish 'POST', "#{params}"
     @id = id(params[:u]);
-    @user = U.new(@id);
-    if params.has_key? :config
-      params[:config].each_pair { |k,v| @user.attr[k] = v }
-    end
-    if params.has_key? :magic
-      params[:magic].each_pair { |k,v|  }
-    end
-    if params.has_key? :give
-      U.new(params[:give][:target]).badges.incr(params[][:give[:badge]])
+    @by = U.new(@id)
+    @user = U.new(params[:target]);
+    params[:config].each_pair { |k,v| @user.attr[k] = v }
+    @user.log << %[#{@by.attr[:name] || @b.id} updated your profile.]
+    
+    if params[:give][:type] != nil
+      if params[:give][:of] == 'boss'
+        @user.boss.incr(params[:give][:type])
+      elsif params[:give][:of] == 'stripe'
+        @user.stripes.incr(params[:give][:type])
+      elsif params[:give][:of] == 'award'
+        @user.awards.incr(params[:give][:type])
+      else
+        @user.badges.incr(params[:give][:type])
+      end
+      @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
     end
     erb :index
   end

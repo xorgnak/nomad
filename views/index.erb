@@ -23,6 +23,8 @@ padding: 3%;
 .badge { font-size: xx-large; padding: 2%; margin 3%; }
 </style>
 
+<% @a = @user.attr.all %>
+
 <canvas id='canvas'></canvas> 
 
   <input type='file' id='pic-file' style='position: fixed; top: -100px;' name='config[pic]'>
@@ -36,16 +38,16 @@ padding: 3%;
 
   
   <div id='config' style='background-color: black; display: none;'>
-    <h3><input type='text' name='config[name]' placeholder='NAME'></h3>
-    <h3><input type='text' name='config[pitch]' placeholder='PITCH'></h3>
-    <h3><input type='text' name='config[link]' placeholder='LINK'></h3>
+    <h3><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h3>
+    <h3><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h3>
+    <h3><input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>'></h3>
     <h3>
       <select name='config[contact]' style='width: 20%;'>
       	<option value='none' selected disabled>contact</option>
 	<option value='sms'>sms</option>
 	<option value='tel'>tel</option>
       </select>
-      <input type='tel' name='config[phone]' style='width: 78%;' maxlength="10" size="10" placeholder='PHONE'></h3>
+      <input type='tel' name='config[phone]' style='width: 78%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h3>
     <h3><button id='pic' style='width: 100%; height: 30%;'>PIC</button></h3>
     <h3 style='text-align: center;'><button>SAVE</button></h3>
   </div>
@@ -57,29 +59,43 @@ padding: 3%;
       <%= badges(@id) %>
     </div>
   </div>
+  
   <div id='magic' style='background-color: black; display: none;'>
-    <input type='hidden' id = 'target' name='give[target]' value='<%= @id %>'>
-      <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-	<select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
-	  <option class='material-icons' selected disabled>military_tech</option>
-	<% U.new(@id).badges.members.to_a.each do |badge| %>
+    <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
+	<option selected disabled>military_tech</option>
+	<% if @a[:boss].to_i > 0 %>
+	<option value='award'>emoji_events</option>
+	<% end %>
+	<% if @a[:boss].to_i > 1 %>
+	<option value='stripe'>texture</option>
+	<% end %>
+	<% if @a[:boss].to_i > 2 %>
+	<option value='boss'>accessibility_new</option>
+	<% end %>
+      </select>
+      <select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
+	<option class='material-icons' selected disabled></option>
+	<% BADGES.each do |badge| %>
 	<option class='material-icons' value='<%= badge %>'><%= badge %></option>
 	<% end %>
       </select>
-	<input type='text' name='give[desc]' placeholder='for...'>
-	<button class='material-icons'>send</button>
-      </h3>
+      <input type='text' name='give[desc]' placeholder='for...'>
+      <button class='material-icons'>send</button>
+    </h3>
   </div>
   
   <fieldset id='view' style='background-color: rgba(255,255,255,0.1); color: white; height: 40%; position: fixed; bottom: 0; left: 0; width: 90%; text-shadow: 0px 0px 2px black; overflow-y: scroll;'>
     <legend><span id='icon' class='material-icons'>waving_hand</span>welcome</legend>
     <p style='background-color: rgba(0,0,0,0.4);'>
-      <code id='log' style='width: 100%; color: orange;'>booting...</code>
+      <code id='hist' style='width: 100%; color: green;'><%= @user.log.values.join("<br>") %></code>
+      <% @user.log.clear() %>
+      <br><code id='log' style='width: 100%; color: orange;'>booting...</code>
     </p>
     <div id='info'>
       <h3 id='state' style='width: 100%; text-align: center;'>
-	<span id='gp'><%= '0' %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
-	<span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= '0' %></span>
+	<span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
+	<span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
       </h3>
       <p>thanks for giving us a try.</p>
       <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
@@ -98,4 +114,5 @@ $(document).on('click', '#pic', function(e) { e.preventDefault(); $('#pic-file')
 <%= erb :scan %>
 <%= erb :sha %>
 <%= erb :coin %>
+
 </script>
