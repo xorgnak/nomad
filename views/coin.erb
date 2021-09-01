@@ -25,19 +25,19 @@ peer.on('open', function (id) {
 });
 peer.on('connection', function (c) {
 c.on('open', function() {
-    log('incomming connection...');
+    log('incomming connection from: ' + c.peer);
     c.send(JSON.stringify(state));
     });
 });
 peer.on('disconnected', function () {
-    log('Connection lost. Please reconnect');
+    log('connection with ' + conn.peer + ' lost.');
     peer.id = lastPeerId;
     peer._lastServerId = lastPeerId;
     peer.reconnect();
 });
 peer.on('close', function() {
     conn = null;
-    log('Connection destroyed');
+    log('Connection with ' + conn.peer + ' destroyed');
 });
 peer.on('error', function (err) {
     log(err);
