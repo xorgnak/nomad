@@ -243,8 +243,8 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { erb :manifest }
-  get('/') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
-  get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :goto }
+  get('/') { if params.has_key?(:u); @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :goto; else erb :landing }
+  get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
     Redis.new.publish 'POST', "#{params}"
     @id = id(params[:u]);
