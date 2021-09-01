@@ -62,12 +62,8 @@ function mine(p) {
         log("outgoing connection to: " + conn.peer);
     });
     conn.on('data', function(d) {
-    J = JSON.parse(d);
     $('#peer').text(d);
     log('data:' + d);
-//
-// post to ws
-//
     });
     conn.on('close', function () {
         log("disconected from: " + conn.peer);
