@@ -19,7 +19,7 @@ peer.on('open', function (id) {
     }
     log('ID: ' + peer.id);
     var pool = <%= JSON.generate(pool.members.to_a) %>;
-    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
+    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/' + peer.id);
     log('ready to scan...');
 //    pool.forEach(function(e) { mine(e) });
 });
