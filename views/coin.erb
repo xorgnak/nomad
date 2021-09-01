@@ -51,8 +51,6 @@ peer.on('error', function (err) {
  */
 function mine(p) {
     // Close old connection
-    if (conn) { conn.close(); }
-    
     // Create connection to destination peer specified in the input field
     conn = peer.connect(p, {
         reliable: true
