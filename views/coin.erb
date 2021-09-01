@@ -24,9 +24,10 @@ peer.on('open', function (id) {
     log('ready to scan...');
 });
 peer.on('connection', function (c) {
-    conn = c;
+c.on('open', function() {
     log('incomming connection...');
-    conn.send(JSON.stringify(state));
+    c.send(JSON.stringify(state));
+    });
 });
 peer.on('disconnected', function () {
     log('Connection lost. Please reconnect');
