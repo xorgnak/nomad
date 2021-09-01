@@ -1,4 +1,4 @@
-var state = {};
+var state = { peers: [] };
 
 var id = '<%= @id %>'
 
@@ -25,7 +25,7 @@ peer.on('open', function (id) {
 });
 peer.on('connection', function (c) {
 c.on('open', function() {
-    log('incomming connection from: ' + c.peer);
+    log('scan from: ' + c.peer);
     state.peers << c.peer
     c.send(JSON.stringify(state));
     c.close();
@@ -64,6 +64,7 @@ function mine(p) {
     conn.on('data', function(d) {
     J = JSON.parse(d);
     log('data:' + d);
+    $('#peer').text(d)
 //
 // post to ws
 //
