@@ -275,8 +275,11 @@ class APP < Sinatra::Base
     else
       @id = id(params[:u]);
       @by = U.new(@id)
-      @user = U.new(params[:target] || @id);
-   
+      if params.has_key? :target
+      @user = U.new(params[:target]);
+      else
+        @user = U.new(@id);
+      end
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
