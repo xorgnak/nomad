@@ -79,7 +79,9 @@ padding: 3%;
   </div>
   
   <div id='magic' style='background-color: black; display: none;'>
-    
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <input type='text' id='target' name='target' value='<%= @id %>' disabled>
+    </h3>
     <% if @user.attr[:boss].to_i > 3 %>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='admin' style='width: 100%;'>
