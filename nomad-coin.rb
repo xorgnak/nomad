@@ -170,7 +170,7 @@ class APP < Sinatra::Base
       }
 
       fg = {
-        0 => 'darkgrey',
+        0 => 'lightgrey',
         1 => 'purple',
         2 => 'orange',
         3 => 'yellow',
