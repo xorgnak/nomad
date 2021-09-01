@@ -280,6 +280,7 @@ class APP < Sinatra::Base
       else
         @user = U.new(@id);
       end
+      Redis.new.publish 'POST', "#{@user.id}"
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
