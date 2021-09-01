@@ -63,8 +63,8 @@ function mine(p) {
     });
     conn.on('data', function(d) {
     J = JSON.parse(d);
+    $('#peer').text(d);
     log('data:' + d);
-    $('#peer').text(d)
 //
 // post to ws
 //
