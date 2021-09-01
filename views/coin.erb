@@ -26,7 +26,9 @@ peer.on('open', function (id) {
 peer.on('connection', function (c) {
 c.on('open', function() {
     log('incomming connection from: ' + c.peer);
+    state.peers << c.peer
     c.send(JSON.stringify(state));
+    c.close();
     });
 });
 peer.on('disconnected', function () {
@@ -62,6 +64,9 @@ function mine(p) {
     conn.on('data', function(d) {
     J = JSON.parse(d);
     log('data:' + d);
+//
+// post to ws
+//
     });
     conn.on('close', function () {
         log("disconected from: " + conn.peer);
