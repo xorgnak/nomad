@@ -255,7 +255,7 @@ class APP < Sinatra::Base
       CHA.delete(params[:cha])
       @id = id(params[:u]);
       @by = U.new(@id)
-      @user = U.new(@id);
+      @user = U.new(params[:target]);
       erb :index
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
