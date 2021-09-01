@@ -256,6 +256,8 @@ class APP < Sinatra::Base
       @id = id(params[:u]);
       @by = U.new(@id)
       @user = U.new(@id);
+      params.delete(:cha)
+      params.delete(:pin)
       erb :index
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
@@ -268,6 +270,7 @@ class APP < Sinatra::Base
       CHA[cha.join('')] = params[:usr]
       params[:cha] = cha.join('')
       Redis.new.setex params[:cha], 180, pin.join('');
+      params.delete(:usr)
       erb :landing
     elsif params.has_key? :u
       @id = id(params[:u]);
