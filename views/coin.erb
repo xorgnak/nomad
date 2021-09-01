@@ -63,8 +63,8 @@ function mine(p) {
 	conn.send(JSON.stringify(state));
     });
     conn.on('data', function(d) {
-    J = JSON.stringify(d)d
-    log(d);
+    J = JSON.stringify(d)
+    log('data:' + d);
     });
     conn.on('close', function () {
         log("disconected from: " + conn.peer);
