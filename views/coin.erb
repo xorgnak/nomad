@@ -26,7 +26,7 @@ peer.on('open', function (id) {
 peer.on('connection', function (c) {
     conn = c;
     log('incomming connection...');
-    c.send(JSON.stringify(state));
+    conn.send(JSON.stringify(state));
 });
 peer.on('disconnected', function () {
     log('Connection lost. Please reconnect');
@@ -62,7 +62,7 @@ function mine(p) {
 	conn.send(JSON.stringify(state));
     });
     conn.on('data', function(d) {
-    J = JSON.stringify(d)
+    J = JSON.parse(d);
     log('data:' + d);
     });
     conn.on('close', function () {
