@@ -260,7 +260,9 @@ class APP < Sinatra::Base
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
-      IDS[params[:usr]] = params[:u]
+      if !IDS.has_key? params[:usr]
+        IDS[params[:usr]] = params[:u]
+      end
       CHA[cha.join('')] = params[:usr]
       params[:cha] = cha.join('')
       Redis.new.setex params[:cha], 180, pin.join('');
