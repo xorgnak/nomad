@@ -21,7 +21,8 @@ CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
 ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
-
+CHA = Redis::HashKey.new('CHA')
+IDS = Redis::HashKey.new('IDS')
 def timer h={}
   t = 0
   t += (h[:years].to_i * (365 * (24 * (60 * 60))))
@@ -133,6 +134,7 @@ class U
   hash_key :attr
   counter :coins
   list :log
+  value :pin, expireat: 180
   def initialize i
     @id = i
   end
@@ -243,65 +245,90 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { erb :manifest }
-  get('/') { if params.has_key?(:u); @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
+  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
   get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
     Redis.new.publish 'POST', "#{params}"
-    @id = id(params[:u]);
-    @by = U.new(@id)
-    @user = U.new(params[:target]);
-
-    if params.has_key? :admin
-      @user.attr.incr(params[:admin].to_sym)
-      @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
-    end
-    params[:config].each_pair { |k,v| @user.attr[k] = v }
-    @user.log << %[#{@by.attr[:name] || @by.id} updated your profile.]
-
-    if params.has_key?(:vote) && params[:zone] != ''
-      VOTES << params[:vote]
-      Vote.new(params[:vote]).pool << @user.id
-      @user.attr['vote'] = params[:vote]
-      @user.log << %[#{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
-    end
-    
-    if params.has_key?(:zone) && params[:zone] != ''
-      ZONES << params[:zone]
-      Zone.new(params[:zone]).pool << @user.id
-      @user.zones << params[:zone]
-      @user.log << %[#{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
-    end
-
-    if params.has_key?(:title) && params[:title] != ''
-      TITLES << params[:title]
-      @user.titles << params[:title]
-      @user.log << %[#{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
-    end
-    
-    
-    if params[:give][:type] != nil
-      if params[:give][:of] == 'boss'
-        @user.boss.incr(params[:give][:type])
-      elsif params[:give][:of] == 'stripe'
-        @user.stripes.incr(params[:give][:type])
-      elsif params[:give][:of] == 'award'
-        @user.awards.incr(params[:give][:type])
-      elsif params[:give][:of] == 'vote'
-        Vote.new(params[:give][:type]).pool << @user.id
-      else
-        @user.badges.incr(params[:give][:type])
+    if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
+      params[:u] = IDS[CHA[params[:cha]]]
+      U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
+      CHA.delete(params[:cha])
+      @id = id(params[:u]);
+      @by = U.new(@id)
+      @user = U.new(params[:target]);
+      erb :index
+    elsif params.has_key?(:usr)
+      cha = []; 64.times { cha << rand(16).to_s(16) }
+      pin = []; 6.times { pin << rand(9) }
+      IDS[params[:usr]] = params[:u]
+      CHA[cha.join('')] = params[:usr]
+      params[:cha] = cha.join('')
+      Redis.new.setex params[:cha], 180, pin.join('');
+      # send pin
+      erb :landing
+    elsif params.has_key? :u
+      @id = id(params[:u]);
+      @by = U.new(@id)
+      @user = U.new(params[:target]);
+      
+      if params.has_key? :admin
+        @user.attr.incr(params[:admin].to_sym)
+        @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
       end
-      @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
+
+      if params.has_key? :config
+      params[:config].each_pair { |k,v| @user.attr[k] = v }
+      @user.log << %[#{@by.attr[:name] || @by.id} updated your profile.]
+      end
+      
+      if params.has_key?(:vote) && params[:zone] != ''
+        VOTES << params[:vote]
+        Vote.new(params[:vote]).pool << @user.id
+        @user.attr['vote'] = params[:vote]
+        @user.log << %[#{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
+      end
+      
+      if params.has_key?(:zone) && params[:zone] != ''
+        ZONES << params[:zone]
+        Zone.new(params[:zone]).pool << @user.id
+        @user.zones << params[:zone]
+        @user.log << %[#{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
+      end
+      
+      if params.has_key?(:title) && params[:title] != ''
+        TITLES << params[:title]
+        @user.titles << params[:title]
+        @user.log << %[#{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
+      end
+      
+      if params.has_key? :give
+      if params[:give][:type] != nil
+        if params[:give][:of] == 'boss'
+          @user.boss.incr(params[:give][:type])
+        elsif params[:give][:of] == 'stripe'
+          @user.stripes.incr(params[:give][:type])
+        elsif params[:give][:of] == 'award'
+          @user.awards.incr(params[:give][:type])
+        elsif params[:give][:of] == 'vote'
+          Vote.new(params[:give][:type]).pool << @user.id
+        else
+          @user.badges.incr(params[:give][:type])
+        end
+        @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
+      end
+      end
+      if params.has_key? :message
+        m = [%[<span style='margin-left: 1%; margin-right: 1%;'>]]
+        m << %[<span style='color: gold;'>\[</span>]
+        m << %[<span style='color: white;'>#{@by.attr[:name] || @by.id}</span>]
+        m << %[<span style='color: gold;'>\]</span></span>]
+        m << %[<span style='color: lightgrey;'>#{params[:message]}</span>]
+        @user.log << m.join('')
+      end
+      erb :index
+    else
+      redirect '/'
     end
-    if params.has_key? :message
-      m = [%[<span style='margin-left: 1%; margin-right: 1%;'>]]
-      m << %[<span style='color: gold;'>\[</span>]
-      m << %[<span style='color: white;'>#{@by.attr[:name] || @by.id}</span>]
-      m << %[<span style='color: gold;'>\]</span></span>]
-      m << %[<span style='color: lightgrey;'>#{params[:message]}</span>]
-      @user.log << m.join('')
-    end
-    erb :index
   end
 end
 
