@@ -1,0 +1,14 @@
+
+<h1 style='width: 100%; text-align: center;'>
+<span style='background-color: rgba(0,0,0,0.2); border-radius: 1000px; padding: 2%;'><%= OPTS[:domain] %></span></h1>
+<div style='width: 100%; text-align:center;'>
+<% if params.has_key? :cha %>
+<h3>we sent you a pin.</h3>
+<input type='hidden' name='cha' value='<%= params[:cha] %>'>
+<h1><input type='tel' name='pin' maxlength='6' placeholder='PIN'></h1>
+<h1><button>AUTHORIZE!</button></h1>
+<% else %>
+<h1><input type='tel' name='usr' maxlength='10' placeholder='PHONE'></h1>
+<h1><button>AUTHORIZE</button></h1>
+<% end %>
+</div>

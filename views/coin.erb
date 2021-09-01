@@ -1,0 +1,72 @@
+var state = { peers: [] };
+
+var id = '<%= @id %>'
+
+var lastPeerId = null;
+var peer = null; // own peer object
+var conn = null;
+
+peer = new Peer(id, {
+    debug: 2
+});
+
+peer.on('open', function (id) {
+    // Workaround for peer.reconnect deleting previous id
+    if (peer.id === null) {
+        log('Received null id from peer open');
+        peer.id = lastPeerId;
+    } else {
+        lastPeerId = peer.id;
+    }
+    log('ID: ' + peer.id);
+    state.id = peer.id;
+    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
+    log('ready to scan...');
+});
+peer.on('connection', function (c) {
+c.on('open', function() {
+    log('scan from: ' + c.peer);
+    state.peers << c.peer
+    c.send(JSON.stringify(state));
+    c.close();
+    });
+});
+peer.on('disconnected', function () {
+    log('connection with ' + conn.peer + ' lost.');
+    peer.id = lastPeerId;
+    peer._lastServerId = lastPeerId;
+    peer.reconnect();
+});
+peer.on('close', function() {
+    conn = null;
+    log('Connection with ' + conn.peer + ' destroyed');
+});
+peer.on('error', function (err) {
+    log(err);
+});
+
+/**
+ * Create the connection between the two Peers.
+ *
+ * Sets up callbacks that handle any events related to the
+ * connection and data received on it.
+ */
+function mine(p) {
+    // Close old connection
+    // Create connection to destination peer specified in the input field
+    conn = peer.connect(p, {
+        reliable: true
+    });
+    
+    conn.on('open', function () {
+        log("outgoing connection to: " + conn.peer);
+    });
+    conn.on('data', function(d) {
+    $('#peer').text(d);
+    $('#peer').show()
+    log('data:' + d);
+    });
+    conn.on('close', function () {
+        log("disconected from: " + conn.peer);
+    });
+};

@@ -1,0 +1,193 @@
+<style>
+#canvas { width: 100%; height: 100%; position: fixed; left: 0; top: 0; z-index: -2; } 
+#head > * { vertical-align: middle; }
+#config input { width: 100%; }
+#title {
+color: white;
+text-shadow: 0px 0px 1px black;
+text-shadow: 0px 0px 2px black;
+}
+button {
+color: white;
+text-shadow: 0px 0px 1px black;
+text-shadow: 0px 0px 2px black;
+background-color: rgba(0,0,0,0.0);
+border: thick solid white;
+padding: 3%;
+}
+#state > * { vertical-align: middle; }
+#give > * {vertical-align: middle; }
+#lvl { padding: 1%; text-align: center; }
+.pin { padding: 2%; margin: 2%; font-size: xx-large; }
+#badges { text-align: center; }
+.badge { font-size: xx-large; padding: 2%; margin 3%; }
+</style>
+
+<% @a = @user.attr.all %>
+
+<canvas id='canvas'></canvas> 
+
+  <input type='file' id='pic-file' style='position: fixed; top: -100px;' name='config[pic]'>
+  <h1 id='head' style='width: 100%; text-align: center;'>
+    <button id='menu' class='material-icons' style='font-size: xx-large; position: fixed; top: 0; left: 0;'>menu</button>
+    <span id='title' style='text-align: center; display: inline-block;'><%= OPTS[:domain]%></span>
+    <button id='show-badge' class='material-icons' style='font-size: xx-large; position: fixed; top: 0; right: 0;'>qr_code_2</button>
+  </h1>
+  
+  
+
+  
+  <div id='config' style='background-color: black; display: none;'>
+    <h3><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h3>
+    <h3><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h3>
+    <h3><input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>'></h3>
+    <h3 style='width: 100%;'>
+      <select id='title' name='config[title]' style='width: 100%;'>
+	<option value='title' selected disabled>title</option>
+	<% @user.titles.members.each do |e| %>
+	<option value='<%= e %>'><%= e %></option>
+	<% end %>
+      </select>
+    </h3>
+    <h3 style='width: 100%;'>
+      <select id='sponsor' name='config[sponsor]' style='width: 100%;'>
+	<option value='sponsor' selected disabled>sponsor</option>
+	<% @user.zones.members.each do |e| %>
+	<option value='<%= e %>'><%= e %></option>
+	<% end %>
+      </select>
+    </h3>
+    <h3>
+      <select id='contact' name='config[contact]' style='width: 20%;'>
+      	<option value='none' selected disabled>contact</option>
+	<option value='sms'>sms</option>
+	<option value='tel'>tel</option>
+      </select>
+      <input type='tel' name='config[phone]' style='width: 78%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h3>
+    <h3><button id='pic' style='width: 100%; height: 30%;'>PIC</button></h3>
+    <h3 style='text-align: center;'><button>SAVE</button></h3>
+  </div>
+  
+  <div id='badge' style='background-color: black; display: none; width: 100%;'>
+    <% if @user.attr.has_key? :lvl %><%= lvl(@id) %><% end %>
+    <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:name] %></h1>
+    <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
+      <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
+      <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] %></h1>
+      <%= badges(@id) %>
+    </div>
+  </div>
+  
+  <div id='magic' style='background-color: black; display: none;'>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+    <input type='text' id='scan' name='scan' value='id: <%= @id %>' disabled>
+    </h3>
+    <% if @user.attr[:boss].to_i > 3 %>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <select name='admin' style='width: 100%;'>
+	<option selected disabled>promote</option>
+	<option value='class'>class</option>
+	
+	
+	<% if @user.attr[:boss].to_i > 4 %>
+	<option value='lvl'>level</option>
+	<option value='rank'>rank</option>
+	<option value='stripes'>stripes</option>
+	<option value='pin'>pin</option>
+	<% end %>
+	
+	<% if @user.attr[:boss].to_i > 5 %>
+	<option value='boss'>boss</option>
+	<% end %>
+	
+      </select>
+    </h3>
+    <% end %>
+
+    <% if @user.attr[:boss].to_i > 7 %>
+    <datalist id='contests'>
+      <% VOTES.members.each do |vote| %>
+      <option value='<%= vote %>'>
+	<% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
+    <% end %>
+    <% if @user.attr[:boss].to_i > 8 %>
+    <datalist id='titles'>
+      <% TITLES.members.each do |title| %>
+      <option value='<%= title %>'>
+	<% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
+    <% end %>
+    
+    <% if @user.attr[:boss].to_i > 8 %>
+    <datalist id='zones'>
+      <% ZONES.members.each do |zone| %>
+      <option value='<%= zone %>'>
+    <% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
+    <% end %>
+    <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
+	<option selected disabled>military_tech</option>
+	<% if @user.attr[:boss].to_i > 0 %>
+	<option value='award'>emoji_events</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 1 %>
+	<option value='stripe'>texture</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 2 %>
+	<option value='boss'>accessibility_new</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 6 %>
+	<option value='vote'>poll</option>
+	<% end %>
+      </select>
+      <select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
+	<option class='material-icons' selected disabled></option>
+	<% BADGES.each do |badge| %>
+	<option class='material-icons' value='<%= badge %>'><%= badge %></option>
+	<% end %>
+      </select>
+      <input type='text' name='give[desc]' placeholder='for...'>
+      <button class='material-icons'>send</button>
+    </h3>
+    <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
+  </div>
+  
+  <fieldset id='view' style='background-color: rgba(255,255,255,0.1); color: white; height: 40%; position: fixed; bottom: 0; left: 0; width: 90%; text-shadow: 0px 0px 2px black; overflow-y: scroll;'>
+    <legend><span id='icon' class='material-icons'>waving_hand</span>welcome</legend>
+    <p style='background-color: rgba(0,0,0,0.4);'>
+      <code id='hist' style='width: 100%; color: green;'><%= @user.log.values.join("<br>") %></code>
+      <% @user.log.clear() %>
+      <br><code id='log' style='width: 100%; color: orange;'>booting...</code>
+    </p>
+    <div id='info'>
+      <h3 id='state' style='width: 100%; text-align: center;'>
+	<span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
+	<span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
+      </h3>
+      <p>thanks for giving us a try.</p>
+      <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
+      <p>Customize your <span class='material-icons'>menu</span> to give your brand a boost.</p>
+      <p>Share your <span class='material-icons'>qr_code_2</span> with others to connect.</p>
+      <p>Your local agent can sell you <span class='material-icons'>savings</span> and help you with any sponsorship, marketing, scheduling, or any other issues.</p>
+    </div>
+  </fieldset>
+  
+  <script>
+    $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
+    $('#sponsor').val('<%= @user.attr[:sponsor] || 'none' %>');
+    $('#sponsor').val('<%= @user.attr[:title] || 'title' %>');
+  function log(s) { $('#log').text(s); console.log(s); }
+$(document).on('click', '#menu', function(e) { e.preventDefault(); $('#view').toggle(); $('#config').toggle(); });
+$(document).on('click', '#show-badge', function(e) { e.preventDefault(); $('#view').toggle(); $('#badge').toggle(); });
+$(document).on('click', '#pic', function(e) { e.preventDefault(); $('#pic-file').click(); });
+
+<%= erb :scan %>
+<%= erb :sha %>
+<%= erb :coin %>
+
+</script>
