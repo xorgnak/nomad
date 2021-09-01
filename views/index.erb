@@ -80,7 +80,7 @@ padding: 3%;
   
   <div id='magic' style='background-color: black; display: none;'>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <input type='text' id='target' name='target' value='<%= @id %>' disabled>
+    <input type='text' id='scan' name='scan' value='id: <%= @id %>' disabled>
     </h3>
     <% if @user.attr[:boss].to_i > 3 %>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>

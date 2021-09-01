@@ -30,7 +30,9 @@ function tick() {
 		    h[oo[0]] = oo[1]
 		});
 		log('found: ' + h.u);
-		$('#target').val(h.u);
+
+$('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+		$('#scan').val("ID: " + h.u);
 		$('#view').hide();
 		$('#magic').show();
 		mine(h.u);
