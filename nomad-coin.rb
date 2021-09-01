@@ -255,7 +255,7 @@ class APP < Sinatra::Base
       CHA.delete(params[:cha])
       @id = id(params[:u]);
       @by = U.new(@id)
-      @user = U.new(params[:target]);
+      @user = U.new(@id);
       erb :index
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
@@ -273,7 +273,7 @@ class APP < Sinatra::Base
       @id = id(params[:u]);
       @by = U.new(@id)
       @user = U.new(params[:target]);
-      
+   
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
