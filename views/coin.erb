@@ -61,7 +61,7 @@ function mine(p) {
     conn.on('open', function () {
         log("Connected to: " + conn.peer);
 	// send job request
-	socket.send("JOB," + id + ",LOW");
+	conn.send("JOB," + id + ",LOW");
     });
     // Handle incoming data (messages only since this is the signal sender)
     conn.on('data', function (data) {
