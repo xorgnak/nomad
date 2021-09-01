@@ -254,11 +254,9 @@ class APP < Sinatra::Base
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
       CHA.delete(params[:cha])
       @id = id(params[:u]);
-      @by = U.new(@id)
-      @user = U.new(@id);
       params.delete(:cha)
       params.delete(:pin)
-      erb :index
+      redirect "/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
@@ -327,7 +325,7 @@ class APP < Sinatra::Base
         @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
-      erb :index
+      redirect "/#{@by.id}"
     end
   end
 end
