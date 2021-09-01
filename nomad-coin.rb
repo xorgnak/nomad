@@ -16,6 +16,7 @@ require 'json'
 require 'slop'
 require 'pry'
 require 'rufus-scheduler'
+require 'twilio-ruby'
 
 CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
