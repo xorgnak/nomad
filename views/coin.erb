@@ -63,6 +63,7 @@ function mine(p) {
     });
     conn.on('data', function(d) {
     $('#peer').text(d);
+    $('#peer').show()
     log('data:' + d);
     });
     conn.on('close', function () {
