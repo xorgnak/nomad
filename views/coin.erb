@@ -19,7 +19,7 @@ peer.on('open', function (id) {
         lastPeerId = peer.id;
     }
     log('ID: ' + peer.id);
-    var pool = <%= JSON.generate(pool.members.to_a) %>;
+    state.id = peer.id;
     $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
     log('ready to scan...');
 });
@@ -59,7 +59,6 @@ function mine(p) {
     
     conn.on('open', function () {
         log("outgoing connection to: " + conn.peer);
-	conn.send(JSON.stringify(state));
     });
     conn.on('data', function(d) {
     J = JSON.parse(d);
