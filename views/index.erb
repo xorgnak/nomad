@@ -41,8 +41,24 @@ padding: 3%;
     <h3><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h3>
     <h3><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h3>
     <h3><input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>'></h3>
+    <h3 style='width: 100%;'>
+      <select id='title' name='config[title]' style='width: 100%;'>
+	<option value='title' selected disabled>title</option>
+	<% @user.titles.members.each do |e| %>
+	<option value='<%= e %>'><%= e %></option>
+	<% end %>
+      </select>
+    </h3>
+    <h3 style='width: 100%;'>
+      <select id='sponsor' name='config[sponsor]' style='width: 100%;'>
+	<option value='sponsor' selected disabled>sponsor</option>
+	<% @user.zones.members.each do |e| %>
+	<option value='<%= e %>'><%= e %></option>
+	<% end %>
+      </select>
+    </h3>
     <h3>
-      <select name='config[contact]' style='width: 20%;'>
+      <select id='contact' name='config[contact]' style='width: 20%;'>
       	<option value='none' selected disabled>contact</option>
 	<option value='sms'>sms</option>
 	<option value='tel'>tel</option>
@@ -54,24 +70,78 @@ padding: 3%;
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
     <%= lvl(@id) %>
+    <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:name] %></h1>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
+      <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] %></h1>
       <%= badges(@id) %>
     </div>
   </div>
   
   <div id='magic' style='background-color: black; display: none;'>
+    
+    <% if @user.attr[:boss].to_i > 3 %>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <select name='admin' style='width: 100%;'>
+	<option selected disabled>promote</option>
+	<option value='class'>class</option>
+	
+	
+	<% if @user.attr[:boss].to_i > 4 %>
+	<option value='lvl'>level</option>
+	<option value='rank'>rank</option>
+	<option value='stripes'>stripes</option>
+	<option value='pin'>pin</option>
+	<% end %>
+	
+	<% if @user.attr[:boss].to_i > 5 %>
+	<option value='boss'>boss</option>
+	<% end %>
+	
+      </select>
+    </h3>
+    <% end %>
+
+    <% if @user.attr[:boss].to_i > 7 %>
+    <datalist id='contests'>
+      <% VOTES.members.each do |vote| %>
+      <option value='<%= vote %>'>
+	<% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
+    <% end %>
+    <% if @user.attr[:boss].to_i > 8 %>
+    <datalist id='titles'>
+      <% TITLES.members.each do |title| %>
+      <option value='<%= title %>'>
+	<% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
+    <% end %>
+    
+    <% if @user.attr[:boss].to_i > 8 %>
+    <datalist id='zones'>
+      <% ZONES.members.each do |zone| %>
+      <option value='<%= zone %>'>
+    <% end %>
+    </datalist>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
+    <% end %>
+    
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
 	<option selected disabled>military_tech</option>
-	<% if @a[:boss].to_i > 0 %>
+	<% if @user.attr[:boss].to_i > 0 %>
 	<option value='award'>emoji_events</option>
 	<% end %>
-	<% if @a[:boss].to_i > 1 %>
+	<% if @user.attr[:boss].to_i > 1 %>
 	<option value='stripe'>texture</option>
 	<% end %>
-	<% if @a[:boss].to_i > 2 %>
+	<% if @user.attr[:boss].to_i > 2 %>
 	<option value='boss'>accessibility_new</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 6 %>
+	<option value='vote'>poll</option>
 	<% end %>
       </select>
       <select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
@@ -105,7 +175,10 @@ padding: 3%;
     </div>
   </fieldset>
   
-<script>
+  <script>
+    $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
+    $('#sponsor').val('<%= @user.attr[:sponsor] || 'none' %>');
+    $('#sponsor').val('<%= @user.attr[:title] || 'title' %>');
   function log(s) { $('#log').text(s); console.log(s); }
 $(document).on('click', '#menu', function(e) { e.preventDefault(); $('#view').toggle(); $('#config').toggle(); });
 $(document).on('click', '#show-badge', function(e) { e.preventDefault(); $('#view').toggle(); $('#badge').toggle(); });

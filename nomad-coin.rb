@@ -18,6 +18,9 @@ require 'pry'
 require 'rufus-scheduler'
 
 CRON = Rufus::Scheduler.new
+VOTES = Redis::Set.new("VOTES")
+ZONES = Redis::Set.new("ZONES")
+TITLES = Redis::Set.new("TITLES")
 
 def timer h={}
   t = 0
@@ -29,6 +32,33 @@ def timer h={}
   t += (h[:minutes].to_i * 60)
   t += h[:seconds].to_i
   return t
+end
+
+class Vote
+  include Redis::Objects
+  sorted_set :votes
+  set :pool
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+  def leader
+    x = self.votes[-1]
+    return { user: x, votes: self.votes[x] }
+  end
+end
+class Zone
+  include Redis::Objects
+  set :pool
+  hash_key :attr
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
 end
 
 module Bank
@@ -97,6 +127,9 @@ class U
   sorted_set :badges
   sorted_set :stat
   sorted_set :boss
+  set :votes
+  set :zones
+  set :titles
   hash_key :attr
   counter :coins
   list :log
@@ -127,19 +160,22 @@ class APP < Sinatra::Base
   helpers do
     def colors b,f,d
       bg = {
+        0 => 'darkgrey',
         1 => 'white',
-        3 => 'blue',
-        4 => 'green',
-        5 => 'red'
+        2 => 'blue',
+        3 => 'green',
+        4 => 'red'
       }
 
       fg = {
+        0 => 'darkgrey',
         1 => 'purple',
         2 => 'orange',
         3 => 'yellow',
         4 => 'green'
       }
       bd = {
+        0 => 'darkgrey',
         1 => 'silver',
         2 => 'gold'
       }
@@ -173,7 +209,7 @@ class APP < Sinatra::Base
         r << %[<span class='material-icons pin'>#{k[u.attr[:pin].to_i]}</span>]
       }
       p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
-      return %[<h1 class='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
+      return %[<h1 id='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
     end
     
     def pool
@@ -214,8 +250,34 @@ class APP < Sinatra::Base
     @id = id(params[:u]);
     @by = U.new(@id)
     @user = U.new(params[:target]);
+
+    if params.has_key? :admin
+      @user.attr.incr(params[:admin].to_sym)
+      @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
+    end
     params[:config].each_pair { |k,v| @user.attr[k] = v }
-    @user.log << %[#{@by.attr[:name] || @b.id} updated your profile.]
+    @user.log << %[#{@by.attr[:name] || @by.id} updated your profile.]
+
+    if params.has_key?(:vote) && params[:zone] != ''
+      VOTES << params[:vote]
+      Vote.new(params[:vote]).pool << @user.id
+      @user.attr['vote'] = params[:vote]
+      @user.log << %[#{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
+    end
+    
+    if params.has_key?(:zone) && params[:zone] != ''
+      ZONES << params[:zone]
+      Zone.new(params[:zone]).pool << @user.id
+      @user.zones << params[:zone]
+      @user.log << %[#{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
+    end
+
+    if params.has_key?(:title) && params[:title] != ''
+      TITLES << params[:title]
+      @user.titles << params[:title]
+      @user.log << %[#{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
+    end
+    
     
     if params[:give][:type] != nil
       if params[:give][:of] == 'boss'
@@ -224,6 +286,8 @@ class APP < Sinatra::Base
         @user.stripes.incr(params[:give][:type])
       elsif params[:give][:of] == 'award'
         @user.awards.incr(params[:give][:type])
+      elsif params[:give][:of] == 'vote'
+        Vote.new(params[:give][:type]).pool << @user.id
       else
         @user.badges.incr(params[:give][:type])
       end
