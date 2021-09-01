@@ -272,10 +272,10 @@ class APP < Sinatra::Base
       Redis.new.setex params[:cha], 180, pin.join('');
       params.delete(:usr)
       erb :landing
-    elsif params.has_key? :u
+    else
       @id = id(params[:u]);
       @by = U.new(@id)
-      @user = U.new(params[:target]);
+      @user = U.new(params[:target] || @id);
    
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
@@ -287,7 +287,7 @@ class APP < Sinatra::Base
       @user.log << %[#{@by.attr[:name] || @by.id} updated your profile.]
       end
       
-      if params.has_key?(:vote) && params[:zone] != ''
+      if params.has_key?(:vote) && params[:vote] != ''
         VOTES << params[:vote]
         Vote.new(params[:vote]).pool << @user.id
         @user.attr['vote'] = params[:vote]
@@ -324,8 +324,6 @@ class APP < Sinatra::Base
       end
       end
       erb :index
-    else
-      redirect '/'
     end
   end
 end
