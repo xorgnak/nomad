@@ -69,7 +69,7 @@ padding: 3%;
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
-    <%= lvl(@id) %>
+    <% if @user.attr.has_key? :lvl %><%= lvl(@id) %><% end %>
     <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:name] %></h1>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
