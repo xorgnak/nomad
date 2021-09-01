@@ -256,7 +256,7 @@ class APP < Sinatra::Base
       @id = id(params[:u]);
       params.delete(:cha)
       params.delete(:pin)
-      redirect "/#{params[:u]}"
+      redirect "https://#{OPTS[:domain]}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
@@ -325,7 +325,7 @@ class APP < Sinatra::Base
         @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
-      redirect "/#{@by.id}"
+      redirect "https://#{OPTS[:domain]}/#{@by.id}"
     end
   end
 end
