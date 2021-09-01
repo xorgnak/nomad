@@ -323,14 +323,6 @@ class APP < Sinatra::Base
         @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
-      if params.has_key? :message
-        m = [%[<span style='margin-left: 1%; margin-right: 1%;'>]]
-        m << %[<span style='color: gold;'>\[</span>]
-        m << %[<span style='color: white;'>#{@by.attr[:name] || @by.id}</span>]
-        m << %[<span style='color: gold;'>\]</span></span>]
-        m << %[<span style='color: lightgrey;'>#{params[:message]}</span>]
-        @user.log << m.join('')
-      end
       erb :index
     else
       redirect '/'
