@@ -35,6 +35,54 @@ def timer h={}
   return t
 end
 
+class Phone
+  def twilio
+    Twilio::REST::Client.new(ENV['PHONE_SID'], ENV['PHONE_KEY'])
+  end
+  def send_sms h={}
+    to = []
+    [ h[:to] ].flatten.uniq.each do |t|
+      if /^\+1#.+$/.match(t)
+        if @cloud.zones.members.include? t.gsub(/\+1/, '')
+          @cloud.zone(t.gsub(/\+1/, '')).admins.members.each { |e| to << e }
+        else
+          to << ENV['ADMIN']
+        end
+      elsif /^#.+/.match(t)
+        if @cloud.zones.members.include? t
+          @cloud.zone(t).admins.members.each {|e| to << e }
+        else
+          to << ENV['ADMIN']
+        end
+      else
+        to << t
+      end
+    end
+    to.each do |t|
+      Redis.new.publish "DEBUG.send_sms", "#{t}"
+      if ENV['LIVE'] == 'true' && h[:body] != ''
+        if h[:image]
+          twilio.messages.create(
+            to: t,
+            from: ENV['PHONE'],
+            body: h[:body],
+            media_url: [ h[:image] ]
+          )
+        else
+          twilio.messages.create(
+            to: t,
+            from: ENV['PHONE'],
+            body: h[:body]
+          )
+        end
+      end
+    end
+  end
+end
+def phone
+  Phone.new
+end
+
 class Vote
   include Redis::Objects
   sorted_set :votes
@@ -268,6 +316,7 @@ class APP < Sinatra::Base
       CHA[cha.join('')] = params[:usr]
       params[:cha] = cha.join('')
       Redis.new.setex params[:cha], 180, pin.join('');
+      phone.send_sms to: '+1' + params[:usr], body: "pin: #{pin.join('')}"
       params.delete(:usr)
       erb :landing
     else
