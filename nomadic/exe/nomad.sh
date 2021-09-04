@@ -312,6 +312,12 @@ http {
         error_log /var/log/nginx/error.log;
         gzip on;
 server {
+    listen 80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+}
+
+server {
 listen 80;
 listen [::]:80;
 server_name localhost `cat /etc/hostname`.local;
