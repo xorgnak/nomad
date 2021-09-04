@@ -158,7 +158,7 @@ padding: 3%;
   </div>
   
   <div style='position: fixed; bottom: 0; width: 100%; color: white;' onclick='$('#info').toggle();'>
-    <h2 style='background-color: black;'>
+    <h2 style='background-color: black; margin: 0;'>
       <span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span><span id='gp'><%= @user.stat[:gp] %></span>
       <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span><br>
       <code id='log' style='width: 100%; color: green; overflow-y: scroll;'>
