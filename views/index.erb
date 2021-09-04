@@ -157,25 +157,24 @@ padding: 3%;
     <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
   </div>
   
-  <fieldset id='view' style='background-color: white; color: black; position: fixed; bottom: 0; left: 0; width: 90%; overflow-y: scroll;'>
-    <legend><span id='icon' class='material-icons'>waving_hand</span>welcome</legend>
+  <div style='position: fixed; bottom: 0;'>
     <h2 id='state' style='width: 100%; text-align: center;' onclick='$('#info').toggle();'>
       <span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
       <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
     </h2>
     <h3 style='background-color: black;'>
-      <code id='log' style='width: 100%; color: green;'>
+      <code id='log' style='width: 100%; color: green; overflow-y: scroll;'>
 	<%= @user.log.values.join("<br>") %></code>
       <% @user.log.clear() %>
     </h3>
-    <div id='info' style='diplay: none;'>
+    <div id='info' style='display: none;'>
       <p>thanks for giving us a try.</p>
       <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
       <p>Customize your <span class='material-icons'>menu</span> to give your brand a boost.</p>
       <p>Share your <span class='material-icons'>qr_code_2</span> with others to connect.</p>
       <p>Your local agent can sell you <span class='material-icons'>savings</span> and help you with any sponsorship, marketing, scheduling, or any other issues.</p>
     </div>
-  </fieldset>
+  </div>
   
   <script>
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
