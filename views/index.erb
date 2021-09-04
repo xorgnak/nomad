@@ -157,13 +157,11 @@ padding: 3%;
     <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
   </div>
   
-  <div style='position: fixed; bottom: 0; width: 100%; color: white; border-top: thick solid white; background-color: black;'>
-    <h1 id='state' style='width: 100%; text-align: center;' onclick='$('#info').toggle();'>
-      <span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
-      <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
-    </h1>
+  <div style='position: fixed; bottom: 0; width: 100%;>
     <h2 style='background-color: black;'>
-      <code id='log' style='width: 100%; color: green; overflow-y: scroll;'>
+      <span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span><span id='gp'><%= @user.stat[:gp] %></span>
+      <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span><br>
+      <code id='log' style='width: 100%; color: green; overflow-y: scroll;' onclick='$('#info').toggle();'>
 	<%= @user.log.values.join("<br>") %></code>
       <% @user.log.clear() %>
     </h2>
