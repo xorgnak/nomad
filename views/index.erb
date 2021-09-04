@@ -28,14 +28,6 @@ padding: 3%;
 <canvas id='canvas'></canvas> 
 
   <input type='file' id='pic-file' style='position: fixed; top: -100px;' name='config[pic]'>
-  <h1 id='head' style='width: 100%; text-align: center;'>
-    <button id='menu' class='material-icons' style='font-size: xx-large; position: fixed; top: 0; left: 0;'>menu</button>
-    <span id='title' style='text-align: center; display: inline-block;'><%= OPTS[:domain]%></span>
-    <button id='show-badge' class='material-icons' style='font-size: xx-large; position: fixed; top: 0; right: 0;'>qr_code_2</button>
-  </h1>
-  
-  
-
   
   <div id='config' style='background-color: black; display: none;'>
     <h3><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h3>
@@ -157,7 +149,8 @@ padding: 3%;
     <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
   </div>
   
-  <div style='position: fixed; bottom: 0; width: 100%; color: white;' onclick='$('#info').toggle();'>
+  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white;' onclick='$('#config').toggle(); $('#display').toggle();'>
+    <button id='show-badge' class='material-icons' style='font-size: xx-large; float: right;'>qr_code_2</button>
     <h2 style='background-color: black; margin: 0;'>
       <span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span><span id='gp'><%= @user.stat[:gp] %></span>
       <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span><br>
@@ -165,14 +158,15 @@ padding: 3%;
 	<%= @user.log.values.join("<br>") %></code>
       <% @user.log.clear() %>
     </h2>
-    <div id='info' style='display: none;'>
+    
+    <!-- <div id='info' style='display: none;'>
       <p>thanks for giving us a try.</p>
       <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
       <p>Customize your <span class='material-icons'>menu</span> to give your brand a boost.</p>
       <p>Share your <span class='material-icons'>qr_code_2</span> with others to connect.</p>
       <p>Your local agent can sell you <span class='material-icons'>savings</span> and help you with any sponsorship, marketing, scheduling, or any other issues.</p>
     </div>
-  </div>
+  </div> -->
   
   <script>
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
