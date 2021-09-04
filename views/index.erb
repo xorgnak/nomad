@@ -157,18 +157,18 @@ padding: 3%;
     <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
   </div>
   
-  <fieldset id='view' style='background-color: rgba(255,255,255,0.1); color: white; height: 40%; position: fixed; bottom: 0; left: 0; width: 90%; text-shadow: 0px 0px 2px black; overflow-y: scroll;'>
+  <fieldset id='view' style='background-color: white; color: black; position: fixed; bottom: 0; left: 0; width: 90%; overflow-y: scroll;'>
     <legend><span id='icon' class='material-icons'>waving_hand</span>welcome</legend>
-    <p style='background-color: rgba(0,0,0,0.4);'>
-      <code id='hist' style='width: 100%; color: green;'><%= @user.log.values.join("<br>") %></code>
+    <h2 id='state' style='width: 100%; text-align: center;' onclick='$('#info').toggle();'>
+      <span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
+      <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
+    </h2>
+    <h3 style='background-color: black;'>
+      <code id='log' style='width: 100%; color: green;'>
+	<%= @user.log.values.join("<br>") %></code>
       <% @user.log.clear() %>
-      <br><code id='log' style='width: 100%; color: orange;'>booting...</code>
-    </p>
-    <div id='info'>
-      <h3 id='state' style='width: 100%; text-align: center;'>
-	<span id='gp'><%= @user.stat[:gp] %></span><span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span>
-	<span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span>
-      </h3>
+    </h3>
+    <div id='info' style='diplay: none;'>
       <p>thanks for giving us a try.</p>
       <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
       <p>Customize your <span class='material-icons'>menu</span> to give your brand a boost.</p>
@@ -181,7 +181,7 @@ padding: 3%;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
     $('#sponsor').val('<%= @user.attr[:sponsor] || 'none' %>');
     $('#sponsor').val('<%= @user.attr[:title] || 'title' %>');
-  function log(s) { $('#log').text(s); console.log(s); }
+  function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
 $(document).on('click', '#menu', function(e) { e.preventDefault(); $('#view').toggle(); $('#config').toggle(); });
 $(document).on('click', '#show-badge', function(e) { e.preventDefault(); $('#view').toggle(); $('#badge').toggle(); });
 $(document).on('click', '#pic', function(e) { e.preventDefault(); $('#pic-file').click(); });

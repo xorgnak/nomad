@@ -375,6 +375,10 @@ class APP < Sinatra::Base
         @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
+      if params.has_key? :message
+        p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
+        @user.log << %[<span style='#{p[:style]} padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
+      end
       redirect "https://#{OPTS[:domain]}/#{@by.id}"
     end
   end

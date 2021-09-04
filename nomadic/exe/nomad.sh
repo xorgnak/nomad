@@ -316,7 +316,6 @@ server {
     server_name _;
     return 301 https://$host$request_uri;
 }
-
 server {
 listen 80;
 listen [::]:80;
