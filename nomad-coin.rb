@@ -335,8 +335,8 @@ class APP < Sinatra::Base
       end
 
       if params.has_key? :config
-      params[:config].each_pair { |k,v| @user.attr[k] = v }
-      @user.log << %[#{@by.attr[:name] || @by.id} updated your profile.]
+      params[:config].each_pair { |k,v| @by.attr[k] = v }
+      @user.log << %[profile updated.]
       end
       
       if params.has_key?(:vote) && params[:vote] != ''
@@ -372,7 +372,7 @@ class APP < Sinatra::Base
         else
           @user.badges.incr(params[:give][:type])
         end
-        @user.log << %[#{params[:give][:type]} #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
+        @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
       redirect "https://#{OPTS[:domain]}/#{@by.id}"
