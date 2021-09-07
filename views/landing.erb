@@ -1,6 +1,9 @@
-
+<style>
+html { background-color: black; color: white; }
+form { margin-top: 20%; }
+</style>
 <h1 style='width: 100%; text-align: center;'>
-<span style='background-color: rgba(0,0,0,0.2); border-radius: 1000px; padding: 2%;'><%= OPTS[:domain] %></span></h1>
+<span style='background-color: rgba(255,255,255,0.4); color: black; text-shadow: 0 0 2px orange; box-shadow: 0 0 orange; border-radius: 1000px; padding: 2%;'><%= OPTS[:domain] %></span></h1>
 <div style='width: 100%; text-align:center;'>
 <% if params.has_key? :cha %>
 <h3>we sent you a pin.</h3>

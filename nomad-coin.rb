@@ -347,32 +347,32 @@ class APP < Sinatra::Base
       Redis.new.publish 'POST', "#{@user.id}"
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
-        @user.log << %[#{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
+        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
       end
 
       if params.has_key? :config
       params[:config].each_pair { |k,v| @by.attr[k] = v }
-      @user.log << %[profile updated.]
+      @user.log << %[<span class='material-icons'>info</span> profile updated.]
       end
       
       if params.has_key?(:vote) && params[:vote] != ''
         VOTES << params[:vote]
         Vote.new(params[:vote]).pool << @user.id
         @user.attr['vote'] = params[:vote]
-        @user.log << %[#{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
+        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
       end
       
       if params.has_key?(:zone) && params[:zone] != ''
         ZONES << params[:zone]
         Zone.new(params[:zone]).pool << @user.id
         @user.zones << params[:zone]
-        @user.log << %[#{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
+        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
       end
       
       if params.has_key?(:title) && params[:title] != ''
         TITLES << params[:title]
         @user.titles << params[:title]
-        @user.log << %[#{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
+        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
       end
       
       if params.has_key? :give
@@ -391,9 +391,9 @@ class APP < Sinatra::Base
         @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
       end
       end
-      if params.has_key? :message
-        p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
-        @user.log << %[<span style='#{p[:style]} padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
+      if params.has_key?(:message) && params[:message] != ''
+        p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
+        @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
       redirect "https://#{OPTS[:domain]}/#{@by.id}"
     end

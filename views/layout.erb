@@ -1,5 +1,7 @@
 <style>
-html { font-family: monospace; }
+<% [ :html, :button, :input, :select ].each do |e| %>
+<%= e %> { font-family: monospace; font-size: x-large; max-width: 100%; }
+<% end %>
 body { margin: 0; madding: 0; }
 </style>
 

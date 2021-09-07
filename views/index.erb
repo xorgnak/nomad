@@ -36,7 +36,7 @@ padding: 3%;
       <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
       <%= @user.attr[:name] %>
       <% else %>
-      configure
+      <span style='font-size: xx-large;' class='material-icons'>settings</span> config
       <% end %>
     </span>
   </h1>
@@ -132,6 +132,11 @@ padding: 3%;
     </datalist>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
     <% end %>
+
+    <% if @user.attr[:boss].to_i > 9 %>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='message' placeholder='message'></h3>
+    <% end %>
+
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
 	<option selected disabled>military_tech</option>
@@ -159,8 +164,8 @@ padding: 3%;
     </h3>
   </div>
   
-  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 20%;'>
-    <code id='log' style='width: 100%; height: 100%; overflow-y: scroll; color: green;'>
+  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 20%; overflow-y: scroll;'>
+    <code id='log' style='width: 100%; height: 100%; color: white;'>
       <%= @user.log.values.join("<br>") %>
     </code>
     <% @user.log.clear() %>
@@ -171,6 +176,7 @@ padding: 3%;
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
+    log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>')
 <%= erb :scan %>
 <%= erb :sha %>
 <%= erb :coin %>
