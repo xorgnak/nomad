@@ -8,10 +8,10 @@ form { margin-top: 20%; }
 <% if params.has_key? :cha %>
 <h3>we sent you a pin.</h3>
 <input type='hidden' name='cha' value='<%= params[:cha] %>'>
-<h1><input type='tel' name='pin' maxlength='6' placeholder='PIN'></h1>
+<h1><input type='tel' name='pin' maxlength='6' placeholder='PIN' style='text-align: center;'></h1>
 <h1><button>AUTHORIZE!</button></h1>
 <% else %>
-<h1><input type='tel' name='usr' maxlength='10' placeholder='PHONE'></h1>
+<h1><input type='tel' name='usr' maxlength='10' placeholder='PHONE' style='text-align: center;'></h1>
 <h1><button>AUTHORIZE</button></h1>
 <% end %>
 </div>
