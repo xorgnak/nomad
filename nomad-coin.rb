@@ -299,8 +299,8 @@ class APP < Sinatra::Base
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
   get('/sms') {
     Redis.new.publish('SMS', "#{params}")
-    if /^\$/.match(params['Body'])
-      phone.send_sms to: '+1' + params[:usr], body: "#{params['Body']} -> " + Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
+    if /^\$\d+/.match(params['Body'])
+      phone.send_sms to: params['From'], body: "#{params['Body']} -> " + Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
     else
       Bank.recover to: BOOK[params['From']], id: params['Body']
     end
