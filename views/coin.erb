@@ -20,7 +20,7 @@ peer.on('open', function (id) {
     }
 //    log('ID: ' + peer.id);
     state.id = peer.id;
-    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
+    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + peer.id);
     log('- speak with your local agent for information about credits.');
 });
 peer.on('connection', function (c) {
