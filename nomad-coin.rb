@@ -315,7 +315,7 @@ class APP < Sinatra::Base
     end
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
-      BOOK[CHA[params[:cha]]] = params[:u]
+      BOOK['+1' + CHA[params[:cha]]] = params[:u]
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
       CHA.delete(params[:cha])
       @id = id(params[:u]);
