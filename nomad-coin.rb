@@ -293,7 +293,7 @@ class APP < Sinatra::Base
   end
   before {}
   get('/favicon.ico') { return '' }
-  get('/manifest.webmanifest') { erb :manifest }
+  get('/manifest.webmanifest') { content_type('application/json'); erb :manifest }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
   get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
