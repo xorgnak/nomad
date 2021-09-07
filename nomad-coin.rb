@@ -133,7 +133,7 @@ module Bank
     U.new(h[:from]).coins.decr(h[:amt])
     U.new('BANK').wallet.incr('VAULT', h[:amt])
     Bank.wallet(h[:from]).incr(h[:amt])
-    a = Bank.vault h[:amt].to_i
+    return Bank.vault h[:amt].to_i
   end
   ##
   # recover stashed coins 
@@ -300,7 +300,7 @@ class APP < Sinatra::Base
   get('/sms') {
     Redis.new.publish('SMS', "#{params}")
     if /^\$/.match(params['Body'])
-      Bank.stash from: BOOK[params['From']], amt: params['Body'].gsub('$', '')
+      phone.send_sms to: '+1' + params[:usr], body: "#{params['Body']} -> " + Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
     else
       Bank.recover to: BOOK[params['From']], id: params['Body']
     end
