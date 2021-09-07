@@ -33,7 +33,7 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
    <% end %>
 
  <% if @user.attr.has_key? :pitch %>
- <h4 style='width: 100%; font-style: italics; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h4>
+ <h3 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
  <% end %>
  <!-- <%= badges(@id) %> -->
 </div>
