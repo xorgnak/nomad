@@ -21,19 +21,19 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 <!-- <%= lvl(@id) %> -->
 
  <% if @user.attr.has_key? :name %>
- <h2 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><%= @user.attr[:name] %></h2>
+ <h1 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
  <% end %>
 
  <% if @user.attr.has_key? :title %>
- <h3 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><%= @user.attr[:title] %></h3>
+ <h4 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
  <% end %>
 
  <% if @user.attr.has_key? :sponsor %>
- <h4 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><%= @user.attr[:sponsor] %></h4>
+ <h2 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:sponsor] %></span></h2>
  <% end %>
 
  <% if @user.attr.has_key? :pitch %>
- <h2 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><%= @user.attr[:pitch] %></h2>
+ <h4 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h4>
  <% end %>
  <!-- <%= badges(@id) %> -->
 </div>
