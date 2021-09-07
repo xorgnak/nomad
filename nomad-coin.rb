@@ -298,6 +298,10 @@ class APP < Sinatra::Base
   get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
     Redis.new.publish 'POST', "#{params}"
+    if params.has_key?(:file) && params.has_key?(:u)
+      fi = params[:file][:tempfile]
+      File.open('public/' + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
+    end
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]

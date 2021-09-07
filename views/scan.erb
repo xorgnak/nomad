@@ -4,11 +4,11 @@ var canvasElement = document.getElementById("canvas");
 var canvas = canvasElement.getContext("2d");
 // Use facingMode: environment to attemt to get the front camera on phones
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-    log('starting qr scanner...');
+    log('- configure to customize.');
     video.srcObject = stream;
     video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
     video.play();
-    log('qr scanner started.');
+    log('- scan <%= OPTS[:domain] %> qrcodes to connect and collect.');
     requestAnimationFrame(tick);
 });
 function tick() {

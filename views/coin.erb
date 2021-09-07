@@ -18,10 +18,10 @@ peer.on('open', function (id) {
     } else {
         lastPeerId = peer.id;
     }
-    log('ID: ' + peer.id);
+//    log('ID: ' + peer.id);
     state.id = peer.id;
     $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
-    log('ready to scan...');
+    log('- speak with your local agent for information about credits.');
 });
 peer.on('connection', function (c) {
 c.on('open', function() {

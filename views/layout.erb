@@ -11,7 +11,7 @@ body { margin: 0; madding: 0; }
 
 <script src="https://cdn.jsdelivr.net/npm/jquery.qrcode@1.0.3/jquery.qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<form action='/' method='POST'>
+<form action='/' method='POST' enctype="multipart/form-data">
 <input type='hidden' id='u' name='u' value='<%= @id %>'>
 <%= yield %>  
 </form>

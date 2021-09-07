@@ -17,7 +17,7 @@ padding: 3%;
 }
 #state > * { vertical-align: middle; }
 #give > * {vertical-align: middle; }
-#lvl { padding: 1%; text-align: center; }
+#lvl { padding: 1%; }
 .pin { padding: 2%; margin: 2%; font-size: xx-large; }
 #badges { text-align: center; }
 .badge { font-size: xx-large; padding: 2%; margin 3%; }
@@ -28,6 +28,13 @@ padding: 3%;
 <canvas id='canvas'></canvas> 
 
   <input type='file' id='pic-file' style='position: fixed; top: -100px;' name='config[pic]'>
+  <h1 style='color: white; background-color: black;'>
+    <button class='material-icons' type='button'
+	    onclick='$("#badge").toggle(); $("#display").toggle();'
+	    style='background-color: black;font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
+    <span onclick='$("#config").toggle(); $("#display").toggle();'>
+    <%= @user.attr[:name] || 'click to configure' %></span>
+  </h1>
   
   <div id='config' style='background-color: black; display: none;'>
     <h3><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h3>
@@ -56,13 +63,12 @@ padding: 3%;
 	<option value='tel'>tel</option>
       </select>
       <input type='tel' name='config[phone]' style='width: 78%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h3>
-    <h3><button id='pic' style='width: 100%; height: 30%;'>PIC</button></h3>
+    <h3><input type='file' id='pic-file' name='file'></h3>
     <h3 style='text-align: center;'><button>SAVE</button></h3>
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
     <% if @user.attr.has_key? :lvl %><%= lvl(@id) %><% end %>
-    <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:name] %></h1>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
       <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] %></h1>
@@ -125,16 +131,16 @@ padding: 3%;
       <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
 	<option selected disabled>military_tech</option>
 	<% if @user.attr[:boss].to_i > 0 %>
-	<option value='award'>emoji_events</option>
+	<option class='material-icons' value='award'>emoji_events</option>
 	<% end %>
 	<% if @user.attr[:boss].to_i > 1 %>
-	<option value='stripe'>texture</option>
+	<option class='material-icons' value='stripe'>texture</option>
 	<% end %>
 	<% if @user.attr[:boss].to_i > 2 %>
-	<option value='boss'>accessibility_new</option>
+	<option class='material-icons' value='boss'>accessibility_new</option>
 	<% end %>
 	<% if @user.attr[:boss].to_i > 6 %>
-	<option value='vote'>poll</option>
+	<option class='material-icons' value='vote'>poll</option>
 	<% end %>
       </select>
       <select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
@@ -146,39 +152,19 @@ padding: 3%;
       <input type='text' name='give[desc]' placeholder='for...'>
       <button class='material-icons'>send</button>
     </h3>
-    <code id='peer' style='width: 100%; background-color: black; color: orange; display: none;'></code>
   </div>
   
-  <div id='display' style='position: fixed; bottom: 0; width: 100%; height: 25%; color: white;'>
-    <h2 style='background-color: black; margin: 0;' onclick='$("#config").toggle(); $("#display").toggle();'>
-      <button id='show-badge' class='material-icons'
-	      style='font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
-      <span style='width: 75%;'>
-      <span class='material-icons' style='margin-right: 1%; padding: 0 1% 0 1%;'>savings</span><span id='gp'><%= @user.stat[:gp] %></span>
-      <span class='material-icons' style='margin: 0 1% 0 1%; padding: 1%;'>directions_run</span><span id='xp'><%= @user.stat[:xp] %></span><br>
-      <code id='log' style='width: 100%; color: green; overflow-y: scroll;'>
-	<%= @user.log.values.join("<br>") %></code>
-      <% @user.log.clear() %>
-      </span>
-      </h2>
-    <!-- <div id='info' style='display: none;'>
-      <p>thanks for giving us a try.</p>
-      <p>Scan proPedicab.com qrcodes to collect rewards and connect with the city around you.</p>
-      <p>Customize your <span class='material-icons'>menu</span> to give your brand a boost.</p>
-      <p>Share your <span class='material-icons'>qr_code_2</span> with others to connect.</p>
-      <p>Your local agent can sell you <span class='material-icons'>savings</span> and help you with any sponsorship, marketing, scheduling, or any other issues.</p>
-    </div>
-  </div> -->
-  
+  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 20%;'>
+    <code id='log' style='width: 100%; height: 100%; overflow-y: scroll; color: green;'>
+      <%= @user.log.values.join("<br>") %>
+    </code>
+    <% @user.log.clear() %>
+  </div>
   <script>
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
     $('#sponsor').val('<%= @user.attr[:sponsor] || 'none' %>');
     $('#sponsor').val('<%= @user.attr[:title] || 'title' %>');
-  function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
-$(document).on('click', '#menu', function(e) { e.preventDefault(); $('#view').toggle(); $('#config').toggle(); });
-$(document).on('click', '#show-badge', function(e) { e.preventDefault(); $('#view').toggle(); $('#badge').toggle(); });
-$(document).on('click', '#pic', function(e) { e.preventDefault(); $('#pic-file').click(); });
-
+    function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
 <%= erb :scan %>
 <%= erb :sha %>
 <%= erb :coin %>
