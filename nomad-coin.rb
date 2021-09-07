@@ -24,6 +24,8 @@ ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
 CHA = Redis::HashKey.new('CHA')
 IDS = Redis::HashKey.new('IDS')
+BOOK = Redis::HashKey.new('BOOK')
+
 def timer h={}
   t = 0
   t += (h[:years].to_i * (365 * (24 * (60 * 60))))
@@ -140,8 +142,9 @@ module Bank
     Bank.vaults.delete(h[:id])
     U.new('BANK').wallet.decr('VAULT', a)
     U.new(h[:to]).coins.incr(a)
-    Bank.wallet(h[:to]).decr(h[:amt])
+    Bank.wallet(h[:to]).decr(a)
   end
+  
   def self.xfer h={}
     b = U.new('BANK')
     f = U.new(h[:from] || 'BANK')
@@ -294,7 +297,14 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
-  get('/sms') { Redis.new.publish('SMS', "#{params}") }
+  get('/sms') {
+    Redis.new.publish('SMS', "#{params}")
+    if /^\$/.match(params['Body'])
+      Bank.stash from: BOOK[params['From']], amt: params['Body'].gsub('$', '')
+    else
+      Bank.recover to: BOOK[params['From']], id: params['Body']
+    end
+  }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
   get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
@@ -305,6 +315,7 @@ class APP < Sinatra::Base
     end
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
+      BOOK[CHA[params[:cha]]] = params[:u]
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
       CHA.delete(params[:cha])
       @id = id(params[:u]);
