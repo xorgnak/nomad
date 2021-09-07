@@ -294,6 +294,7 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/sms') { Redis.new.publish('SMS', "#{params}") }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
   get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
   post('/') do
