@@ -33,7 +33,12 @@ padding: 3%;
 	    onclick='$("#badge").toggle(); $("#display").toggle();'
 	    style='background-color: black;font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
     <span onclick='$("#config").toggle(); $("#display").toggle();'>
-    <%= @user.attr[:name] || 'click to configure' %></span>
+      <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
+      <%= @user.attr[:name] %>
+      <% else %>
+      configure
+      <% end %>
+    </span>
   </h1>
   
   <div id='config' style='background-color: black; display: none;'>
