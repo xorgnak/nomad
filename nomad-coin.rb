@@ -113,8 +113,28 @@ class Zone
   end
 end
 
+
+
 module Bank
-  ##
+  ##              ##
+  #                #
+  # banking system #
+  #                #
+  ##              ##
+  #
+  # balance: U.new(@id).coins.value
+  # credit: Bank.wallet[@id]
+  #
+  # - [balance] is the active amount of credits in a user's account.
+  #   credits can be used to pay for industry to industry services
+  #   and other sponsored events.
+  #
+  # - [credit] is the amount of credit purchased and inactivated by
+  #   a user.  A user may stash their credits and attach them to
+  #   an identifier by texting a dollar amount to the number.
+  #   The returned id number may be redeemed by texting the id number
+  #   to the number.  building credit allows you to qualify for brand
+  #   sponsorship.
   #
   def self.wallet u
     Redis::SortedSet.new("wallet:#{u}")
@@ -133,7 +153,14 @@ module Bank
     U.new(h[:from]).coins.decr(h[:amt])
     U.new('BANK').wallet.incr('VAULT', h[:amt])
     Bank.wallet(h[:from]).incr(h[:amt])
-    return Bank.vault h[:amt].to_i
+    U.new(h[:from]).log << %[STASH #{Time.now.utc} #{JSON.generate(h)}]
+    return {
+      id: Bank.vault h[:amt].to_i, 
+      amt: h[:amt],
+      balance: U.new(h[:from]).coins.value,
+      credit: Bank.wallet(h[:from])
+    }
+    
   end
   ##
   # recover stashed coins 
@@ -143,6 +170,13 @@ module Bank
     U.new('BANK').wallet.decr('VAULT', a)
     U.new(h[:to]).coins.incr(a)
     Bank.wallet(h[:to]).decr(a)
+    U.new(h[:to]).log << %[RECOVER #{Time.now.utc} #{JSON.generate(h)}]
+    return {
+      id: h[:id],
+      amt: a,
+      balance: U.new(h[:to]).coins.value,
+      credit: Bank.wallet(h[:to])
+    }
   end
   
   def self.xfer h={}
@@ -171,6 +205,7 @@ module Bank
     end
   end
 end
+
 
 class U
   include Redis::Objects
@@ -300,9 +335,23 @@ class APP < Sinatra::Base
   get('/sms') {
     Redis.new.publish('SMS', "#{params}")
     if /^\$\d+/.match(params['Body'])
-      phone.send_sms to: params['From'], body: "#{params['Body']} -> " + Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
+      s =  Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
+      b = [%[-#{params['Body']}],
+           %[balance: #{s[:balance]}],
+           %[credit: #{s[:credit]}],
+           %[],
+           %[ID: #{s[:id]}]
+          ].join("\n")
+      phone.send_sms( to: params['From'], body: b )
     else
-      Bank.recover to: BOOK[params['From']], id: params['Body']
+      s = Bank.recover to: BOOK[params['From']], id: params['Body']
+      b = [%[id: #{params['Body']}],
+           %[balance: #{s[:balance]}],
+           %[credit: #{s[:credit]}],
+           %[],
+           %[+$#{s[:amt]}]
+          ].join("\n")
+      phone.send_sms(to: params['From'], body: b)
     end
   }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
