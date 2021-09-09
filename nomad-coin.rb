@@ -401,7 +401,7 @@ class APP < Sinatra::Base
           case @user.attr[:boss]
           when "1"
             pr = %[vote in contests.]
-          when "2"OB
+          when "2"
             pr = %[give badge awards.]
           when "3"
             pr = %[certify others badge authority.]
