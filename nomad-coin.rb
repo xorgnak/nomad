@@ -136,8 +136,8 @@ module Bank
   #   to the number.  building credit allows you to qualify for brand
   #   sponsorship.
   #
-  def self.wallet u
-    Redis::SortedSet.new("wallet:#{u}")
+  def self.wallet
+    Redis::SortedSet.new("wallet")
   end
   def self.vault a
     i = []; VAULT_SIZE.times { i << rand(16).to_s(16) }
@@ -152,13 +152,13 @@ module Bank
   def self.stash h={}
     U.new(h[:from]).coins.decr(h[:amt])
     U.new('BANK').wallet.incr('VAULT', h[:amt])
-    Bank.wallet(h[:from]).incr(h[:amt])
+    Bank.wallet.incr(h[:from], h[:amt])
     U.new(h[:from]).log << %[STASH #{Time.now.utc} #{JSON.generate(h)}]
     return {
       id: Bank.vault(h[:amt].to_i), 
       amt: h[:amt],
       balance: U.new(h[:from]).coins.value,
-      credit: Bank.wallet(h[:from]).members(with_scores: true)
+      credit: Bank.wallet[h[:from]]
     }
   end
   ##
@@ -168,13 +168,13 @@ module Bank
     Bank.vaults.delete(h[:id])
     U.new('BANK').wallet.decr('VAULT', a)
     U.new(h[:to]).coins.incr(a)
-    Bank.wallet(h[:to]).decr(a)
+    Bank.wallet.decr(h[:to], a)
     U.new(h[:to]).log << %[RECOVER #{Time.now.utc} #{JSON.generate(h)}]
     return {
       id: h[:id],
       amt: a,
       balance: U.new(h[:to]).coins.value,
-      credit: Bank.wallet(h[:to]).members(with_scores: true)
+      credit: Bank.wallet[h[:to]]
     }
   end
   
