@@ -94,7 +94,7 @@ padding: 3%;
 	<option value='pin'>pin</option>
 	<% end %>
 	
-	<% if @user.attr[:boss].to_i > 5 %>
+	<% if @user.attr[:boss].to_i > 10 %>
 	<option value='boss'>boss</option>
 	<% end %>
 	
@@ -110,7 +110,7 @@ padding: 3%;
     </datalist>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
     <% end %>
-    <% if @user.attr[:boss].to_i > 8 %>
+    <% if @user.attr[:boss].to_i > 5 %>
     <datalist id='titles'>
       <% TITLES.members.each do |title| %>
       <option value='<%= title %>'>

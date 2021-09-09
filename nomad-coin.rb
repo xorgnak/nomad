@@ -396,10 +396,45 @@ class APP < Sinatra::Base
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
+        if params[:admin].to_sym == :boss
+          pr = []
+          case @user.attr[:boss]
+          when "1"
+            pr = %[vote in contests.]
+          when "2"
+            pr = %[give badge awards.]
+          when "3"
+            pr = %[certify others badge authority.]
+          when "4"
+            pr = %[promote others' class.]
+          when "5"
+            pr = %[promote others' level, rank, stripes, and pin.]
+          when "6"
+            pr = %[award titles to others.]
+          when "7"
+            pr = %[enter others into contests.]
+          when "8"
+            pr = %[create contests.]        
+          when "9"
+            pr = %[create zones.]
+          when "10"
+            pr = %[promote others' authority.]
+          else
+            pr = '<>everything.'
+          end
+          @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}] 
+        else
+          @user.log << %[{params[:admin]}: #{@user.attr[params[:admin].to_sym]}]
+        end
       end
 
       if params.has_key? :config
-      params[:config].each_pair { |k,v| @by.attr[k] = v }
+        params[:config].each_pair { |k,v|
+          if k.to_sym == :boss
+            @by.log << %[]
+          end
+          @by.attr[k] = v
+        }
       @user.log << %[<span class='material-icons'>info</span> profile updated.]
       end
       
@@ -437,6 +472,7 @@ class APP < Sinatra::Base
           @user.badges.incr(params[:give][:type])
         end
         @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
+        
       end
       end
       if params.has_key?(:message) && params[:message] != ''
