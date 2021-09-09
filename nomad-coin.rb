@@ -205,6 +205,15 @@ module Bank
   end
 end
 
+class CallCenter
+  include Redis::Objects
+  set :pool
+  value :dispatcher
+  value :mode
+  list :log
+  def id; 'calcenter'; end
+end
+CALL = CallCenter.new()
 
 class U
   include Redis::Objects
@@ -231,6 +240,7 @@ end
 
 @man = Slop::Options.new
 @man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
+@man.symbol '-b', '--boss', "the admin phone number", default: 'dummy'
 @man.int '-p', '--port', "the port we're running on", default: 4567
 @man.bool '-i', '--interactive', 'run interactively', default: false
 @man.on '--help' do
@@ -331,6 +341,31 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/call') {
+    content_type 'text/xml'
+    Twilio::TwiML::VoiceResponse.new do | response |
+    case CALL.mode
+    when 'bossfirst'
+      response.dial(number: OPTS[:boss])
+      CALL.pool.members.each { |e| response.dial(number: e) }
+    when 'dispatcherfirst'
+      response.dial(number: CALL.dispatcher.value)
+      CALL.pool.members.each { |e| response.dial(number: e) }
+    when 'bosslast'
+      CALL.pool.members.each { |e| response.dial(number: e) }
+      response.dial(number: OPTS[:boss])
+    when 'dispatcherlast'
+      CALL.pool.members.each { |e| response.dial(number: e) }
+      response.dial(number: CALL.dispatcher.value)
+    when 'boss'
+      response.dial(number: OPTS[:boss])
+    when 'dispatcher'
+      response.dial(number: CALL.dispatcher.value)
+    else
+      response.say(message: "Thank you for calling #{OPTS[:domain]}. We are currently closed.  Pease try again later.")
+    end
+    end.to_s
+  }
   get('/sms') {
     Redis.new.publish('SMS', "#{params}")
     if /^\$\d+/.match(params['Body'])
