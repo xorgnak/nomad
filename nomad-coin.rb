@@ -158,7 +158,7 @@ module Bank
       id: Bank.vault(h[:amt].to_i), 
       amt: h[:amt],
       balance: U.new(h[:from]).coins.value,
-      credit: Bank.wallet(h[:from])
+      credit: Bank.wallet[h[:from]]
     }
   end
   ##
@@ -174,7 +174,7 @@ module Bank
       id: h[:id],
       amt: a,
       balance: U.new(h[:to]).coins.value,
-      credit: Bank.wallet(h[:to])
+      credit: Bank.wallet[h[:to]]
     }
   end
   
