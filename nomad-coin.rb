@@ -155,12 +155,11 @@ module Bank
     Bank.wallet(h[:from]).incr(h[:amt])
     U.new(h[:from]).log << %[STASH #{Time.now.utc} #{JSON.generate(h)}]
     return {
-      id: Bank.vault h[:amt].to_i, 
+      id: Bank.vault(h[:amt].to_i), 
       amt: h[:amt],
       balance: U.new(h[:from]).coins.value,
       credit: Bank.wallet(h[:from])
     }
-    
   end
   ##
   # recover stashed coins 
