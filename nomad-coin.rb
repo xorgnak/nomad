@@ -401,7 +401,7 @@ class APP < Sinatra::Base
           case @user.attr[:boss]
           when "1"
             pr = %[vote in contests.]
-          when "2"
+          when "2"OB
             pr = %[give badge awards.]
           when "3"
             pr = %[certify others badge authority.]
@@ -420,7 +420,7 @@ class APP < Sinatra::Base
           when "10"
             pr = %[promote others' authority.]
           else
-            pr = '<>everything.'
+            pr = 'do everything.'
           end
           @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}] 
         else
