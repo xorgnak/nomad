@@ -344,7 +344,7 @@ class APP < Sinatra::Base
   get('/call') {
     content_type 'text/xml'
     Twilio::TwiML::VoiceResponse.new do | response |
-    case CALL.mode
+    case CALL.mode.value
     when 'bossfirst'
       response.dial(number: OPTS[:boss])
       CALL.pool.members.each { |e| response.dial(number: e) }
