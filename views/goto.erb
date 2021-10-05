@@ -10,21 +10,18 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 
 <img src='/<%= @user.id %>.img'>
 
-<% if @user.attr.has_key? :link %>
-<h1 style='width: 100%; position: fixed; top: 0; text-align: center;'>
-    <a style='background-color: red;' href='<%= @user.attr[:link] %>'>FOLLOW</a>
-</h1>
-<% end %>
-
-<div style='position: fixed; top: 30%; width: 100%; text-align: center;'>
+<div style='position: fixed; top: 0; width: 100%; text-align: center;'>
  <% if @user.attr.has_key? :pitch %>
   <h3 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
   <% end %>
-    <!-- <%= badges(@id) %> -->
+  <details>
+  <summary class='material-icons'>military_tech</summary>
+  <%= lvl(@id) %> 
+    <%= badges(@id) %>
+    </details>
 </div>
 
-<div style='position: fixed; bottom: 30%; width: 100%; text-align: center;'>
-<!-- <%= lvl(@id) %> -->
+<div style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
 
  <% if @user.attr.has_key? :name %>
  <h1 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
@@ -37,10 +34,14 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
  <% if @user.attr.has_key? :title %>
   <h4 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
    <% end %>
-</div>
-
-<% if @user.attr.has_key?(:contact) && params[:contact] != 'none' %>
- <h1 style='width: 100%; position: fixed; bottom: 0; text-align: center;'>
-    <a style='background-color: green;' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>CONTACT</a>
- </h1>
+<h1 style='width: 100%;'>
+<% if @user.attr.has_key? :link %>
+    <a style='background-color: red; width: 20%;' class='material-icons' href='<%= @user.attr[:link] %>'>menu</a>
 <% end %>
+    
+<% if @user.attr.has_key?(:contact) && params[:contact] != 'none' %>
+    <a style='background-color: green; width: 20%;' class='material-icons' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>call</a>
+
+<% end %>
+</h1>
+</div>
