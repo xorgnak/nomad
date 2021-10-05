@@ -472,6 +472,7 @@ class APP < Sinatra::Base
       Redis.new.setex params[:cha], 180, pin.join('');
       phone.send_sms to: '+1' + params[:usr], body: "pin: #{pin.join('')}"
       params.delete(:usr)
+   
       erb :landing
     else
       @id = id(params[:u]);
