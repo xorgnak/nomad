@@ -14,11 +14,11 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
  <% if @user.attr.has_key? :pitch %>
   <h3 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
   <% end %>
-  <details>
-  <summary class='material-icons'>military_tech</summary>
+</div>
+
+<div id='badge' style='display: none;'>
   <%= lvl(@id) %> 
-    <%= badges(@id) %>
-    </details>
+  <%= badges(@id) %>
 </div>
 
 <div style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
@@ -35,6 +35,8 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
   <h4 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
    <% end %>
 <h1 style='width: 100%;'>
+
+<a id='tog' style='background-color: blue; width: 20%;' class='material-icons' onclick='$("#badge").toggle();'>badge</a>
 <% if @user.attr.has_key? :link %>
     <a style='background-color: red; width: 20%;' class='material-icons' href='<%= @user.attr[:link] %>'>menu</a>
 <% end %>
