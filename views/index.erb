@@ -39,10 +39,28 @@ padding: 3%;
   <div id='config' style='background-color: black; display: none;'>
     <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
     <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>
-    <h1><input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>'></h1>
+    <h1>
+      <select id='title' name='config[icon]' style='width: 20%;'>
+        <option value='title' selected disabled>icon</option>
+	<% ICONS.each_pair do |k,v| %>
+	<option value='<%= v %>'><%= k %></option>
+	<% end %>
+      </select>
+      <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 70%;'>
+    </h1>
     <h1 style='width: 100%;'>
       <select id='title' name='config[title]' style='width: 100%;'>
 	<option value='title' selected disabled>title</option>
+	<% if @user.attr[:class].to_i > 0 %>
+	<option value='influencer'>influencer</option>
+	<% end %>
+	<% if @user.attr[:class].to_i > 1 %>
+	<option value='manager'>manager</option>
+	<% end %>
+	<% if @user.attr[:class].to_i > 2 %>
+	<option value='operator'>operator</option>
+	<% end %>
+	
 	<% @user.titles.members.each do |e| %>
 	<option value='<%= e %>'><%= e %></option>
 	<% end %>
@@ -62,9 +80,15 @@ padding: 3%;
 	<option value='sms'>sms</option>
 	<option value='tel'>tel</option>
       </select>
-      <input type='tel' name='config[phone]' style='width: 78%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h1>
+      <input type='tel' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h1>
     <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
     <h1 style='text-align: center;'><button>SAVE</button></h1>
+    <% if @user.attr[:boss].to_i > 3 %>
+    <fieldset style='background-color: white;'>
+      <legend style='color: black; background-color: white; border-radius: 1000px;'>invite</legend>
+      <div id='invite' style='padding: 2%; border: thick solid white; background-color: white;'></div>
+    </fieldset>
+    <% end %>
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
@@ -80,21 +104,17 @@ padding: 3%;
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
     <input type='text' id='scan' name='scan' value='<%= @id %>' disabled>
     </h3>
-    <% if @user.attr[:boss].to_i > 3 %>
+    <% if @user.attr[:boss].to_i > 4 %>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='admin' style='width: 100%;'>
 	<option selected disabled>promote</option>
-	<option value='class'>class</option>
-	
-	
-	<% if @user.attr[:boss].to_i > 4 %>
+	<% if @user.attr[:boss].to_i > 5 %>
 	<option value='lvl'>level</option>
-	<option value='rank'>rank</option>
 	<option value='stripes'>stripes</option>
 	<option value='pin'>pin</option>
 	<% end %>
 	
-	<% if @user.attr[:boss].to_i > 9 %>
+	<% if @user.attr[:boss].to_i > 10 %>
 	<option value='boss'>boss</option>
 	<% end %>
 	
@@ -102,7 +122,7 @@ padding: 3%;
     </h3>
     <% end %>
 
-    <% if @user.attr[:boss].to_i > 7 %>
+    <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
       <option value='<%= vote %>'>
@@ -110,7 +130,7 @@ padding: 3%;
     </datalist>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
     <% end %>
-    <% if @user.attr[:boss].to_i > 5 %>
+    <% if @user.attr[:boss].to_i > 6 %>
     <datalist id='titles'>
       <% TITLES.members.each do |title| %>
       <option value='<%= title %>'>
@@ -119,7 +139,7 @@ padding: 3%;
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
     <% end %>
     
-    <% if @user.attr[:boss].to_i > 8 %>
+    <% if @user.attr[:boss].to_i > 9 %>
     <datalist id='zones'>
       <% ZONES.members.each do |zone| %>
       <option value='<%= zone %>'>
@@ -128,30 +148,30 @@ padding: 3%;
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
     <% end %>
 
-    <% if @user.attr[:boss].to_i > 9 %>
+    <% if @user.attr[:boss].to_i > 7 %>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='message' placeholder='message'></h3>
     <% end %>
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <select class='material-icons' name='give[of]' style='width: 15%; padding: 0;'>
-	<option selected disabled>military_tech</option>
-	<% if @user.attr[:boss].to_i > 0 %>
-	<option class='material-icons' value='award'>emoji_events</option>
-	<% end %>
+      <select name='give[of]' style='width: 15%; padding: 0;'>
+	<option selected>badge</option>
 	<% if @user.attr[:boss].to_i > 1 %>
-	<option class='material-icons' value='stripe'>texture</option>
+	<option value='award'>award</option>
 	<% end %>
 	<% if @user.attr[:boss].to_i > 2 %>
-	<option class='material-icons' value='boss'>accessibility_new</option>
+	<option value='stripe'>stripe</option>
 	<% end %>
-	<% if @user.attr[:boss].to_i > 6 %>
-	<option class='material-icons' value='vote'>poll</option>
+	<% if @user.attr[:boss].to_i > 2 %>
+	<option value='boss'>boss</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 0 %>
+	<option value='vote'>vote</option>
 	<% end %>
       </select>
-      <select class='material-icons' name='give[type]' style='width: 15%; padding: 0;'>
-	<option class='material-icons' selected disabled></option>
-	<% BADGES.each do |badge| %>
-	<option class='material-icons' value='<%= badge %>'><%= badge %></option>
+      <select name='give[type]' style='width: 15%; padding: 0;'>
+	<option selected disabled></option>
+	<% BADGES.each_pair do |name, badge| %>
+	<option value='<%= badge %>'><%= name %></option>
 	<% end %>
       </select>
       <input type='text' name='give[desc]' placeholder='for...'>
@@ -166,12 +186,14 @@ padding: 3%;
     <% @user.log.clear() %>
   </div>
   <script>
+  var inv = false;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
-    $('#sponsor').val('<%= @user.attr[:sponsor] || 'none' %>');
+    $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>')
+    log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>');
+    log('<span class="material-icons">info</span> Add to homescreen to install.');
 <%= erb :scan %>
 <%= erb :sha %>
 <%= erb :coin %>

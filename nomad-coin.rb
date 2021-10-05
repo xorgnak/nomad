@@ -6,8 +6,52 @@ VAULT_SIZE = 8
 
 FEES = { xfer: 1 }
 
-
-BADGES = ['backpack', 'campaign', 'coronavirus', 'directions', 'explore', 'bike_scooter', 'directions_bike', 'home_repair_service', 'restaurant', 'fastfood', 'local_cafe', 'local_bar', 'local_pizza', 'set_meal', 'celebration', 'nightlife', 'sports_bar', 'outdoor_grill', 'smoking_rooms', 'medical_services', 'offline_bolt', 'highlight', 'palette', 'night_shelter', 'radio', 'local_fire_department', 'fire_extinguisher', 'biotech', 'festival', 'carpenter', 'child_friendly', 'self_improvement', 'memory', 'spa', 'loyalty', 'support_agent', 'local_shipping', 'two_wheeler', 'drive_eta', 'airport_shuttle', 'agriculture', 'carpenter', 'plumbing', 'history_edu', 'construction', 'speed', 'sports_score', 'tour']
+BADGES = {
+  nomad: 'backpack',
+  pedicab: 'bike_scooter',
+  food: 'fastfood',
+  bike: 'directions_bike',
+  grill: 'outdor_grill',
+  pathfinder: 'highlight',
+  kids: 'child_friendly',
+  meals: 'restaurant',
+  pizza: 'pizza',
+  bar: 'local_bar',
+  asian: 'set_meal',
+  coffee: 'local_cafe',
+  influence: 'campaign',
+  referral: 'loyalty',
+  directions: 'directions',
+  adventure: 'explore',
+  radio: 'radio',
+  dispatch: 'support_agent',
+  farmer: 'agriculture',
+  cannabis: 'smoking_rooms',
+  medic: 'medical_services',
+  guide: 'tour',
+  fire: 'local_fire_department',
+  calm: 'self_improvement',
+  developer: 'memory',
+  party: 'celebration',
+  event: 'festival',
+  nightlife: 'nightlife',
+  hauling: 'local_shipping',
+  bus: 'airport_shuttle',
+  race: 'sports_score',
+  building: 'carpenter',
+  fixing: 'construction',
+  emergency: 'fire_extinguisher'
+}
+ICONS = {
+  call: 'call',
+  sms: 'message',
+  tip: 'cash',
+  venmo: 'venmo',
+  facebook: 'facebook',
+  instagram: 'instagram',
+  snapchat: 'snapchat'
+}
+#BADGES = ['backpack', 'campaign', 'coronavirus', 'directions', 'explore', 'bike_scooter', 'directions_bike', 'home_repair_service', 'restaurant', 'fastfood', 'local_cafe', 'local_bar', 'local_pizza', 'set_meal', 'celebration', 'nightlife', 'sports_bar', 'outdoor_grill', 'smoking_rooms', 'medical_services', 'offline_bolt', 'highlight', 'palette', 'night_shelter', 'radio', 'local_fire_department', 'fire_extinguisher', 'biotech', 'festival', 'carpenter', 'child_friendly', 'self_improvement', 'memory', 'spa', 'loyalty', 'support_agent', 'local_shipping', 'two_wheeler', 'drive_eta', 'airport_shuttle', 'agriculture', 'carpenter', 'plumbing', 'history_edu', 'construction', 'speed', 'sports_score', 'tour']
 
 require 'redis-objects'
 require 'sinatra/base'
@@ -261,7 +305,7 @@ class APP < Sinatra::Base
         0 => 'darkgrey',
         1 => 'white',
         2 => 'blue',
-        3 => 'green',
+        3 => 'darkgreen',
         4 => 'red'
       }
 
@@ -270,7 +314,7 @@ class APP < Sinatra::Base
         1 => 'purple',
         2 => 'orange',
         3 => 'yellow',
-        4 => 'green'
+        4 => 'lightgreen'
       }
       bd = {
         0 => 'darkgrey',
@@ -306,6 +350,11 @@ class APP < Sinatra::Base
       u.attr[:lvl].to_i.times {
         r << %[<span class='material-icons pin'>#{k[u.attr[:pin].to_i]}</span>]
       }
+      ##
+      # class: background color. network scope.
+      # rank: color. network authority.
+      # boss: border color. network responsibility.
+      # stripes: border. network privledge.
       p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
       return %[<h1 id='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
     end
@@ -325,6 +374,11 @@ class APP < Sinatra::Base
     def awards u
 
     end
+    ##
+    # badges: background color. network scope.
+    # awards: color. network authority.
+    # boss: border color. network responsibility.
+    # stripes: border. network privledge.
     def badges i
       r, u = [], U.new(i)
       @bgs = u.badges.members(with_scores: true).to_h
@@ -437,25 +491,39 @@ class APP < Sinatra::Base
           when "1"
             pr = %[vote in contests.]
           when "2"
+            @user.attr[:class] = 1
+            @user.attr[:rank] = 0
             pr = %[give badge awards.]
           when "3"
+            @user.attr[:rank] = 1
             pr = %[certify others badge authority.]
           when "4"
-            pr = %[promote others' class.]
+            @user.attr[:class] = 2
+            @user.attr[:rank] = 0
+            pr = %[invite new users.]
           when "5"
-            pr = %[promote others' level, rank, stripes, and pin.]
+            @user.attr[:rank] = 1
+            pr = %[promote others' influence.]
           when "6"
-            pr = %[award titles to others.]
+            @user.attr[:rank] = 2
+            pr = %[promote others' level, stripes, and pin.]
           when "7"
-            pr = %[enter others into contests.]
+            @user.attr[:rank] = 3
+            pr = %[award titles to others.]
           when "8"
-            pr = %[create contests.]        
+            @user.attr[:class] = 3
+            @user.attr[:rank] = 0
+            pr = %[send messages.]        
           when "9"
-            pr = %[create zones.]
+            @user.attr[:rank] = 1
+            pr = %[create contests.]
           when "10"
-            pr = %[promote others' authority.]
+            @user.attr[:class] = 4
+            @user.attr[:rank] = 0
+            pr = %[create zones.]
           else
-            pr = 'do everything.'
+            @user.attr[:rank] = 1
+            pr = %[do everything.]
           end
           @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}] 
         else

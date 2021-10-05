@@ -5,6 +5,7 @@ form { margin-top: 20%; }
 <h1 style='width: 100%; text-align: center; background-color: white;'>
 <span style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= OPTS[:domain] %></span></h1>
 <div style='width: 100%; text-align:center;'>
+<% if params.has_key?(:w) %>
 <% if params.has_key? :cha %>
 <h3>we sent you a pin.</h3>
 <input type='hidden' name='cha' value='<%= params[:cha] %>'>
@@ -13,5 +14,8 @@ form { margin-top: 20%; }
 <% else %>
 <h1><input type='tel' name='usr' maxlength='10' placeholder='PHONE' style='text-align: center;'></h1>
 <h1><button>AUTHORIZE</button></h1>
+<% end %>
+<% else %>
+<h1>by<br>invitation<br>only</h1>
 <% end %>
 </div>

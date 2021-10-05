@@ -21,7 +21,9 @@ peer.on('open', function (id) {
 //    log("<span class='material-icons'>info</span> " + peer.id);
     state.id = peer.id;
     $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + peer.id);
+    $('#invite').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&w=' + peer.id);
 });
+
 peer.on('connection', function (c) {
 c.on('open', function() {
     log("<span class='material-icons'>qr_code_2</span> from: " + c.peer);

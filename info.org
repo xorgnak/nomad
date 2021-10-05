@@ -1,0 +1,23 @@
+* boss
+gain new admin responsibilities.
+- 0-2, then red
+
+* level
+gain zone level authority.
+- adds number of pips in badge.
+- zone specific.
+
+* stripes
+- gain network level authority.
+- 0-2
+- none, solid, dotted
+
+* pin
+- gain zone class.
+- 0-7
+- circle, square, star
+- zone specific.
+
+* class
+gain zone responsibilities.
+- 0-4
