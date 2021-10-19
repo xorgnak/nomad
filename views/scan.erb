@@ -7,9 +7,10 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).th
     video.srcObject = stream;
     video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
     video.play();
-//    log("<span class='material-icons'>camera</span> connect.");
-    log("<span class='material-icons'>qr_code_2</span> share.");
-    log("<span class='material-icons'>settings</span> customize.");
+    log("<a href='https://<%= OPTS[:domain] %>/apprtc?u=<%= @user.id %>' class='material-icons' style='text-decoraton: none; color: white;'>podcasts</a> broadcast.");
+    // log("<span class='material-icons'>qr_code_2</span> share.");
+    // log("<span class='material-icons'>settings</span> customize.");
+    log("<a href='https://<%= OPTS[:domain] %>/radio?u=<%= @user.id %>' class='material-icons' style='text-decoraton: none; color: white;'>radio</a> connect.");
     requestAnimationFrame(tick);
 });
 function tick() {

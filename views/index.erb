@@ -81,6 +81,16 @@ padding: 3%;
 	<option value='tel'>tel</option>
       </select>
       <input type='tel' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h1>
+    <h1><span style='vertical-align: middle; color: white;' class='material-icons'>podcasts</span><select id='stream' style='vertical-align: middle;' name='config[live]'>
+    <option value='false' selected>private.</option>
+    <option value='<%= @id %>'>public</option>
+    <% @user.zones.members.each do |e| %>
+       <option value='<%= e %>'><%= e %></option>
+    <% end %>
+    <% @user.titles.members.each do |e| %>
+       <option value='<%= e %>'><%= e %></option>
+    <% end %>
+    </select></h1>
     <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
     <h1 style='text-align: center;'><button>SAVE</button></h1>
     <% if @user.attr[:boss].to_i > 3 %>
@@ -192,6 +202,7 @@ padding: 3%;
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
+    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
     log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>');
     log('<span class="material-icons">info</span> Add to homescreen to install.');
 <%= erb :scan %>

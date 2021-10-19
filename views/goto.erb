@@ -5,7 +5,8 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 #lvl { padding: 1%; text-align: center; }
 .pin { padding: 1%; margin: 1%; font-size: small; }
 #badges { text-align: center; }
-.badge { font-size: small; padding: 1%; margin 1%; }
+#badge > h1 > * { vertical-align: middle; }
+.badge { font-size: x-large; padding: 1%; margin 1%; }
 </style>
 
 <img src='/<%= @user.id %>.img'>
@@ -17,13 +18,19 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 </div>
 
 <div id='badge' style='display: none;'>
-  <%= lvl(@id) %> 
+  <h1 style='text-align: center; width: 100%;'>
+  <input name='code' type='text' placeholder='CODE'><button class='material-icons'>record_voice_over</button>
+  </h1>
+  <%= lvl(@id) %>
+  <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
+    <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
+  </div>
   <%= badges(@id) %>
 </div>
 
 <div style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
 
- <% if @user.attr.has_key? :name %>
+ <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
  <h1 style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
  <% end %>
 
@@ -36,8 +43,8 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
    <% end %>
 <h1 style='width: 100%;'>
 
-<a id='tog' style='background-color: blue; width: 20%;' class='material-icons' onclick='$("#badge").toggle();'>badge</a>
-<% if @user.attr.has_key? :link %>
+<a id='tog' style='background-color: blue; width: 20%;' class='material-icons' onclick='$("#badge").show(); $("#tog").hide();'>badge</a>
+<% if @user.attr.has_key?(:link) && @user.attr[:link] != '' %>
     <a style='background-color: red; width: 20%;' class='material-icons' href='<%= @user.attr[:link] %>'>menu</a>
 <% end %>
     
@@ -47,3 +54,12 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 <% end %>
 </h1>
 </div>
+
+<% @ts = Time.now.utc.to_f %>
+
+<input type='hidden' name='x' value='<%= params[:x] || "solo" %>'>
+<input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
+<script>
+$('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=<%= params[:x] || "solo" %>&x=<% params[:x] %>ts=<%= params[:ts] || @ts %>');
+
+</script>

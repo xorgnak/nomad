@@ -69,6 +69,12 @@ TITLES = Redis::Set.new("TITLES")
 CHA = Redis::HashKey.new('CHA')
 IDS = Redis::HashKey.new('IDS')
 BOOK = Redis::HashKey.new('BOOK')
+LOOK = Redis::HashKey.new('LOOK')
+CODE = Redis::HashKey.new('CODE')
+
+def code w, j={}
+  CODE[w] = JSON.generate(j)
+end
 
 def timer h={}
   t = 0
@@ -80,6 +86,13 @@ def timer h={}
   t += (h[:minutes].to_i * 60)
   t += h[:seconds].to_i
   return t
+end
+
+def token t, h={}
+  if h.has_key? :ttl
+    Redis.new.setex(t, h[:ttl], true)
+  end
+  return Redis.new.get(t)
 end
 
 class Phone
@@ -128,6 +141,72 @@ class Phone
 end
 def phone
   Phone.new
+end
+
+class Adventure
+  include Redis::Objects
+  list :waypoints
+  hash_key :attr
+  sorted_set :stat
+  sorted_set :players
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+  def progress player
+    if !self.players.members.include? player
+      self.players[player] = 0
+      U.new(player).attr.bulk_set({ class: self.attr[:class], pin: self.attr[:pin], adventure: @id })
+      U.new(player).log << %[adventure: #{@id}<br>#{self.attr[:desc]}<br>#{self.attr[:instructions]}]
+    end
+                                  
+    if self.players[player] <= self.waypoints.length
+      # step through adventure waypoins.
+      # advance user progress.
+      self.players.incr(player)
+      U.new(player).attr.incr(:lvl)
+      return Waypoint.new(self.waypoints[self.players[player] - 1])
+    else
+      # finish adventure.
+      # reset progress and award badge.
+      U.new(player).attr.bulk_set({ lvl: 0, rank: 0, class: 0, pin: 0 })
+      U.new(player).badges.incr(self.attr[:badge])
+      self.players.delete(player)
+    end
+  end
+end
+
+class Waypoint
+  include Redis::Objects
+  hash_key :attr
+  sorted_set :stat
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+end
+
+class AppRTC
+  include Redis::Objects
+  hash_key :attr
+  hash_key :opts
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+  def link
+    a = []; self.opts.all.each_pair {|k,v| a << %[#{k}=#{v}] }
+    return %[https://appr.tc/r/#{@id}?hd=true&tt=#{self.attr[:ttl] || 1}&#{a.join('&')}]
+  end
+  def embeded
+    return %[<iframe id='iframe' allow="camera *;microphone *" src='#{link}'></iframe>]
+  end
 end
 
 class Vote
@@ -286,7 +365,9 @@ end
 @man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
 @man.symbol '-b', '--boss', "the admin phone number", default: 'dummy'
 @man.int '-p', '--port', "the port we're running on", default: 4567
+@man.float '-f', '--frequency', "the radio frequency we're operating on.", default: 462.700
 @man.bool '-i', '--interactive', 'run interactively', default: false
+
 @man.on '--help' do
   puts "[HELP][#{Time.now.utc.to_f}]"
   puts @man
@@ -300,6 +381,13 @@ class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   set :server, 'thin'
   helpers do
+    def code c
+      if CODE.has_key? c
+        return JSON.parse(CODE[c])
+      else
+        return false
+      end
+    end
     def colors b,f,d
       bg = {
         0 => 'darkgrey',
@@ -395,6 +483,8 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/apprtc') { erb :apprtc }
+  get('/radio') { erb :radio }
   get('/call') {
     content_type 'text/xml'
     Twilio::TwiML::VoiceResponse.new do | response |
@@ -443,7 +533,16 @@ class APP < Sinatra::Base
     end
   }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
-  get('/:u') { @id = id(params[:u]); @user = U.new(@id); pool << @id; erb :index }
+  get('/:u') {
+    if token(params[:u]) == 'true';
+      @id = id(params[:u]);
+      @user = U.new(@id);
+      pool << @id;
+      erb :index
+    else
+      redirect "https://#{OPTS[:domain]}/?w=#{params[:u]}"
+    end
+  }
   post('/') do
     Redis.new.publish 'POST', "#{params}"
     if params.has_key?(:file) && params.has_key?(:u)
@@ -453,7 +552,19 @@ class APP < Sinatra::Base
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
       BOOK['+1' + CHA[params[:cha]]] = params[:u]
+      LOOK[params[:u]] = '+1' + CHA[params[:cha]]
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
+      U.new(params[:u]).attr.incr(:key);
+      r = []; 100.times { r << rand(16).to_s(16) }
+      j = JSON.generate({ utc: Time.now.utc.to_f,
+                          id: U.new(params[:u]).id,
+                          key: U.new(params[:u]).attr[:key],
+                          rnd: r.join('')
+                        })
+      U.new(params[:u]).attr[:credentials] = j
+      U.new(params[:u]).attr[:priv] = Digest::SHA512.hexdigest(j)
+      U.new(params[:u]).attr[:pub] = Digest::SHA2.hexdigest(U.new(params[:u]).attr[:priv])
+      token(params[:u], ttl: (((60 * 60) * 24) * 7))
       CHA.delete(params[:cha])
       @id = id(params[:u]);
       params.delete(:cha)
@@ -472,13 +583,12 @@ class APP < Sinatra::Base
       Redis.new.setex params[:cha], 180, pin.join('');
       phone.send_sms to: '+1' + params[:usr], body: "pin: #{pin.join('')}"
       params.delete(:usr)
-   
       erb :landing
     else
-      @id = id(params[:u]);
+      @id = id("#{params[:u]}#{params[:x]}#{params[:ts]}");
       @by = U.new(@id)
       if params.has_key? :target
-      @user = U.new(params[:target]);
+        @user = U.new(params[:target]);
       else
         @user = U.new(@id);
       end
@@ -532,6 +642,21 @@ class APP < Sinatra::Base
         end
       end
 
+      if params.has_key? :code
+        if c = code(params[:code])
+          if c[:badge];
+            @user.badges.incr(c[:badge]);
+            @user.log << %[<span class='material-icons'>#{BADGES[c[:badge]]}</span> you have earned the #{c[:badge]}.<br>#{c[:desc]}]
+          end
+          [:lvl, :rank].each do |e|
+            if c[e]; @user.attr.incr(e); end
+            @user.log << %[<span class='material-icons'>info</span> +#{e}.]
+          end
+        else
+
+        end
+      end
+      
       if params.has_key? :config
         params[:config].each_pair { |k,v|
           if k.to_sym == :boss
@@ -583,7 +708,11 @@ class APP < Sinatra::Base
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
-      redirect "https://#{OPTS[:domain]}/#{@by.id}"
+      if params.has_key? :code
+        redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
+      else
+        redirect "https://#{OPTS[:domain]}/#{@by.id}"
+      end
     end
   end
 end

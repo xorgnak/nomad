@@ -1,0 +1,14 @@
+<style>
+iframe { border: none; position: fixed; top: 0; left: 0; height: 100%; width: 100%; }
+</style>
+<% @room = AppRTC.new(U.new(params[:u]).attr[:room] || U.new(params[:u]).attr[:zone] || OPTS[:domain].gsub('.', 'dot')) %>
+<% if [@room.attr[:owner], @room.attr[:boss], @room.attr[:dispatcher]].include? params[:u]  %>
+<button class='material-icons' name='config[live]' value='false' style='position: fixed; right: 0; top: 0; z-index: 1;' >pan_tool</button>
+<% end %>
+<%= @room.embeded %>
+<script>
+<% if ![@room.attr[:owner], @room.attr[:boss], @room.attr[:dispatcher]].include? params[:u]  %>
+setTimeout(function() { window.location = 'https://<%= OPTS[:domain] %>/u=<%= params[:u] %>' }, <%= ((@room.attr[:ttl] || 1) * 60) * 1000 %>);
+alert('enjoy your <%= @room.attr[:ttl] || 1 %> minute trial!');
+<% end %>
+</script>
