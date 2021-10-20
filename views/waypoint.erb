@@ -24,7 +24,7 @@ if (navigator.geolocation) {
 });
 function showPosition(position) {
   var latlon = position.coords.latitude + "/" + position.coords.longitude;
-  var img_url = "https://www.openstreetmap.org/?map=10&mlat=" + position.coords.latitude + "&mlon=" + position.coords.longitude + "&layers=CG";
+  var img_url = "https://www.openstreetmap.org/#map=10/" + position.coords.latitude + "/" + position.coords.longitude + "&layers=CG";
   document.getElementById("map").innerHTML = "<img src='"+img_url+"'>";
   document.getElementById("location").innerHTML = latlon;
 }
