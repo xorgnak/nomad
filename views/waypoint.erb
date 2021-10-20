@@ -24,7 +24,7 @@ if (navigator.geolocation) {
 });
 function showPosition(position) {
   var latlon = position.coords.latitude + "/" + position.coords.longitude;
-  var img_url = "https://maps.googleapis.com/maps/api/staticmap?center=" + position.coords.latitude + "," + position.coords.longitude + "&maptype=hybrid&markers=" + position.coords.latitude + "," + position.coords.longitude + "&key=<%= ENV['GOOGLE'] %>";
+  var img_url = "https://maps.googleapis.com/maps/api/staticmap?size=400x200&center=" + position.coords.latitude + "," + position.coords.longitude + "&maptype=hybrid&markers=" + position.coords.latitude + "," + position.coords.longitude + "&key=<%= ENV['GOOGLE'] %>";
   document.getElementById("map").innerHTML = "<img src='"+img_url+"'>";
   document.getElementById("location").innerHTML = latlon;
 }
