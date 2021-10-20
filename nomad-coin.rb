@@ -42,6 +42,7 @@ BADGES = {
   fixing: 'construction',
   emergency: 'fire_extinguisher'
 }
+
 ICONS = {
   call: 'call',
   sms: 'message',
@@ -51,7 +52,6 @@ ICONS = {
   instagram: 'instagram',
   snapchat: 'snapchat'
 }
-#BADGES = ['backpack', 'campaign', 'coronavirus', 'directions', 'explore', 'bike_scooter', 'directions_bike', 'home_repair_service', 'restaurant', 'fastfood', 'local_cafe', 'local_bar', 'local_pizza', 'set_meal', 'celebration', 'nightlife', 'sports_bar', 'outdoor_grill', 'smoking_rooms', 'medical_services', 'offline_bolt', 'highlight', 'palette', 'night_shelter', 'radio', 'local_fire_department', 'fire_extinguisher', 'biotech', 'festival', 'carpenter', 'child_friendly', 'self_improvement', 'memory', 'spa', 'loyalty', 'support_agent', 'local_shipping', 'two_wheeler', 'drive_eta', 'airport_shuttle', 'agriculture', 'carpenter', 'plumbing', 'history_edu', 'construction', 'speed', 'sports_score', 'tour']
 
 require 'redis-objects'
 require 'sinatra/base'
@@ -187,6 +187,9 @@ class Waypoint
   end
   def id
     @id
+  end
+  def map
+    
   end
 end
 
@@ -483,6 +486,7 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
   get('/call') {

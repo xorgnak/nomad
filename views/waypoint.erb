@@ -1,0 +1,31 @@
+<style>
+input { margin: 0; width: 100%; }
+</style>
+<input type="text" name='goal' placeholder='name'>
+<div id='map' style='width: 100%; height: 20%; vertical-align: middle; text-align: center; background-color: black;'><div style='background-color: black; color: white; padding-top: 15%;'>click</div></div>
+<input type="text" name='location' placeholder='coordinates'>
+<textarea style='width: 100%; height: 20%; font-size: x-large;' name='description' placeholder='description'></textarea>
+<textarea style='width: 100%; height: 20%; font-size: x-large;' name='instructions' placeholder='instructions'></textarea>
+<input type="text" name='goal' placeholder='goal'>
+<select style='width: 100%;' name='badge'>
+<option selected disabled>badge</option>
+<% BADGES.each_pair do |k,v| %>
+<option value='<%= v %>'><%= k %></option>
+<% end %>
+</select>
+<p style='width: 100%; text-align: center;'><button>save</button></p>
+<script>
+$(document).on('click', '#map', function() {
+if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(showPosition);
+} else {
+  console.log('no location service.')
+}
+});
+function showPosition(position) {
+  var latlon = position.coords.latitude + "/" + position.coords.longitude;
+  var img_url = "https://www.openstreetmap.org/?map=10&mlat=" + position.coords.latitude + "&mlon=" + position.coords.longitude + "&layers=CG";
+  document.getElementById("map").innerHTML = "<img src='"+img_url+"'>";
+  document.getElementById("location").innerHTML = latlon;
+}
+</script>
