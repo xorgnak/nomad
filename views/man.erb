@@ -1,0 +1,22 @@
+<% @f = []; Dir['man/*'].each do |f| %>
+<% @topic = f.gsub('man_/', '') %>
+<% @f << %[#{@topic}] %>
+<fieldset class='<%= @topic %>'>
+<legend><%= @topic %></legend>
+<p><%= File.read(f) %></p>
+</fieldset>
+<% end %>
+
+<select id='ch'>
+<option selected disabled>section</option>
+<% @f.each do |f| %>
+<option value='<%= %[#{f}] %>'><%= %[#{f}] %></option>
+<% end %>
+</select>
+
+<script>
+$(document).on('change', 'select', function() {
+$('fieldset').hide();
+$('.' + $(this).val()).show();
+});
+</script>

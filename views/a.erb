@@ -1,0 +1,40 @@
+<style>
+form { heigt: 100%; }
+h1 { margin: 0; }
+fieldset { border-radius: 20px; }
+fieldset p { width: 100%; }
+div { }
+</style>
+<h1>
+<select id='badge'>
+<option selected disabled value='all'>badge</option>
+<% BADGES.each_pair do |k,v| %>
+<option value='<%= k %>'><%= k %></option>
+<% end %>
+</select>
+<select id='waypoints'>
+<option selected disabled value='all'>waypoints</option>
+<% 100.times do |t| %>
+<option value='<%= t %>'><%= t %></option>
+<% end %>
+</select>
+</h1>
+<div>
+<% ADVENTURES.each do |a| %>
+<% @a = Adventure.new(a) %>
+<fieldset class='bdg_<%= @a.attr[:badge] %> pts_<%= @a.waypoints.length %>'>
+<legend><%= @a.attr[:name] %></legend>
+<code>
+waypoints: <%= @a.waypoints.length %><br>
+badge: <span class='material-icons'><%= BADGES[@a.attr[:badge].to_sym] %></span>
+</code>
+<p><%= @a.attr[:description] %></p>
+</fieldset>
+<% end %>
+</div>
+<script>
+$(function() {
+$(document).on('change', '#badge', function() { $('fieldset').hide(); $('.bdg_' + $(this).val() ).show(); });
+$(document).on('change', '#waypoints', function() { $('fieldset').hide(); $('.pts_' + $(this).val() ).show(); });
+});
+</script>

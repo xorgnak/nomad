@@ -1,0 +1,11 @@
+<style>
+fieldset { border-radius: 20px; }
+fieldset p { width: 100%; text-align: center; }
+</style>
+<% ADVENTURES.each do |a| %>
+<% @a = Adventure.new(a) %>
+<fieldset>
+<legend><%= @a.attr[:name] %></legend>
+<p><%= @a.attr[:description] %></p>
+</fieldset>
+<% end %>

@@ -71,7 +71,8 @@ IDS = Redis::HashKey.new('IDS')
 BOOK = Redis::HashKey.new('BOOK')
 LOOK = Redis::HashKey.new('LOOK')
 CODE = Redis::HashKey.new('CODE')
-
+LOCS = Redis::Set.new("LOCS")
+ADVENTURES = Redis::Set.new("ADVENTURES")
 def code w, j={}
   CODE[w] = JSON.generate(j)
 end
@@ -145,36 +146,35 @@ end
 
 class Adventure
   include Redis::Objects
-  list :waypoints
+  set :waypoints
   hash_key :attr
+  set :contributors
   sorted_set :stat
   sorted_set :players
   def initialize i
+    ADVENTURES << i
+    @url = "https://#{OPTS[:domain]}/adventure?a=#{i}"
     @id = i
   end
   def id
     @id
   end
-  def progress player
+  def create player
     if !self.players.members.include? player
       self.players[player] = 0
       U.new(player).attr.bulk_set({ class: self.attr[:class], pin: self.attr[:pin], adventure: @id })
       U.new(player).log << %[adventure: #{@id}<br>#{self.attr[:desc]}<br>#{self.attr[:instructions]}]
     end
-                                  
-    if self.players[player] <= self.waypoints.length
-      # step through adventure waypoins.
-      # advance user progress.
-      self.players.incr(player)
-      U.new(player).attr.incr(:lvl)
-      return Waypoint.new(self.waypoints[self.players[player] - 1])
-    else
-      # finish adventure.
-      # reset progress and award badge.
-      U.new(player).attr.bulk_set({ lvl: 0, rank: 0, class: 0, pin: 0 })
-      U.new(player).badges.incr(self.attr[:badge])
-      self.players.delete(player)
-    end
+  end
+  def progress player
+
+  end
+  def html
+    o = []
+    o << %[<p class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</p>]
+    o << %[<p class='description'>#{self.attr[:description]}</p>]
+    o << %[<p class='goal'>#{self.attr[:badge]}</p>]
+    return %[<div>#{o.join('')}</div>]
   end
 end
 
@@ -182,14 +182,23 @@ class Waypoint
   include Redis::Objects
   hash_key :attr
   sorted_set :stat
+  set :contributors
   def initialize i
+    @a, @p = i.split(':')
+    @url = "https://#{OPTS[:domain]}/waypoint?a=#{@a}&i=#{@p}"
     @id = i
   end
   def id
     @id
   end
-  def map
-    
+  def html
+    o = []
+    o << %[<p class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</p>]
+    o << %[<p class='location'>#{self.attr[:location]}</p>]
+    o << %[<p class='description'>#{self.attr[:description]}</p>]
+    o << %[<p class='instructions'>#{self.attr[:instructions]}</p>]
+    o << %[<p class='goal'>#{self.attr[:goal]}</p>]
+    return %[<div>#{o.join('')}</div>]
   end
 end
 
@@ -209,6 +218,31 @@ class AppRTC
   end
   def embeded
     return %[<iframe id='iframe' allow="camera *;microphone *" src='#{link}'></iframe>]
+  end
+end
+
+class Board
+  include Redis::Objects
+  value :is
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+  def form
+    
+  end
+  def html
+    o = []
+    if self.is.value != nil
+    @u = U.new(self.is.value)
+    o << %[<img src='#{@u.attr[:img]}'>]
+    o << %[<p>#{@u.attr[:name] || 'vacant'}</p>]
+    else
+      o << %[<input type='text' name='board[#{self.id}]' placeholder='user'>]
+    end
+    return %[<fieldset><legend>#{self.id}</legend>#{o.join('')}</fieldset>]
   end
 end
 
@@ -486,6 +520,11 @@ class APP < Sinatra::Base
   before {}
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/man') { erb :man }
+  get('/a') { erb :a }
+  get('/board') { erb :board }
+  get('/adventures') { erb :adventures }
+  get('/adventure') { erb :adventure }
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
@@ -670,6 +709,30 @@ class APP < Sinatra::Base
         }
       @user.log << %[<span class='material-icons'>info</span> profile updated.]
       end
+
+      if params.has_key? :waypoint
+        Adventure.new(params[:a]).waypoints << "#{params[:a]}:#{params[:i]}"
+        Waypoint.new(params[:a] + ':' + params[:i]).contributors << params[:u]
+        params[:waypoint].each_pair { |k,v|
+          Waypoint.new(params[:a] + ':' + params[:i]).attr[k] = v
+        }
+        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
+      end
+      
+      if params.has_key? :adventure
+        Adventure.new(params[:a]).contributors << params[:u]
+        params[:adventure].each_pair { |k,v|
+          Adventure.new(params[:a]).attr[k] = v
+        }
+        @user.log << %[<span class='material-icons'>info</span> adventure #{params[:a]} updated.]
+      end
+
+      if params.has_key? :board
+        params[:board].each_pair { |k,v|
+          Board.new(k).is.value = v
+        }
+        @user.log << %[<span class='material-icons'>info</span> board updated.]
+      end
       
       if params.has_key?(:vote) && params[:vote] != ''
         VOTES << params[:vote]
@@ -714,6 +777,8 @@ class APP < Sinatra::Base
       end
       if params.has_key? :code
         redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
+      elsif params.has_key? :a
+        redirect "https://#{OPTS[:domain]}/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
         redirect "https://#{OPTS[:domain]}/#{@by.id}"
       end

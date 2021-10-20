@@ -19,7 +19,9 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 
 <div id='badge' style='display: none;'>
   <h1 style='text-align: center; width: 100%;'>
-  <input name='code' type='text' placeholder='CODE'><button class='material-icons'>record_voice_over</button>
+  <a class='material-icons' href='https://<%= OPTS[:domain] %>/a' style='thin outset grey;'>military_tech</a>
+  <input name='code' type='text' style='width: 50%;' placeholder='CODE'>
+  <button class='material-icons'>record_voice_over</button>
   </h1>
   <%= lvl(@id) %>
   <div id='qrcode-wrap' style='width: 100%; text-align: center;'>

@@ -1,0 +1,15 @@
+<% @a = Adventure.new(params[:a]) %>
+<input type='hidden' name='a' value='<%= params[:a] %>'>
+<h1><input type='text' name='adventure[name]' value='<%= @a.attr[:name] %>' placeholder='name'></h1>
+<p><input type='text' name='adventure[description]' value='<%= @a.attr[:description] %>' placeholder='description'></p>
+<select style='width: 100%;' name='adventure[badge]'>
+<option selected disabled>badge</option>
+<% BADGES.each_pair do |k,v| %>
+<option value='<%= k %>'><%= k %></option>
+<% end %>
+</select>
+<% @a.waypoints.each do |p| %>
+<h3><%= Waypoint.new(p).html %></h3>
+<% end %>
+<a href='https://<%= OPTS[:domain] %>/waypoint?u=<%= params[:u] %>&a=<%= params[:a] %>&i=<%= @a.waypoints.length %>'>+</a>
+<button>save</button>

@@ -1,31 +1,23 @@
 <style>
 input { margin: 0; width: 100%; }
 </style>
-<input type="text" name='goal' placeholder='name'>
-<div id='map' style='width: 100%; height: 20%; vertical-align: middle; text-align: center; background-color: black;'><div style='background-color: black; color: white; padding-top: 15%;'>click</div></div>
-<input type="text" name='location' placeholder='coordinates'>
-<textarea style='width: 100%; height: 20%; font-size: x-large;' name='description' placeholder='description'></textarea>
-<textarea style='width: 100%; height: 20%; font-size: x-large;' name='instructions' placeholder='instructions'></textarea>
-<input type="text" name='goal' placeholder='goal'>
-<select style='width: 100%;' name='badge'>
-<option selected disabled>badge</option>
-<% BADGES.each_pair do |k,v| %>
-<option value='<%= v %>'><%= k %></option>
+<datalist>
+<% LOCS.each do |e| %>
+<option value='<%= e %>'>
+<% end %>
+</datalist>
+<% [ :u, :a, :i ].each do |e| %>
+<input type='hidden' name='<%= e %>' value='<%= params[e] %>'>
+<% end %>
+<input type="text" name='waypoint[name]' placeholder='name'>
+<input type="text" name='waypoint[location]' list='locs' placeholder='location'>
+<textarea style='width: 100%; height: 20%; font-size: x-large;' name='waypoint[description]' placeholder='description'></textarea>
+<textarea style='width: 100%; height: 20%; font-size: x-large;' name='waypoint[instructions]' placeholder='instructions'></textarea>
+<select style='width: 100%;' name='waypoint[type]'>
+<option selected disabled>type</option>
+<% [ :entry, :info, :waypoint, :extra, :exit ].each_with_index do |e, i| %>
+<option value='<%= i %>'><%= e %></option>
 <% end %>
 </select>
+
 <p style='width: 100%; text-align: center;'><button>save</button></p>
-<script>
-$(document).on('click', '#map', function() {
-if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPosition);
-} else {
-  console.log('no location service.')
-}
-});
-function showPosition(position) {
-  var latlon = position.coords.latitude + "/" + position.coords.longitude;
-  var img_url = "https://maps.googleapis.com/maps/api/staticmap?size=400x200&center=" + position.coords.latitude + "," + position.coords.longitude + "&maptype=hybrid&markers=" + position.coords.latitude + "," + position.coords.longitude + "&key=<%= ENV['GOOGLE'] %>";
-  document.getElementById("map").innerHTML = "<img src='"+img_url+"'>";
-  document.getElementById("location").innerHTML = latlon;
-}
-</script>
