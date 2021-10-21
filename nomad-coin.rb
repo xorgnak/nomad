@@ -794,7 +794,7 @@ b = OPTS[:port].to_s[3].to_i
 DB[OPTS[:domain]] = b
 
 def db d 
-  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d] )
+  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d].to_i )
 end
 
 db b
