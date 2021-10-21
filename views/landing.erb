@@ -1,6 +1,6 @@
 <style>
 html { background-color: black; color: white; }
-form { margin-top: 20%; }
+form { }
 </style>
 <h1 style='width: 100%; text-align: center; background-color: white;'>
 <span style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= OPTS[:domain] %></span></h1>
@@ -16,6 +16,6 @@ form { margin-top: 20%; }
 <h1><button>AUTHORIZE</button></h1>
 <% end %>
 <% else %>
-<h1>by<br>invitation<br>only</h1>
+<%= LANDING[OPTS[:domain]] %>
 <% end %>
 </div>
