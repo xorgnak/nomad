@@ -27,7 +27,7 @@ server {
   server_name $DOMAIN;
   location / {
     proxy_pass http://localhost:$PORT;
-    proxy_set_header Host $host;
+    proxy_set_header Host \$host;
     proxy_redirect http://localhost:$PORT https://$DOMAIN;
   }
   ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot
