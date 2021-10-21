@@ -35,7 +35,7 @@ server {
 EOF
 
 elif [[ "$1" == "install" ]]; then
-    sudo apt update && sudo apt upgrade && emacs-nox sudo apt install git screen ruby-full redis-server redis-tools build-essential certbot nginx;
+    sudo apt update && sudo apt upgrade && sudo apt install git screen ruby-full redis-server redis-tools build-essential certbot nginx emacs-nox;
     sudo gem install sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby;
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
