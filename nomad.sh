@@ -45,7 +45,7 @@ elif [[ "$1" == "quick" ]]; then
 else
     for f in run/*.sh;
     do
-	./run.sh
+	./$f
     done
     ruby nomad-coin.rb -i
 fi
