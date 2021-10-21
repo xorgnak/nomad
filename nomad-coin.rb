@@ -100,7 +100,7 @@ end
 
 class Phone
   def twilio
-    Twilio::REST::Client.new(ENV['PHONE_SID'], ENV['PHONE_KEY'])
+    Twilio::REST::Client.new(OPTS[:sid], OPTS[:key])
   end
   def send_sms h={}
     to = []
@@ -403,6 +403,8 @@ end
 @man = Slop::Options.new
 @man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
 @man.symbol '-b', '--boss', "the admin phone number", default: 'dummy'
+@man.symbol '-s', '--sid', "the twilio sid", default: 'dummy twilio sid'
+@man.symbol '-k', '--key', "the twilio key", default: 'dummy twilio key'
 @man.int '-p', '--port', "the port we're running on", default: 4567
 @man.float '-f', '--frequency', "the radio frequency we're operating on.", default: 462.700
 @man.bool '-i', '--interactive', 'run interactively', default: false

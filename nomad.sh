@@ -20,7 +20,7 @@ export PORT='$PORT';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
 export FREQUENCY='$FREQUENCY';
-ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY &
+ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY -s \$PHONE_SID -k \$PHONE_KEY &
 EOF
 emacs run/$DOMAIN.sh;
 chmod +x run/$DOMAIN.sh;
@@ -52,7 +52,7 @@ elif [[ "$1" == "install" ]]; then
 #
 export DOMAIN_ROOT='$DOMAIN_ROOT'; 
 export PHONE_SID='$PHONE_SID';
-export PHONE_TOKEN='$PHONE_KEY';
+export PHONE_KEY='$PHONE_KEY';
 #
 # end of network configuration.
 #
