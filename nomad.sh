@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir -p run
-
+mkdir -p nginx
 if [[ "$1" == "config" ]]; then
 rm run.sh
 cat <<EOF > run/$DOMAIN.sh;
@@ -20,7 +20,7 @@ ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY &;
 EOF
 emacs run/$DOMAIN.sh;
 chmod +x run/$DOMAIN.sh;
-sudo cat <<EOF > /etc/nginx/sites-enabled/$DOMAIN
+sudo cat <<EOF > nginx/$DOMAIN.conf
 server {
   listen 443 ssl;
   listen [::]:443;
