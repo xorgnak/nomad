@@ -16,6 +16,6 @@ form { }
 <h1><button>AUTHORIZE</button></h1>
 <% end %>
 <% else %>
-<%= LANDING[OPTS[:domain]] %>
+<%= erb LANDING[OPTS[:domain]] %>
 <% end %>
 </div>
