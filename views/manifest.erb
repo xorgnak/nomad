@@ -5,12 +5,13 @@
     "scope": "/",
     <% if params.has_key?(:x) %>
     "start_url": "https://<%= OPTS[:domain] %>/?x=<params[:x]>&u=<%= params[:u] %>",
+    "short_name": "<%= U.new(params[:u]).attr[:name].upcase %>",
     <% else %>
     "start_url": "https://<%= OPTS[:domain] %>/<%= params[:u] %>",
+    "short_name": "<%= OPTS[:domain].gsub('.com', '') %>",
     <% end %>
-    "name": "propedicab.com",
-    "short_name": "PEDICAB",
-    "description": "the propedicab.com user interface.",
+    "name": "<%= OPTS[:domain] %>",
+    "description": "the nomad user interface for <%= OPTS[:domain] %>.",
     "icons": [
 	{
 	    "src": "\/android-icon-36x36.png",
