@@ -417,7 +417,7 @@ class APP < Sinatra::Base
   set :port, OPTS[:port]
   set :bind, '0.0.0.0'
   set :server, 'thin'
-  ser :public_folder, "public/#{OPTS[:domain]}"
+  set :public_folder, "public/#{OPTS[:domain]}"
   helpers do
     def code c
       if CODE.has_key? c
