@@ -788,7 +788,7 @@ class APP < Sinatra::Base
 end
 
 b = OPTS[:port].to_s[3].to_i
-Redis::Hashkey.new('DB')[OPTS[:domain]] = b
+Redis::HashKey.new('DB')[OPTS[:domain]] = b
 
 def db d 
   Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => Redis::Hashkey.new('DB')[d] )
