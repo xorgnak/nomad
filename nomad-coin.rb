@@ -417,6 +417,7 @@ class APP < Sinatra::Base
   set :port, OPTS[:port]
   set :bind, '0.0.0.0'
   set :server, 'thin'
+  ser :public_folder, "public/#{OPTS[:domain]}"
   helpers do
     def code c
       if CODE.has_key? c
@@ -590,7 +591,7 @@ class APP < Sinatra::Base
     Redis.new.publish 'POST', "#{params}"
     if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
-      File.open('public/' + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
+      File.open("public/#{OPTS[:domain]}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
     end
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
@@ -785,6 +786,9 @@ class APP < Sinatra::Base
     end
   end
 end
+
+
+Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => OPTS[:port].to_s[3].to_i )
 
 begin
   if OPTS[:interactive]

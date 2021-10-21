@@ -8,6 +8,7 @@ mkdir -p run
 mkdir -p nginx
 if [[ "$1" == "config" ]]; then
     rm run.sh
+    mkdir -p public/$DOMAIN
     cat ~/nomad.conf > run/$DOMAIN.sh
 cat <<EOF >> run/$DOMAIN.sh;
 #
