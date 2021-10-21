@@ -787,14 +787,19 @@ class APP < Sinatra::Base
   end
 end
 
+b = OPTS[:port].to_s[3].to_i
+Redis::Hashkey.new('DB')[OPTS[:domain]] = b
 
-Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => OPTS[:port].to_s[3].to_i )
+def db d 
+  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => Redis::Hashkey.new('DB')[d] )
+end
+
+db b
 
 begin
   if OPTS[:interactive]
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
-    Process.detach( fork { APP.run! } )
-#    Process.detach( fork { BOT.start } )                                       
+    Process.detach( fork { APP.run! } )                                    
     Pry.config.prompt_name = :nomad
     Pry.start(OPTS[:domain])
   else
