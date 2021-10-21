@@ -68,6 +68,7 @@ ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
 CHA = Redis::HashKey.new('CHA')
 IDS = Redis::HashKey.new('IDS')
+DB = Redis::HashKey.new('DB')
 BOOK = Redis::HashKey.new('BOOK')
 LOOK = Redis::HashKey.new('LOOK')
 CODE = Redis::HashKey.new('CODE')
@@ -787,11 +788,13 @@ class APP < Sinatra::Base
   end
 end
 
+
+
 b = OPTS[:port].to_s[3].to_i
-Redis::HashKey.new('DB')[OPTS[:domain]] = b
+DB[OPTS[:domain]] = b
 
 def db d 
-  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => Redis::Hashkey.new('DB')[d] )
+  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d] )
 end
 
 db b
