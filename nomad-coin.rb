@@ -123,7 +123,7 @@ class Phone
     end
     to.each do |t|
       Redis.new.publish "DEBUG.send_sms", "#{t}"
-      if ENV['LIVE'] == 'true' && h[:body] != ''
+      if h[:body] != ''
         if h[:image]
           twilio.messages.create(
             to: t,

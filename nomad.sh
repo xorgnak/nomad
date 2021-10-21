@@ -20,7 +20,6 @@ export PORT='$PORT';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
 export FREQUENCY='$FREQUENCY';
-
 ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY &
 EOF
 emacs run/$DOMAIN.sh;
