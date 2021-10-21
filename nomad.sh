@@ -1,25 +1,26 @@
 #!/bin/bash
 
+mkdir -p run
 
 if [[ "$1" == "config" ]]; then
 rm run.sh
-cat <<EOF > run.sh;
+cat <<EOF > run/$DOMAIN.sh;
 #
 # EDIT TO SUIT YOUR NEEDS.
 #
+export DOMAIN_ROOT='$DOMAIN_ROOT';
 export DOMAIN='$DOMAIN';
 export PORT='$PORT';
-export GOOGLE='$GOOGLE';
 export PHONE_SID='$PHONE_SID';
 export PHONE_TOKEN='$PHONE_KEY';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
 export FREQUENCY='$FREQUENCY';
-ruby nomad-coin.rb -p $PORT -d DOMAIN -b $ADMIN -f $FREQUENCY $*; 
+ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY &; 
 EOF
-emacs run.sh;
-chmod +x run.sh;
-cat <<EOF > /etc/nginx/sites-enabled/$DOMAIN
+emacs run/$DOMAIN.sh;
+chmod +x run/$DOMAIN.sh;
+sudo cat <<EOF > /etc/nginx/sites-enabled/$DOMAIN
 server {
   listen 443 ssl;
   listen [::]:443;
@@ -29,8 +30,8 @@ server {
     proxy_set_header Host $host;
     proxy_redirect http://localhost:$PORT https://$DOMAIN;
   }
-  ssl_certificate /etc/letsencrypt/live/vango.me/fullchain.pem; # managed by Certbot                           
-  ssl_certificate_key /etc/letsencrypt/live/vango.me/privkey.pem; # managed by Certbot 
+  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot
+  ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_ROOT/privkey.pem; # managed by Certbot 
 }
 EOF
 
@@ -42,5 +43,9 @@ elif [[ "$1" == "commit" ]]; then
 elif [[ "$1" == "quick" ]]; then
     ./nomad.sh install && ./nomad.sh config && ./nomad.sh $*
 else
-  ./run.sh $*;
+    for f in run/*.sh;
+    do
+	./run.sh
+    done
+    ruby nomad-coin.rb -i
 fi
