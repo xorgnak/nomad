@@ -691,7 +691,7 @@ class APP < Sinatra::Base
       end
 
       if params.has_key? :landing
-        LANDING[OPTS[:domain]] = params[:landing][:body]
+        LANDING[OPTS[:domain]] = params[:landing]
       end
       
       if params.has_key? :code
@@ -784,7 +784,9 @@ class APP < Sinatra::Base
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
-      if params.has_key? :code
+      if params.has_key? :landing
+        redirect "https://#{OPTS[:domain]}/"
+      elsif params.has_key? :code
         redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
       elsif params.has_key? :a
         redirect "https://#{OPTS[:domain]}/adventure?u=#{params[:u]}&a=#{params[:a]}"
