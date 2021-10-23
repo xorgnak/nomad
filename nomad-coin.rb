@@ -486,7 +486,7 @@ class Sash
       d = true
     end
     if d == true;
-      @u.badges.incr(b)
+      @u.badges.incr(b);
       @u.boss[b] = "#{@u.badges[b].to_i}".length
       @u.stripes[b] = "#{@u.boss[b].to_i}".length
       @u.log << %[<span class='material-icons'>military_awards</span> you earned a #{b} badge.]
@@ -495,7 +495,7 @@ class Sash
 
   def colors b,f,d
     bg = { 0 => 'darkgrey', 1 => 'white', 2 => 'blue', 3 => 'darkgreen', 4 => 'red' }
-    fg = { 0 => 'lightgrey', 1 => 'purple', 2 => 'orange', 3 => 'yellow', 4 => 'lightgreen' }
+    fg = { 0 => 'lightgrey', 1 => 'purple', 2 => 'orange', 3 => 'lightgreen', 4 => 'lightblue' }
     bd = { 0 => 'darkgrey', 1 => 'silver', 2 => 'gold' }
     h =  { fg: fg[f.to_i] || 'gold', bg: bg[b.to_i] || 'black', bd: bd[d.to_i] || 'red' }
   end
