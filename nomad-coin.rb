@@ -72,6 +72,7 @@ DB = Redis::HashKey.new('DB')
 BOOK = Redis::HashKey.new('BOOK')
 LOOK = Redis::HashKey.new('LOOK')
 LANDING = Redis::HashKey.new('LANDING')
+LOCKED = Redis::HashKey.new('LOCKED')
 CODE = Redis::HashKey.new('CODE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
@@ -690,7 +691,7 @@ class APP < Sinatra::Base
         end
       end
 
-      if params.has_key? :landing
+      if params.has_key?(:landing) && LOCKED[OPTS[:domain]] != 'true'
         LANDING[OPTS[:domain]] = params[:landing]
       end
       
