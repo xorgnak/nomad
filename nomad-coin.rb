@@ -40,7 +40,91 @@ BADGES = {
   race: 'sports_score',
   building: 'carpenter',
   fixing: 'construction',
-  emergency: 'fire_extinguisher'
+  emergency: 'fire_extinguisher',
+
+  bug: 'pest_control',
+  network: 'router',
+  comms: 'leak_add'
+}
+
+DEPS = {
+  nomad: [ :bike, :dispatch, :pathfinder, :medic ],
+  pedicab: [],
+  food: [ :pizza, :grill, :asian, :meals, :coffee ],
+  bike: [],
+  grill: [],
+  pathfinder: [ :directions ],
+  kids: [],
+  meals: [],
+  pizza: [],
+  bar: [],
+  asian: [],
+  coffee: [],
+  influence: [ :fire ],
+  referral: [],
+  directions: [],
+  adventure: [ :pedicab, :guide, :radio, :fire  ],
+  radio: [],
+  dispatch: [ :radio ],
+  farmer: [],
+  cannabis: [ :farmer ],
+  medic: [],
+  guide: [ :directions ],
+  fire: [ :referral ],
+  calm: [ :emergency ],
+  developer: [ :comms ],
+  party: [ :referral ],
+  event: [ :party ],
+  nightlife: [ :party ],
+  hauling: [],
+  bus: [ :hauling ],
+  race: [ :pedicab ],
+  building: [ :fixing ],
+  fixing: [],
+  emergency: [ :fixing, :medic ],
+  bug: [],
+  network: [ :bug ],
+  comms: [ :radio, :network ]
+}
+
+DESCRIPTIONS = {
+  nomad: 'able to operate autonomously.',
+  pedicab: 'able to operate a pedicab.',
+  food: 'knowledgable on the subject of food,',
+  bike: 'able to operate a pedicab.',
+  grill: 'knowlegable on the subject of grilled meat,',
+  pathfinder: 'able to manage multiple transportation vectors.',
+  kids: 'child friendly.',
+  meals: 'knowlegable on the subject of sit down meals.',
+  pizza: 'knowlegable on the subject of pizza,',
+  bar: 'knowlegable on the subject of local bars,',
+  asian: 'knowlegable on the subject of asian food,',
+  coffee: 'knowlegable on the subject of local coffee,',
+  influence: 'knowlegable on the subject of ultra-exclusive local events.',
+  referral: 'knowlegable on the subject of local events.',
+  directions: 'able to find things.',
+  adventure: 'qualified to conduct adventures.',
+  radio: 'qualified to use a radio.',
+  dispatch: 'managing network radio operatons.',
+  farmer: 'knowlegable on the subject of growing things,',
+  cannabis: 'knowlegable on the subject of cannabis,',
+  medic: 'able to help you.',
+  guide: 'able to show you around.',
+  fire: 'knowlegable on the subject of exclusive local events.',
+  calm: 'a field network operator.',
+  developer: 'helping keep the network working.',
+  party: 'special event coordination.',
+  event: 'large scale event coordination.',
+  nightlife: 'nightlife specialist.',
+  hauling: 'is experienced in shipping.',
+  bus: 'long distance transportation.',
+  race: 'a pedicab racer.',
+  building: 'good at building things.',
+  fixing: 'good at fixing things.',
+  emergency: 'coordinating disasters.',
+  bug: 'finding software problems.',
+  network: 'fixing network problems',
+    comms: 'developing network solutions.'
 }
 
 ICONS = {
@@ -52,6 +136,7 @@ ICONS = {
   instagram: 'instagram',
   snapchat: 'snapchat'
 }
+
 
 require 'redis-objects'
 require 'sinatra/base'
@@ -378,6 +463,90 @@ class CallCenter
 end
 CALL = CallCenter.new()
 
+class Sash
+  def initialize u, *b
+    @u = U.new(u)
+  end
+  def [] b
+    {
+      name: b,
+      dependancies: DEPS[b],
+      for: DESCRIPTIONS[b],
+      badges: @u.badges[b],
+      awards: @u.awards[b],
+      stripes: @u.stripes[b],
+      boss: @u.boss[b]
+    }
+  end
+  def << b
+    if [DEPS[b.to_sym]].flatten.length > 0
+      d = false
+      DEPS[b.to_sym].each { |e| if @u.boss[e].to_i > 1 || @u.attr[:boss].to_i > 0; d = true; end  }
+    else
+      d = true
+    end
+    if d == true;
+      @u.badges.incr(b)
+      @u.boss[b] = "#{@u.badges[b].to_i}".length
+      @u.stripes[b] = "#{@u.boss[b].to_i}".length
+      @u.log << %[<span class='material-icons'>military_awards</span> you earned a #{b} badge.]
+    end
+  end
+
+  def colors b,f,d
+    bg = { 0 => 'darkgrey', 1 => 'white', 2 => 'blue', 3 => 'darkgreen', 4 => 'red' }
+    fg = { 0 => 'lightgrey', 1 => 'purple', 2 => 'orange', 3 => 'yellow', 4 => 'lightgreen' }
+    bd = { 0 => 'darkgrey', 1 => 'silver', 2 => 'gold' }
+    h =  { fg: fg[f.to_i] || 'gold', bg: bg[b.to_i] || 'black', bd: bd[d.to_i] || 'red' }
+  end
+  
+  def style b,f,d,p,r
+    cl = colors(b,f,d)
+    bd = ['none', 'solid', 'dotted']
+    s = [%[background-color: #{cl[:bg]};]];
+    s << %[color: #{cl[:fg]};]
+    s << %[border: thick #{bd[p.to_i] || 'dashed'} #{cl[:bd]};]
+    s << %[border-radius: #{r}px;]
+    return { style: s.join(' '), colors: cl, }
+  end
+
+  def lvl
+    r = []
+    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
+    @u.attr[:lvl].to_i.times {
+      r << %[<span class='material-icons pin'>#{k[@u.attr[:pin].to_i]}</span>]
+    }
+    p = style(@u.attr[:boss], @u.attr[:rank], @u.attr[:class], @u.attr[:stripes], 0)
+    return %[<h1 id='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
+  end
+  
+  def badges
+    r, t = [], Hash.new { |h,k| h[k] = 0 }
+    @bgs = @u.badges.members(with_scores: true).to_h
+    @bss = @u.boss.members(with_scores: true).to_h
+    @awd = @u.awards.members(with_scores: true).to_h
+    @stp = @u.stripes.members(with_scores: true).to_h
+    BADGES.each_pair do |k,v|
+      @bss[k.to_s] = "#{@bgs[k.to_s].to_i}".length
+      @stp[k.to_s] = "#{@bss[k.to_s].to_i}".length
+      t[:badges] += @bgs[k.to_s] || 0
+      t[:boss] += @bss[k.to_s] || 0
+      t[:awards] += @awd[k.to_s] || 0
+      t[:stripes] += @stp[k.to_s] || 0
+      p = style(@bss[k.to_s], @bgs[k.to_s], @awd[k.to_s], @stp[k.to_s], 1000);
+      r << %[<button class='material-icons badge' name='give[type]' value='#{k}' style='#{p[:style]}'>#{v}</button>]
+    end
+    @u.stat[:badges] = t[:badges]
+    @u.stat[:boss] = t[:boss]
+    @u.stat[:awards] = t[:awards]
+    @u.stat[:stripes] = t[:stripes]
+    @u.attr[:rank] = "#{@u.stat[:badges].to_i}".length
+    @u.attr[:lvl] = "#{@u.stat[:awards].to_i}".length - 1
+    @u.attr[:pin] = "#{@u.attr[:rank].to_i}".length - 1
+    return %[<div id='badges'>#{r.join('')}</div>]
+  end
+end
+
 class U
   include Redis::Objects
   sorted_set :wallet
@@ -398,6 +567,9 @@ class U
   end
   def id
     @id
+  end
+  def sash
+    Sash.new(@id)
   end
 end
 
@@ -431,42 +603,7 @@ class APP < Sinatra::Base
         return false
       end
     end
-    def colors b,f,d
-      bg = {
-        0 => 'darkgrey',
-        1 => 'white',
-        2 => 'blue',
-        3 => 'darkgreen',
-        4 => 'red'
-      }
 
-      fg = {
-        0 => 'lightgrey',
-        1 => 'purple',
-        2 => 'orange',
-        3 => 'yellow',
-        4 => 'lightgreen'
-      }
-      bd = {
-        0 => 'darkgrey',
-        1 => 'silver',
-        2 => 'gold'
-      }
-      h =  {
-        fg: fg[f.to_i] || 'gold',
-        bg: bg[b.to_i] || 'black',
-        bd: bd[d.to_i] || 'red'
-      }
-    end
-    def patch b,f,d,p,r
-      cl = colors(b,f,d)
-      bd = ['none', 'solid', 'dotted']
-      s = [%[background-color: #{cl[:bg]};]];
-      s << %[color: #{cl[:fg]};]
-      s << %[border: thick #{bd[p.to_i] || 'dashed'} #{cl[:bd]};]
-      s << %[border-radius: #{r}px;]
-      return { style: s.join(' '), colors: cl, }
-    end
     def id *i
       if i[0]
         return i[0]
@@ -474,20 +611,6 @@ class APP < Sinatra::Base
         ii = []; ID_SIZE.times { ii << rand(16).to_s(16) }
         return ii.join('')
       end
-    end
-    def lvl i
-      r, u = [], U.new(i);
-      k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
-      u.attr[:lvl].to_i.times {
-        r << %[<span class='material-icons pin'>#{k[u.attr[:pin].to_i]}</span>]
-      }
-      ##
-      # class: background color. network scope.
-      # rank: color. network authority.
-      # boss: border color. network responsibility.
-      # stripes: border. network privledge.
-      p = patch(u.attr[:class], u.attr[:rank], u.attr[:boss], u.attr[:stripes], 0)
-      return %[<h1 id='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
     end
     
     def pool
@@ -502,6 +625,7 @@ class APP < Sinatra::Base
       r << %[</h1>]
       return r.join('');
     end
+    
     def awards u
 
     end
@@ -510,18 +634,6 @@ class APP < Sinatra::Base
     # awards: color. network authority.
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
-    def badges i
-      r, u = [], U.new(i)
-      @bgs = u.badges.members(with_scores: true).to_h
-      @bss = u.boss.members(with_scores: true).to_h
-      @awd = u.awards.members(with_scores: true).to_h
-      @stp = u.stripes.members(with_scores: true).to_h
-      @bgs.each_pair do |k,v|
-        p = patch(v, @awd[k], @bss[k], @stp[k], 1000);
-        r << %[<span class='material-icons badge' style='#{p[:style]}'>#{k}</span>]
-      end
-      return %[<div id='badges'>#{r.join('')}</div>]
-    end
   end
   before {}
   get('/favicon.ico') { return '' }
@@ -634,13 +746,17 @@ class APP < Sinatra::Base
       params.delete(:usr)
       erb :landing
     else
-      @id = id("#{params[:u]}#{params[:x]}#{params[:ts]}");
+      @id = id(params[:u]);
       @by = U.new(@id)
-      if params.has_key? :target
-        @user = U.new(params[:target]);
+
+      if params.has_key? :ts
+        @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
+      elsif params.has_key? :target
+        @user = U.new(params[:target])
       else
         @user = U.new(@id);
       end
+      
       Redis.new.publish 'POST', "#{@user.id}"
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
@@ -651,38 +767,28 @@ class APP < Sinatra::Base
           when "1"
             pr = %[vote in contests.]
           when "2"
-            @user.attr[:class] = 1
-            @user.attr[:rank] = 0
             pr = %[give badge awards.]
           when "3"
-            @user.attr[:rank] = 1
             pr = %[certify others badge authority.]
           when "4"
-            @user.attr[:class] = 2
-            @user.attr[:rank] = 0
             pr = %[invite new users.]
+            @user.attr[:class] = 1
           when "5"
-            @user.attr[:rank] = 1
             pr = %[promote others' influence.]
           when "6"
-            @user.attr[:rank] = 2
             pr = %[promote others' level, stripes, and pin.]
           when "7"
-            @user.attr[:rank] = 3
+            @user.attr[:class] = 2
             pr = %[award titles to others.]
           when "8"
+            pr = %[send messages.]
             @user.attr[:class] = 3
-            @user.attr[:rank] = 0
-            pr = %[send messages.]        
           when "9"
-            @user.attr[:rank] = 1
             pr = %[create contests.]
           when "10"
-            @user.attr[:class] = 4
-            @user.attr[:rank] = 0
             pr = %[create zones.]
           else
-            @user.attr[:rank] = 1
+            @user.attr[:class] = 4
             pr = %[do everything.]
           end
           @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}] 
@@ -765,26 +871,30 @@ class APP < Sinatra::Base
       end
       
       if params.has_key? :give
-      if params[:give][:type] != nil
-        if params[:give][:of] == 'boss'
-          @user.boss.incr(params[:give][:type])
-        elsif params[:give][:of] == 'stripe'
-          @user.stripes.incr(params[:give][:type])
-        elsif params[:give][:of] == 'award'
+        if params[:give][:of] == 'award'
           @user.awards.incr(params[:give][:type])
+        # given in scan lvl > 1.  
         elsif params[:give][:of] == 'vote'
           Vote.new(params[:give][:type]).pool << @user.id
-        else
-          @user.badges.incr(params[:give][:type])
+        elsif params[:give][:of] == 'badge'
+          if params.has_key?(:ts) || params.has_key?(:target)
+            # from goto
+            @by.sash << params[:give][:type]
+            @user.sash << params[:give][:type]
+          else
+            #            if @by.boss[params[:give][:type]] > 0
+            @user.sash << params[:give][:type]
+            #            end
+          end
         end
-        @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]} from #{@by.attr[:name] || @by.id} for #{params[:give][:desc]}]
-        
+        @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]}]
       end
-      end
+
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
+      
       if params.has_key? :landing
         redirect "https://#{OPTS[:domain]}/"
       elsif params.has_key? :code
