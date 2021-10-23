@@ -2,8 +2,8 @@
 html { background-color: black; color: white; }
 form { }
 </style>
-<h1 style='width: 100%; text-align: center; background-color: white;'>
-<span style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= OPTS[:domain] %></span></h1>
+<h1 id='bar' style='width: 100%; text-align: center; background-color: white; margin-top: 10%; box-shadow'>
+<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= OPTS[:domain] %></span></h1>
 <div style='width: 100%; text-align:center;'>
 <% if params.has_key?(:w) ||  params.has_key?(:cha) %>
 <% if params.has_key? :cha %>
@@ -16,6 +16,6 @@ form { }
 <h1><button>AUTHORIZE</button></h1>
 <% end %>
 <% else %>
-<%= erb LANDING[OPTS[:domain]] %>
+<%= erb LANDING[OPTS[:domain]] || '' %>
 <% end %>
 </div>

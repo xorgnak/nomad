@@ -68,7 +68,9 @@ elif [[ "$1" == "commit" ]]; then
 elif [[ "$1" == "quick" ]]; then
     ./nomad.sh install && ./nomad.sh config && ./nomad.sh $*
 else
-    git pull
+    if [[ "$1" != "dev" ]]; then
+	git pull;
+    fi
     for f in run/*.sh;
     do
 	./$f
