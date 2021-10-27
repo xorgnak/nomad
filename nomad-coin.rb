@@ -137,7 +137,7 @@ ICONS = {
   snapchat: 'snapchat'
 }
 
-
+require 'paho-mqtt'
 require 'redis-objects'
 require 'sinatra/base'
 require 'thin'
@@ -146,6 +146,8 @@ require 'slop'
 require 'pry'
 require 'rufus-scheduler'
 require 'twilio-ruby'
+require 'redcarpet'
+
 
 CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
@@ -153,6 +155,7 @@ ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
 CHA = Redis::HashKey.new('CHA')
 IDS = Redis::HashKey.new('IDS')
+DEVS = Redis::HashKey.new('DEVS')
 DB = Redis::HashKey.new('DB')
 BOOK = Redis::HashKey.new('BOOK')
 LOOK = Redis::HashKey.new('LOOK')
@@ -161,6 +164,36 @@ LOCKED = Redis::HashKey.new('LOCKED')
 CODE = Redis::HashKey.new('CODE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
+
+class Broker
+  
+  def initialize h={}
+    @h = h
+    @c = PahoMqtt::Client.new
+    @blocks = {}
+    @c.on_message { |message|
+      if @blocks.has_key? message.topic
+        @blocks[message.topic].call(message.topic, JSON.parse(message.payload || "{}"))
+      end
+    }
+    @c.connect(h[:host] || 'localhost', h[:port] || 1883)
+  end
+  def bridge l, &b
+    @blocks[l] = b
+    sub(topic: l)
+  end
+  def sub h={}
+    @c.subscribe([h[:topic] || '#', h[:qos] || 2])
+  end
+  def pub h={}
+    @c.publish(h[:topic], h[:payload], h[:retain] || false, h[:qos] || 1)
+  end
+  def client
+    @c
+  end
+end
+
+
 def code w, j={}
   CODE[w] = JSON.generate(j)
 end
@@ -590,12 +623,124 @@ end
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
 
+class K
+  HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
+  TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 75%; }],
+          %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
+          %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
+          %[<h1 id='ui'><button type='button' onclick='$("#ls").toggle();'>FS</button>],
+          %[<input name='cmd' placeholder='<%= Time.now.utc %>'>],
+          %[<button type='submit' class='material-icons'>send</button></h1>],
+          %[<fieldset id='ls' style='display: none;'><legend><%= pwd %></legend><%= ls  %></fieldset>],
+          %[<div id='output'><%= html %></div>],
+          %[<script>$(function() { <%= self.scripts.values.join('; ') %>; });</script>]].join('')
+  include Redis::Objects
+  list :content
+  list :scripts
+  list :styles
+  value :dir
+  hash_key :attr
+  def initialize(i);
+    @id = i;
+  end
+  def ls
+    o = []
+    "#{`ls -lha #{self.dir.value}`}".split("\n").each {|e|
+      f = e.split(' ')[-1]
+      if e != '.' || e != '..'
+        if /^d/.match(e)
+          b = %[<button class='material-icons' name='cmd' value='cd("#{f}")'>folder</button>]
+        else
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>file</button>]
+        end
+        o << %[<p>#{b} #{e}</p>]
+      end
+    }
+    return "<div>" + o.join('') + "</div>"
+  end
+  def cd *d
+    self.dir.value = %[#{home}#{d[0]}]
+    Dir.mkdir(self.dir.value)
+  end
+  def pwd
+    if self.dir.value == nil
+      self.dir.value = home
+    end
+    "#{self.dir.value}/".gsub(home, '')
+  end
+  def home
+    %[home/#{@id}]
+  end
+  def term
+    ERB.new(TERM).result(binding)
+  end
+  def clear
+    self.content.clear
+    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, filter_html: true)
+    Dir["#{home}/*"].each {|f|
+      self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+    }
+    return nil
+  end
+  def id; @id; end
+  
+  def html
+    o = []
+    if self.attr[:file] == nil
+      self.content.values.each {|e| o << %[<p><code>#{e}</code></p>] }
+    else
+      f = "#{self.dir.value}/#{self.attr[:file]}"
+      if File.exist? f
+        ff = File.read(f)
+      else
+        ff = %[# created at #{Time.now.utc}]
+      end
+      o << [%[<input type='hidden' name='editor[file]' value='#{f}'>],
+              %[<textarea name='editor[content]' style='width: 100%; height: 80%;'>#{ff}</textarea>]].join('')
+      
+    end
+    return o.join('')
+  end
+  def js
+    self.scripts.values.join('; ')
+  end
+  def style a, h={}
+    o = []; h.each_pair {|k,v| o << %[#{k}: #{v}] }
+    self.styles << %[#{a} { #{o.join('; ')} }]
+  end
+  def css
+    self.styles.values.join('')
+  end
+  def puts(e); return "#{e}"; end;
+  def help; ERB.new(HELP).result(binding); end
+  def edit(f);
+    self.attr[:file] = f
+  end
+  def button(t, h={}); a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] };
+    return %[<button #{a.join(' ')}>#{t}</button>]
+  end
+  def input(h={}); a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] }; return %[<input #{a.join(' ')}>]; end
+  def sh c
+    return `#{c}`.chomp!
+  end
+  def eval(e);
+    begin;
+      if e == ''; e = 'help'; end
+      e.split(';').each { |each| self.content << "#{self.instance_eval(each)}".gsub("\n", '<br>') }
+    rescue => e
+      self.content << "<p>#{e.class} #{e.message}</p>"
+    end
+  end
+end
+
 class APP < Sinatra::Base
+  
   set :port, OPTS[:port]
   set :bind, '0.0.0.0'
   set :server, 'thin'
   set :public_folder, "public/#{OPTS[:domain]}"
   helpers do
+    
     def code c
       if CODE.has_key? c
         return JSON.parse(CODE[c])
@@ -635,9 +780,13 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before {}
+  before { @term = K.new(params[:u]) }
+  
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+
+  get('/term') { erb @term.term }
+  
   get('/man') { erb :man }
   get('/a') { erb :a }
   get('/board') { erb :board }
@@ -710,6 +859,11 @@ class APP < Sinatra::Base
       fi = params[:file][:tempfile]
       File.open("public/#{OPTS[:domain]}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
     end
+    if params.has_key? :editor
+      File.open("#{params[:editor][:file]}", 'w') {|f| f.write("#{params[:editor][:content]}") }
+      @term.attr.delete(:file)
+    end
+    
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
       BOOK['+1' + CHA[params[:cha]]] = params[:u]
@@ -815,6 +969,10 @@ class APP < Sinatra::Base
 
         end
       end
+
+      if params.has_key? :cmd
+        @term.eval(params[:cmd]);
+      end
       
       if params.has_key? :config
         params[:config].each_pair { |k,v|
@@ -897,6 +1055,8 @@ class APP < Sinatra::Base
       
       if params.has_key? :landing
         redirect "https://#{OPTS[:domain]}/"
+      elsif params.has_key? :cmd
+        redirect "/term?u=#{params[:u]}"
       elsif params.has_key? :code
         redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
       elsif params.has_key? :a

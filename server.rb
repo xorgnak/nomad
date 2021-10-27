@@ -23,71 +23,42 @@ end
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
 
+
+
 class K
-  HELP = %[<h1><%= `hostname` %></h1>
-<h3><%`date`%></h3>
-<h3><%= `uname -a`%></h3>
-this is only a test.]
+  HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
   include Redis::Objects
-  def initialize i
-    @id, @html = i, []
+  def initialize(i); @id, @html = i, []; end; def html; @html.join(''); end; def id; @id; end
+  def puts(e); return "#{e}"; end; def help; ERB.new(HELP).result(binding); end
+  def edit(f); return [%[<input type='hidden' name='filename' value='#{f}'>],
+                       %[<textarea name='file'>#{File.read(Dir.pwd + '/' + f)}</textarea>]].join('')
   end
-  def puts e
-    return "#{e}"
-  end
-  def edit f
-    return %[<input type='hidden' name='filename' value='#{f}'><textarea name='file'>#{File.read(Dir.pwd + '/' + f)}</textarea>]
-  end
-  def help
-    ERB.new(HELP).result(binding)
-  end
-  def button t, h={}
-    a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] }
+  def button(t, h={}); a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] };
     return %[<button #{a.join(' ')}>#{t}</button>]
   end
-  def input h={}
-    a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] }
-    return %[<input #{a.join(' ')}>]
-  end
-  def eval e
-    begin
-      if e == ''; e = 'help'; end
-      e.split(';').each do |each|
-        @html << "#{self.instance_eval(each)}".gsub("\n", '<br>')
-      end
+  def input(h={}); a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] }; return %[<input #{a.join(' ')}>]; end
+  def eval(e); begin; if e == ''; e = 'help'; end
+      e.split(';').each { |each| @html << "#{self.instance_eval(each)}".gsub("\n", '<br>') }
     rescue => e
       @html << "[#{e.class}] #{e.message}"
     end
   end
-  def html
-    @html.join('')
-  end
-  def id
-    @id
-  end
 end
 
+
+
+
 class App < Sinatra::Base
-INDEX = %[<form id='form' action='/' method='post'>
-<input type='text' id='cmd' name='cmd'>
-<button id='snd'>\<\<</button>
-<div id='output'><%= @app.html %></div>
-</form><script></script>
-]
+  TERM = [%[<form id='form' action='/' method='post'><input type='text' id='cmd' name='cmd'>],
+          %[<button id='snd'>\<\<</button><div id='output'><%= @term.html %></div></form>],
+          %[<script></script>]].join('')
   
-  set :port, OPTS[:port]
-  set :bind, '0.0.0.0'
-  set :server, 'thin'
-  set :public_folder, '/home/pi/'
-  helpers {
-    def index; ERB.new(INDEX).result(binding); end
-  }
-  before {
-    Redis.new.publish(request.request_method, "#{params}");
-    @app = K.new(params[:id] || 'app')
-  }
-  get('/') { @app.eval('help'); index }
-  post('/') { @app.eval(params[:cmd]); index }
+  set :port, OPTS[:port]; set :bind, '0.0.0.0'; set :server, 'thin'; set :public_folder, '/home/pi/'
+
+  helpers { def term; ERB.new(TERM).result(binding); end }
+  before { @app = K.new(params[:id] || 'app') }
+  get('/term') { @app.eval('help'); term }
+  post('/term') { @app.eval(params[:cmd]); term }
 end
 App.run!
 

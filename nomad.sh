@@ -1,11 +1,13 @@
 #!/bin/bash
 
 DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx emacs-nox mosquitto';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt';
 
 
 mkdir -p run
 mkdir -p nginx
+mkdir -p home
+
 if [[ "$1" == "config" ]]; then
     rm run.sh
     mkdir -p public/$DOMAIN
