@@ -344,87 +344,87 @@ service nginx restart
 # TRAMP STAMP
 
 # configure ap
-cat <<EOF > /etc/hostapd/hostapd.conf
-driver=nl80211
-ctrl_interface=/var/run/hostapd
-ctrl_interface_group=0
-beacon_int=100
-auth_algs=1
-wpa_key_mgmt=WPA-PSK
-ssid=nomad
-channel=1
-hw_mode=g
-wpa_passphrase=nomadnetwork
-interface=wlan0
-wpa=2
-wpa_pairwise=CCMP
-country_code=
+#cat <<EOF > /etc/hostapd/hostapd.conf
+#//driver=nl80211
+#//ctrl_interface=/var/run/hostapd
+#//ctrl_interface_group=0
+#//beacon_int=100
+#auth_algs=1
+#wpa_key_mgmt=WPA-PSK
+#ssid=nomad
+#channel=1
+#hw_mode=g
+#wpa_passphrase=nomadnetwork
+#interface=wlan0
+#wpa=2
+#wpa_pairwise=CCMP
+#country_code=
 ## Rapberry Pi 3 specific to on board WLAN/WiFi
 #ieee80211n=1 # 802.11n support (Raspberry Pi 3)
 #wmm_enabled=1 # QoS support (Raspberry Pi 3)
 #ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40] # (Raspberry Pi 3)
 ## RaspAP wireless client AP mode
-interface=uap0
+#interface=uap0
 ## RaspAP bridge AP mode (disabled by default)
-bridge=br0
-EOF
+#bridge=br0
+#EOF
 
 # resolve domains across interfaces
-cat <<EOF > /etc/dhcpcd.conf
+#cat <<EOF > /etc/dhcpcd.conf
 # RaspAP default configuration
-hostname
-clientid
-persistent
-option rapid_commit
-option domain_name_servers, domain_name, domain_search, host_name
-option classless_static_routes
-option ntp_servers
-require dhcp_server_identifier
-slaac private
-nohook lookup-hostname
+#hostname
+#clientid
+#persistent
+#option rapid_commit
+#option domain_name_servers, domain_name, domain_search, host_name
+#option classless_static_routes
+#option ntp_servers
+#require dhcp_server_identifier
+#slaac private
+#nohook lookup-hostname
 
 # RaspAP wlan0 configuration
-interface wlan0
-static ip_address=10.3.141.1/24
-static routers=10.3.141.1
-static domain_name_server=9.9.9.9 1.1.1.1
+#interface wlan0
+#static ip_address=10.3.141.1/24
+#static routers=10.3.141.1
+#static domain_name_server=9.9.9.9 1.1.1.1
 
-interface uap0
-static ip_address=192.168.50.1/24
-nohook wpa_supplicant
-EOF
+#interface uap0
+#static ip_address=192.168.50.1/24
+#nohook wpa_supplicant
+#EOF
 
 # create ap network
-cat <<EOF > /etc/dnsmasq.d/090_ap.conf
+#cat <<EOF > /etc/dnsmasq.d/090_ap.conf
 # RaspAP wlan0 configuration for wired (ethernet) AP mode
-interface=wlan0
-domain-needed
-dhcp-range=10.3.141.50,10.3.141.255,255.255.255.0,12h
+#interface=wlan0
+#domain-needed
+#dhcp-range=10.3.141.50,10.3.141.255,255.255.255.0,12h
 
 # RaspAP default config
-log-facility=/tmp/dnsmasq.log
-conf-dir=/etc/dnsmasq.d
+#log-facility=/tmp/dnsmasq.log
+#conf-dir=/etc/dnsmasq.d
 
-interface=lo,uap0
-bind-interfaces
-domain-needed
-bogus-priv
-EOF
+#interface=lo,uap0
+#bind-interfaces
+#domain-needed
+#bogus-priv
+#EOF
 # bridge traffic
-echo -e "net.ipv4.ip_forward=1" > /etc/sysctl.d/90_nomad.conf;
-echo -e "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl/90_nomad.conf;
+#echo -e "net.ipv4.ip_forward=1" > /etc/sysctl.d/90_nomad.conf;
+#echo -e "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl/90_nomad.conf;
 
-cat <<EOF > /etc/rc.local
+#cat <<EOF > /etc/rc.local
 #!/bin/sh -e
 #
 # rc.local
 #
 # bridge wifi and ap
-iw dev wlan0 interface add uap0 type __ap
-ifconfig wlan0 up
-ifconfig uap0 up
-exit 0
-EOF
+#iw dev wlan0 interface add uap0 type __ap
+#ifconfig wlan0 up
+#ifconfig uap0 up
+#exit 0
+#EOF
 
 echo -e "$X LOGO"
 
