@@ -11,7 +11,7 @@ X="NOMAD ->"
 echo -e "$X SCREEN"
 cat << END > $DIR/.screenrc 
 shell -${SHELL}
-caption always "[ %t(%n) ] %w"
+caption always "[ %H ][ %t(%n) ] %w"
 defscrollback 1024
 startup_message off
 hardstatus on
