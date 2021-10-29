@@ -164,6 +164,7 @@ LOOK = Redis::HashKey.new('LOOK')
 LANDING = Redis::HashKey.new('LANDING')
 LOCKED = Redis::HashKey.new('LOCKED')
 CODE = Redis::HashKey.new('CODE')
+TREE = Redis::HashKey.new('TREE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
 
