@@ -808,7 +808,7 @@ class APP < Sinatra::Base
     end
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
-        response.gather do |g|
+        response.gather(method: 'GET', action: '/call') do |g|
           case @tree[:mode].to_s
           when 'bossfirst'
             g.dial(record: true, number: @tree[:boss] || OPTS[:boss])
@@ -832,9 +832,9 @@ class APP < Sinatra::Base
           end
         end
       else
-        response.gather do |g|
+        response.gather(method: 'GET', action: '/call') do |g|
           if m = /\*(.+)/.match(params['Digits'])
-
+            
           elsif m = /\*\*(.+)/.match(params['Digits'])
             
           elsif m = /\*\*\*(.+)/.match(params['Digits'])
