@@ -18,14 +18,15 @@ peer.on('open', function (id) {
     } else {
         lastPeerId = peer.id;
     }
-    log('ID: ' + peer.id);
+//    log("<span class='material-icons'>info</span> " + peer.id);
     state.id = peer.id;
-    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?u=' + peer.id);
-    log('ready to scan...');
+    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + peer.id);
+    $('#invite').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&w=' + peer.id);
 });
+
 peer.on('connection', function (c) {
 c.on('open', function() {
-    log('scan from: ' + c.peer);
+    log("<span class='material-icons'>qr_code_2</span> from: " + c.peer);
     state.peers << c.peer
     c.send(JSON.stringify(state));
     c.close();
@@ -59,12 +60,12 @@ function mine(p) {
     });
     
     conn.on('open', function () {
-        log("outgoing connection to: " + conn.peer);
+        log("<span class='material-icons'>qr_code_2</span> to: " + conn.peer);
     });
     conn.on('data', function(d) {
     $('#peer').text(d);
     $('#peer').show()
-    log('data:' + d);
+    log('data: ' + d);
     });
     conn.on('close', function () {
         log("disconected from: " + conn.peer);

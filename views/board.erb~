@@ -1,0 +1,7 @@
+<% [ :boss, :mom, :photographer, :fabricator, :dispatch ].each do |e| %>
+<% if params.has_key? :edit %>
+<%= Board.new(e).form %>
+<% else %>
+<%= Board.new(e).html %>
+<% end %>
+<% end %>

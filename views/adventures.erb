@@ -1,0 +1,7 @@
+<style>
+div { border: thin solid black; border-radius: 20px; }
+</style>
+<% ADVENTURES.members.each do |a| %>
+<a href='https://<%= OPTS[:domain] %>/adventure?u=<%= params[:u] %>&a=<%= a %>'><%= Adventure.new(a).html %></a>
+<% end %>
+<a href='https://<%= OPTS[:domain] %>/adventure?u=<%= params[:u] %>&a=<%= ADVENTURES.length %>'>+</a>

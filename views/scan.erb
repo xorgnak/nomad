@@ -4,11 +4,13 @@ var canvasElement = document.getElementById("canvas");
 var canvas = canvasElement.getContext("2d");
 // Use facingMode: environment to attemt to get the front camera on phones
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-    log('starting qr scanner...');
     video.srcObject = stream;
     video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
     video.play();
-    log('qr scanner started.');
+    log("<a href='https://<%= OPTS[:domain] %>/apprtc?u=<%= @user.id %>' class='material-icons' style='text-decoraton: none; color: white;'>podcasts</a> broadcast.");
+    // log("<span class='material-icons'>qr_code_2</span> share.");
+    // log("<span class='material-icons'>settings</span> customize.");
+    log("<a href='https://<%= OPTS[:domain] %>/radio?u=<%= @user.id %>' class='material-icons' style='text-decoraton: none; color: white;'>radio</a> connect.");
     requestAnimationFrame(tick);
 });
 function tick() {
@@ -29,10 +31,10 @@ function tick() {
 		    var oo = v.split('=');
 		    h[oo[0]] = oo[1]
 		});
-		log('found: ' + h.u);
+		log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
 
 $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
-		$('#scan').val("ID: " + h.u);
+		$('#scan').val(h.u);
 		$('#view').hide();
 		$('#magic').show();
 		mine(h.u);
