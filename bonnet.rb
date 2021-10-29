@@ -1,6 +1,6 @@
 require 'pi_piper'
 require 'redis-objects'
-require 'pry'
+
 require 'json'
 puts "Press the switch to get started"
 
@@ -88,6 +88,9 @@ def display
   last_color = Redis.new.get('BONNET')
   if /000$/.match(last_color) && new_color == '000'
     Redis.new.set('INPUT', "#{last_color} #{new_color}")
+    c = last_color.split(' ')[-2]
+    if c.to_i <= 127; i = c.to_i.chr; else; i = "#{c.to_i}"; end
+    Redis.new.publish("INPUT", i )
     colors = "#{new_color}"
   else
     colors = "#{last_color} #{new_color}";
@@ -103,5 +106,5 @@ PiPiper.after(:pin => 23, :pull => :up, :goes => :low) { |pin| menu(pin) }
 PiPiper.after(:pin => 17, :pull => :up, :goes => :low) { |pin| menu(pin) }
 PiPiper.after(:pin => 22, :pull => :up, :goes => :low) { |pin| menu(pin) }
 
-Process.detach( fork { PiPiper.wait } )
-Pry.start
+PiPiper.wait
+
