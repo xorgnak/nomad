@@ -6,25 +6,10 @@ else
     DIR=$1
 fi
 
-DISTRO_NAME='nomadic'
-DISTRO_VARIANT='local'
-DISTRO_PRETTY_NAME='Nomadic Linux'
-DISTRO_HOSTNAME='nomad'
-DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii multimon-ng soundmodem nginx certbot ngircd'
-DISTRO_GEMS='pry sinatra redis-objects cinch json listen paho-mqtt slop device_detector twilio-ruby'
+X="NOMAD ->"
 
-X="[\033[0;34m$DISTRO_NAME\033[0m]"
-
-if [[ "$2" != 'lite' ]]; then
-echo -e "$X DEBS"
-apt-get -qq update
-apt-get -y -qq install $SCRIPT_PACKAGES $DISTRO_PACKAGES
-echo -e "$X GEMS"
-#gem install $DISTRO_GEMS 2>1 /dev/null
-gem install --no-rdoc --no-ri $DISTRO_GEMS 2>1 /dev/null
-fi
 echo -e "$X SCREEN"
-cat << END > ../.screenrc 
+cat << END > $DIR/.screenrc 
 shell -${SHELL}
 caption always "[ %t(%n) ] %w"
 defscrollback 1024
@@ -36,10 +21,10 @@ screen -t bash 1 bash
 screen -t '#' 9 redis-cli monitor
 select 0
 END
-chown $USERNAME:$USERNAME ../.screenrc
+chown $USERNAME:$USERNAME $DIR/.screenrc
 
 echo -e "$X INDEX"
-cat << END > ../index.org
+cat << END > $DIR/index.org
 #+TITLE: Nomadic Linux.
 #+TODO: TODO(t!/@) ACTION(a!/@) WORKING(w!/@) | ACTIVE(f!/@) DELEGATED(D!/@) DONE(X!/@)
 #+OPTIONS: stat:t html-postamble:nil H:1 num:nil toc:t \n:nil ::nil |:t ^:t f:t tex:t
@@ -74,10 +59,10 @@ cat << END > ../index.org
   Nomadic linux believes in staying organized.  Org mode keeps notes well organized. Nomadic linux also integrates lots of other tools to automate the process of exporting these files.
 
 END
-chown $USERNAME:$USERNAME ../index.org
+chown $USERNAME:$USERNAME $DIR/index.org
 
 echo -e "$X PROMPT"
-cat << 'END' > ../.prompt
+cat << 'END' > $DIR/.prompt
 #  Customize BASH PS1 prompt to show current GIT repository and branch.
 #  by Mike Stewart - http://MediaDoneRight.com
 #  SETUP CONSTANTS
@@ -184,11 +169,11 @@ else \
 fi)'
 
 END
-chown $USERNAME:$USERNAME ../.prompt
+chown $USERNAME:$USERNAME $DIR/.prompt
 
 echo -e "$X BASH"
 if [[ $2 == '--live' ]]; then
-cat << 'END' >> ../.bashrc
+cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
 cat /etc/logo
 hostname
@@ -200,7 +185,7 @@ function leah() { sudo su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC begin #####
 END
 else
-cat << 'END' >> ../.bashrc
+cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
 cat /etc/logo
 hostname
@@ -212,15 +197,15 @@ function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
 fi
-chown $USERNAME:$USERNAME ../.bashrc
+chown $USERNAME:$USERNAME $DIR/.bashrc
 
 echo -e "$X PROFILE"
-cat << END >> ../.profile
+cat << END >> /home/$USERNAME/.profile
 ##### NOMADIC begin #####
 #nomad `date`
 ##### NOMADIC end #####
 END
-chown $USERNAME:$USERNAME ../.profile
+chown $USERNAME:$USERNAME $DIR/.profile
 
 echo -e "$X LEAH"
 cat << 'END' > /usr/bin/leah
@@ -465,7 +450,7 @@ This image was born on: `date`
 No warranty.  No help. May the force be with you.
 END
 
-chown $USERNAME:$USERNAME ../*
-chown $USERNAME:$USERNAME ../.*
-chown $USERNAME:$USERNAME /home/$USERNAME
+chown $USERNAME:$USERNAME $DIR/*
+chown $USERNAME:$USERNAME $DIR/.*
+chown $USERNAME:$USERNAME $DIR
 echo -e "$X DONE!"
