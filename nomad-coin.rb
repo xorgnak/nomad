@@ -799,6 +799,7 @@ class APP < Sinatra::Base
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
   get('/call') {
+    Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
     if TREE.has_key? params['To']
       @tree = JSON.parse(TREE[params['To']])
