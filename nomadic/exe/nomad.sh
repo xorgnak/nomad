@@ -10,7 +10,7 @@ DISTRO_NAME='nomadic'
 DISTRO_VARIANT='local'
 DISTRO_PRETTY_NAME='Nomadic Linux'
 DISTRO_HOSTNAME='nomad'
-DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii multimon-ng soundmodem nginx certbot ngircd hostapd dnsmasq'
+DISTRO_PACKAGES='emacs emacs-goodies-el vim ruby-full inotify-tools screen redis-server openssh-server tor qrencode grep ii multimon-ng soundmodem nginx certbot ngircd'
 DISTRO_GEMS='pry sinatra redis-objects cinch json listen paho-mqtt slop device_detector twilio-ruby'
 
 X="[\033[0;34m$DISTRO_NAME\033[0m]"

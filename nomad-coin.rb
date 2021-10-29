@@ -155,9 +155,11 @@ ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
 CHA = Redis::HashKey.new('CHA')
 IDS = Redis::HashKey.new('IDS')
+JOBS = Redis::HashKey.new('JOBS')
 DEVS = Redis::HashKey.new('DEVS')
 DB = Redis::HashKey.new('DB')
 BOOK = Redis::HashKey.new('BOOK')
+PAGERS = Redis::HashKey.new('PAGERS')
 LOOK = Redis::HashKey.new('LOOK')
 LANDING = Redis::HashKey.new('LANDING')
 LOCKED = Redis::HashKey.new('LOCKED')
@@ -797,27 +799,55 @@ class APP < Sinatra::Base
   get('/radio') { erb :radio }
   get('/call') {
     content_type 'text/xml'
-    Twilio::TwiML::VoiceResponse.new do | response |
-    case CALL.mode.value
-    when 'bossfirst'
-      response.dial(number: OPTS[:boss])
-      CALL.pool.members.each { |e| response.dial(number: e) }
-    when 'dispatcherfirst'
-      response.dial(number: CALL.dispatcher.value)
-      CALL.pool.members.each { |e| response.dial(number: e) }
-    when 'bosslast'
-      CALL.pool.members.each { |e| response.dial(number: e) }
-      response.dial(number: OPTS[:boss])
-    when 'dispatcherlast'
-      CALL.pool.members.each { |e| response.dial(number: e) }
-      response.dial(number: CALL.dispatcher.value)
-    when 'boss'
-      response.dial(number: OPTS[:boss])
-    when 'dispatcher'
-      response.dial(number: CALL.dispatcher.value)
+    if TREE.has_key? params['To']
+      @tree = JSON.parse(TREE[params['To']])
     else
-      response.say(message: "Thank you for calling #{OPTS[:domain]}. We are currently closed.  Pease try again later.")
+      @tree = { file: "/ding.mp3", message: "#{OPTS[:domain]}", boss: ENV['ADMIN'], dispatcher: ENV['ADMIN'] }
     end
+    Twilio::TwiML::VoiceResponse.new do | response |
+      if !params.has_key? 'Digits'
+        response.gather do |g|
+          case @tree[:mode].to_s
+          when 'bossfirst'
+            g.dial(record: true, number: @tree[:boss] || OPTS[:boss])
+            @tree.pool.each { |e| g.dial(record: true, number: e) }
+          when 'dispatcherfirst'
+            g.dial(record: true, number: @tree[:dispatcher])
+            @tree.pool.each { |e| g.dial(record: true, number: e) }
+          when 'bosslast'
+            @tree.pool.each { |e| g.dial(record: true, number: e) }
+            g.dial(record: true, number: @tree[:boss])
+          when 'dispatcherlast'
+            @tree.pool.each { |e| response.dial(record: true, number: e) }
+            g.dial(record: true, number: @tree[:dispatcher])
+          when 'boss'
+            g.dial(record: true, number: @tree[:boss])
+          when 'dispatcher'
+            g.dial(record: true, number: @tree[:dispatcher])
+          else
+            g.play(file: @tree[:file])
+            g.say(message: @tree[:message])
+          end
+        end
+      else
+        response.gather do |g|
+          if m = /\*(.+)/.match(params['Digits'])
+
+          elsif m = /\*\*(.+)/.match(params['Digits'])
+            
+          elsif m = /\*\*\*(.+)/.match(params['Digits'])
+
+          elsif PAGERS.has_key? params['Digits']
+
+          elsif JOBS.has_key? params['Digits']
+
+          elsif ZONES.members.include? params['Digits']
+            
+          else
+            g.say(message: 'console')
+          end
+        end
+      end
     end.to_s
   }
   get('/sms') {
