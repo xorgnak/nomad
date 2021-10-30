@@ -814,7 +814,6 @@ class APP < Sinatra::Base
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
         response.gather(method: 'GET', action: '/call') do |g|
-          g.play(file: @tree[:file])
           case @tree[:mode].to_s
           when 'bossfirst'
             g.dial(record: true, number: @tree[:boss] || OPTS[:boss])
@@ -833,7 +832,7 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           else
-            g.play(file: @tree[:file])
+            g.play(url: @tree[:file])
             g.say(message: @tree[:message])
           end
         end
