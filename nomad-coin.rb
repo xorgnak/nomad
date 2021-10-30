@@ -798,6 +798,7 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
+  get('/answer') { File.read("public/#{OPTS[:domain]}_answer.mp3") || File.read("public/ding.mp3") }
   get('/call') {
     Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
@@ -805,7 +806,6 @@ class APP < Sinatra::Base
       @tree = JSON.parse(TREE[params['To']])
     else
       @tree = {
-        file: "https://#{OPTS[:domain]}/ding.mp3",
         message: "#{OPTS[:domain]}",
         boss: ENV['ADMIN'],
         dispatcher: ENV['ADMIN']
@@ -832,7 +832,7 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           else
-            g.play(url: @tree[:file])
+            g.play(url: "https://#{OPTS[:domain]}/answer")
             g.say(message: @tree[:message])
           end
         end
