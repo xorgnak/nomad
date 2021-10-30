@@ -804,11 +804,17 @@ class APP < Sinatra::Base
     if TREE.has_key? params['To']
       @tree = JSON.parse(TREE[params['To']])
     else
-      @tree = { file: "/ding.mp3", message: "#{OPTS[:domain]}", boss: ENV['ADMIN'], dispatcher: ENV['ADMIN'] }
+      @tree = {
+        file: "https://#{OPTS[:domain]}/ding.mp3",
+        message: "#{OPTS[:domain]}",
+        boss: ENV['ADMIN'],
+        dispatcher: ENV['ADMIN']
+      }
     end
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
         response.gather(method: 'GET', action: '/call') do |g|
+          g.play(file: @tree[:file])
           case @tree[:mode].to_s
           when 'bossfirst'
             g.dial(record: true, number: @tree[:boss] || OPTS[:boss])
