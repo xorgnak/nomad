@@ -77,5 +77,8 @@ else
     do
 	./$f
     done
+    if [[ "$1" == 'pi' ]]; then
+	sudo ruby bonnet.rb &
+    fi
     ruby nomad-coin.rb -i
 fi
