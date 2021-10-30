@@ -799,6 +799,7 @@ class APP < Sinatra::Base
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
   get('/answer') {
+    content_type 'audio/mpeg'
     if File.exist?("public/#{OPTS[:domain]}_answer.mp3");
       File.read("public/#{OPTS[:domain]}_answer.mp3");
     else;
