@@ -798,7 +798,13 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
-  get('/answer') { File.read("public/#{OPTS[:domain]}_answer.mp3") || File.read("public/ding.mp3") }
+  get('/answer') {
+    if File.exist?("public/#{OPTS[:domain]}_answer.mp3");
+      File.read("public/#{OPTS[:domain]}_answer.mp3");
+    else;
+      File.read("public/ding.mp3");
+    end
+  }
   get('/call') {
     Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
