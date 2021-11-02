@@ -804,7 +804,7 @@ class APP < Sinatra::Base
   get('/ws') {
     request.websocket do |ws|
       ws.onopen do
-        h = { zone: 'network', input: "time: #{Time.now.utc}" }
+        h = { zone: 'network', input: "time: OA#{Time.now.utc}" }
         ws.send(JSON.generate(h))
         settings.sockets << ws
       end
@@ -1098,7 +1098,7 @@ class APP < Sinatra::Base
         # given in scan lvl > 1.  
         elsif params[:give][:of] == 'vote'
           Vote.new(params[:give][:type]).pool << @user.id
-        elsif params[:give][:of] == 'badge'
+        elsif params[:give][:of] == 'badge' && params[:give][:desc]
           if params.has_key?(:ts) || params.has_key?(:target)
             # from goto
             @by.sash << params[:give][:type]
