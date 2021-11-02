@@ -8,11 +8,11 @@ const formToJSON = (elements) =>
 	  },
 	  {},
       );
-    <% if OPTS[:domain] == 'localhost' %>
+    <%# if OPTS[:domain] == 'localhost' %>
     var ws       = new WebSocket('ws://' + window.location.host + '/ws');
-    <% else %>
-    var ws       = new WebSocket('wss://' + window.location.host + '/ws');
-<% end %>
+    <%# else %>
+//    var ws       = new WebSocket('wss://' + window.location.host + '/ws');
+<%# end %>
 ws.onopen    = function()  {
     var h = {
 	input: 'JOIN',
