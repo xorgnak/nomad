@@ -1098,7 +1098,7 @@ class APP < Sinatra::Base
         # given in scan lvl > 1.  
         elsif params[:give][:of] == 'vote'
           Vote.new(params[:give][:type]).pool << @user.id
-        elsif params[:give][:of] == 'badge' && params[:give][:desc]
+        elsif params[:give][:of] == 'badge' && params[:give][:desc] != ''
           if params.has_key?(:ts) || params.has_key?(:target)
             # from goto
             @by.sash << params[:give][:type]
