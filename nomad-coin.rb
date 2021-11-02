@@ -140,6 +140,7 @@ ICONS = {
 require 'paho-mqtt'
 require 'redis-objects'
 require 'sinatra/base'
+require 'sinatra-websocket'
 require 'thin'
 require 'json'
 require 'slop'
@@ -742,6 +743,8 @@ class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   set :server, 'thin'
   set :public_folder, "public/#{OPTS[:domain]}"
+  set :sockets, []
+  
   helpers do
     
     def code c
@@ -798,6 +801,23 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
+  get('/ws') {
+    request.websocket do |ws|
+      ws.onopen do
+        h = { zone: 'network', input: "time: #{Time.now.utc}" }
+        ws.send(JSON.generate(h))
+        settings.sockets << ws
+      end
+      ws.onmessage do |msg|
+        settings.sockets.each{ |s|
+          s.send(msg)
+        }
+      end
+      ws.onclose do
+        settings.sockets.delete(ws)
+      end
+    end
+  }
   get('/answer') {
     content_type 'audio/mpeg'
     if File.exist?("public/#{OPTS[:domain]}_answer.mp3");

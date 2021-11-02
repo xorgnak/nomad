@@ -189,7 +189,13 @@ padding: 3%;
     </h3>
   </div>
   
-  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 20%; overflow-y: scroll;'>
+  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 35%; overflow-y: scroll;'>
+      <% if @user.attr[:zone] %>
+      <h1 style='width: 100%; margin: 0;'>
+      <button id='msg' name='msg' value='<%= @user.attr[:zone] %>' class='material-icons' style='float: right;'>send</button>
+        <input id='input' type='text' placeholder='@<%= @user.attr[:zone] %>' style='width: 75%; vertical-align: middle;'>
+      </h1>
+      <% end %>
     <code id='log' style='width: 100%; height: 100%; color: white;'>
       <%= @user.log.values.join("<br>") %>
     </code>
@@ -208,5 +214,5 @@ padding: 3%;
 <%= erb :scan %>
 <%= erb :sha %>
 <%= erb :coin %>
-
+<%= erb :websocket %>
 </script>

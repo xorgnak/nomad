@@ -1,0 +1,43 @@
+
+const formToJSON = (elements) =>
+      [].reduce.call(
+	  elements,
+	  (data, element) => {
+	      data[element.name] = element.value;
+	      return data;
+	  },
+	  {},
+      );
+var ws       = new WebSocket('ws://' + window.location.host + '/ws');
+ws.onopen    = function()  {
+    var h = {
+	input: 'JOIN',
+	u: '<%= params[:u] %>',
+	zone: '<%= @user.attr[:zone] || "solo" %>',
+	form: {}
+    }
+    ws.send(JSON.stringify(h));
+};
+ws.onclose   = function()  { log('closed'); }
+ws.onmessage = function(m) {
+    j = JSON.parse(m.data);
+    log("[" + j.zone + "] " + j.input);
+};
+
+
+
+
+$(document).on('click', '#msg', function(ev) {
+    ev.preventDefault();
+    var h = {
+	input: input.value,
+	u: '<%= params[:u] %>',
+	zone: '<%= @user.attr[:zone] || "solo" %>',
+	form: formToJSON($(this))
+    }
+		input.value = "";
+    ws.send(JSON.stringify(h));
+});
+
+	    
+	
