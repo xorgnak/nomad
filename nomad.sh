@@ -41,8 +41,8 @@ server {
 }
 EOF
 
-sudo cp nginx/* /etc/nginx/sites-enabled/
-sudo service nginx restart
+#sudo cp nginx/* /etc/nginx/sites-enabled/
+#sudo service nginx restart
 
 elif [[ "$1" == "install" ]]; then
     if [[ ! -f ~/nomad.conf ]]; then
@@ -63,8 +63,7 @@ EOF
     fi
     sudo apt update && sudo apt upgrade && sudo apt install $DEBS;
     sudo gem install $GEMS;
-    sudo cp nginx.conf /etc/nginx/
-    sudo service nginx restart
+    sudo ./nomadic/exe/nomad.sh
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
 elif [[ "$1" == "quick" ]]; then
