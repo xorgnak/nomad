@@ -903,8 +903,11 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           when 'callcenter'
-            g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
-            g.say(message: @tree[:message])
+            if @tree.has_key? :file
+              g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
+            else
+              g.say(message: @tree[:message])
+            end
           end
         end
       else
