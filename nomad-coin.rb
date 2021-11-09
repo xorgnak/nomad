@@ -919,10 +919,10 @@ class APP < Sinatra::Base
             case i.length
             when 2
               if i[0] == '' && @tree[:pagers].has_key?(i[1]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
-                phone.send_sms( from: params['To'], to: @tree[:pagers]['0'], body: "[#{params['To']}][DISPATCHER] off")
+                phone.send_sms( from: params['To'], to: @tree[:pagers]['0'] || @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
                 @tree[:pagers]['0'] = @tree[:pagers][i[1]]
                 @tree.save!
-                phone.send_sms( from: params['To'], to: @tree[:pagers]['0'], body: "[#{params['To']}][DISPATCHER] on")
+                phone.send_sms( from: params['To'], to: @tree[:pagers]['0'] || @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] #{@tree[:pagers]['0'] || @tree[:dispatcher]}")
                 response.say(message: "dispatchers updated.")
               else
                 if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
