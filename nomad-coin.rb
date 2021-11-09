@@ -1017,7 +1017,7 @@ class APP < Sinatra::Base
           response.say(message: o.join(' '))
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif m = /^0\*(\d)\*(.+)*(.+)*/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-          if m[3].length > 0 && @tree[:pagers].has_key?(m[3]) && IDS.has_key?(@tree[:pagers][m[3]])
+          if m[3].length > 0
             @i, @u = @tree[:pagers][m[3]], U.new(IDS[@i])
           else
             @i, @u = params['From'].gsub('+1', ''), U.new(IDS[@i])
@@ -1044,7 +1044,7 @@ class APP < Sinatra::Base
             @u.coins.incr(m[2].to_i)
           end
           phone.send_sms( from: params['To'], to: @i, body: "[#{params['To']}][#{t}] +#{b}")
-          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{@i}][#{t}](#{params['Digits']}) #{params['From']} +#{b}")
+          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{@i}][#{tOA}](#{params['Digits']}) #{params['From']} +#{b}")
           response.say(message: "OK")
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0'
