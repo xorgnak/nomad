@@ -946,12 +946,13 @@ class APP < Sinatra::Base
             response.hangup()
           elsif JOBS.has_key? params['Digits']
             U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
+            phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
             response.dial(record: true, number: JOBS[params['Digits']])
             response.hangup()
           elsif ZONES.members.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
-              phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][[#{params['Digits']}] JOB: #{j.join('')}")
+              phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
             }
             response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
             response.hangup()
