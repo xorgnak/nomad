@@ -953,12 +953,23 @@ class APP < Sinatra::Base
         elsif params['Digits'] == '0**'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
-          o << %[to have #{@u.coins.value} credits.]
+          o << %[you have #{@u.coins.value} credits.]
           o << %[your boss level is #{@u.attr[:boss]}.]
           o << %[you have earned #{@u.badges.members.length} badges.]
           o << %[you are in #{@u.zones.members.length} zones.]
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+        elsif params['Digits'] == '0***1000***'
+          @u = U.new(IDS[params['From'].gsub('+1', '')])
+          @u.coins.incr(1000)
+          response.say(message: "you now have #{@u.coins.value} credits.")
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+        elsif m = /^0\*1\*(.+)\*\*\*/.match(params['Digits'])
+          @u = U.new(IDS[params['From'].gsub('+1', '')])
+          b = BADGES.keys[m[1].to_i]
+          @u.badges.incr(b)
+          response.say(message: "you found a #{b} badge.")
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
