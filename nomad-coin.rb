@@ -6,6 +6,47 @@ VAULT_SIZE = 8
 
 FEES = { xfer: 1 }
 
+BDG = [
+  :nomad,
+  :pedicab,
+  :food,
+  :bike,
+  :grill,
+  :pathfinder,
+  :kids,
+  :meals,
+  :pizza,
+  :bar,
+  :asian,
+  :coffee,
+  :influence,
+  :referral,
+  :directions,
+  :adventure,
+  :radio,
+  :dispatch,
+  :farmer,
+  :cannabis,
+  :medic,
+  :guide,
+  :fire,
+  :calm,
+  :developer,
+  :party,
+  :event,
+  :nightlife,
+  :hauling,
+  :bus,
+  :race,
+  :building,
+  :fixing,
+  :emergency,
+  :bug,
+  :network.
+  :comms,
+]
+
+
 BADGES = {
   nomad: 'backpack',
   pedicab: 'bike_scooter',
@@ -950,7 +991,7 @@ class APP < Sinatra::Base
             response.say(message: o)
           end
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif params['Digits'] == '0**'
+        elsif params['Digits'] == '0*'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
           o << %[you have #{@u.coins.value} credits.]
@@ -960,24 +1001,23 @@ class APP < Sinatra::Base
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif m = /^0\*(\d)\*(.+)\*\*\*/.match(params['Digits'])
+        elsif m = /^0\*(\d)\*(.+)/.match(params['Digits'])
           @u = U.new(IDS[params['From'].gsub('+1', '')])
-          b = BADGES.keys[m[2].to_i] || m[2].to_i
-          if m[1].to_i == 0
+          if m[1].to_i == 1
             t = "badge"
-            @u.badges.incr(b)
-          elsif m[1].to_i == 1
-            t = "award"
-            @u.awards.incr(b)
+            @u.badges.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 2
-            t = "stripe"
-            @u.stripes.incr(b)
+            t = "award"
+            @u.awards.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 3
-            t = "boss level."
-            @u.boss.incr(b)
+            t = "stripe"
+            @u.stripes.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 4
+            t = "boss level."
+            @u.boss.incr(BDG[m[2].to_i] )
+          elsif m[1].to_i == 0
             t = "cache of credits."
-            @u.coins.incr(b)
+            @u.coins.incr(m[2].to_i)
           end
           phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['From']}][#{params['Digits']}] +#{b} #{t}")
           response.say(message: "you found a #{b} #{t}.")
