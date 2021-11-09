@@ -921,10 +921,11 @@ class APP < Sinatra::Base
               if i[0] == '' && @tree[:pagers].has_key?(i[1]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
                 phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
                 @tree[:dispatcher] = @tree[:pagers][i[1]]
+                @tree.save!
                 phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] on")
-                o = "dispatchers updated."
+                response.say(message: "dispatchers updated.")
               else
-                if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
+                if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                   if IDS.has_key? i[1]
                     Zone.new(i[0]).pool << i[1]
                     ZONES << i[0]
