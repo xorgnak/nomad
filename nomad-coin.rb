@@ -960,16 +960,26 @@ class APP < Sinatra::Base
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif params['Digits'] == '0***1000***'
+        elsif m = /^0\*(\d)\*(.+)\*\*\*/.match(params['Digits'])
           @u = U.new(IDS[params['From'].gsub('+1', '')])
-          @u.coins.incr(1000)
-          response.say(message: "you now have #{@u.coins.value} credits.")
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif m = /^0\*1\*(.+)\*\*\*/.match(params['Digits'])
-          @u = U.new(IDS[params['From'].gsub('+1', '')])
-          b = BADGES.keys[m[1].to_i]
-          @u.badges.incr(b)
-          response.say(message: "you found a #{b} badge.")
+          b = BADGES.keys[m[2].to_i] || m[2].to_i
+          if m[1].to_i == 0
+            t = "badge"
+            @u.badges.incr(b)
+          elsif m[1].to_i == 1
+            t = "award"
+            @u.awards.incr(b)
+          elsif m[1].to_i == 2
+            t = "stripe"
+            @u.stripes.incr(b)
+          elsif m[1].to_i == 3
+            t = "boss level."
+            @u.boss.incr(b)
+          elsif m[1].to_i == 4
+            t = "cache of credits."
+            @u.coins.incr(b)
+          end
+          response.say(message: "you found a #{b} #{t}.")
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
