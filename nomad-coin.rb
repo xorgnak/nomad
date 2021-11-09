@@ -1,4 +1,4 @@
-
+# encoding: UTF-8
 # network
 ID_SIZE = 16
 VAULT_SIZE = 8
@@ -190,6 +190,7 @@ require 'rufus-scheduler'
 require 'twilio-ruby'
 require 'redcarpet'
 require 'cerebrum'
+require 'cryptology'
 
 CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
@@ -218,6 +219,20 @@ def phone_tree phone, h={}
   end
 end
 
+
+module Cypher
+  def self.encrypt key, data
+    return Cryptology.encrypt(data: data, key: key, cipher: 'CHACHA20-POLY1305')['data']
+  end
+  def self.decrypt key, data
+    if Cryptology.decryptable?(data: data, key: key, cipher: 'CHACHA20-POLY1305')
+      plain = Cryptology.decrypt(data: data, key: key, cipher: 'CHACHA20-POLY1305')
+    else
+      plain = false
+    end
+    return plain
+  end
+end
 
 class Broker
   
@@ -1046,7 +1061,7 @@ class APP < Sinatra::Base
             phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
           }
           #phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
-          response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
+          response.say(message: "your request has been received. thank you. goodbye.")
           response.hangup()
         else            
           response.say(message: "please try again.")
