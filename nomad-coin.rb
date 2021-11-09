@@ -523,6 +523,7 @@ class CallCenter
   end
   def << u
     @tree['pool'] << u
+    @tree['pool'].uniq!
   end
   def save!
     TREE[@phone] = JSON.generate(@tree)
@@ -903,9 +904,7 @@ class APP < Sinatra::Base
             g.dial(record: true, number: @tree[:dispatcher])
           when 'callcenter'
             g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
-            if @tree[:message] != ""
-              g.say(message: @tree[:message])
-            end
+            g.say(message: @tree[:message])
           end
         end
       else
