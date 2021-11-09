@@ -1016,7 +1016,7 @@ class APP < Sinatra::Base
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif m = /^0\*(\d)\*(.+)*(.+)*/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+        elsif m = /^0\*(\d)\*(.+)\*(.+)/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
           Redis.new.publish("MAGIC", "#{m}")
           if m[3].length > 0
             @i, @u = @tree[:pagers][m[3]], U.new(IDS[@i])
