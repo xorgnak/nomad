@@ -959,6 +959,7 @@ class APP < Sinatra::Base
             U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
             phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
             response.dial(record: true, number: JOBS[params['Digits']])
+            JOBS.delete(params['Digits'])
             response.hangup()
           elsif ZONES.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
