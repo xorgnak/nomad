@@ -939,17 +939,7 @@ class APP < Sinatra::Base
               end
             end
           when 1
-            if i[0] == ''
-              @u = U.new(IDS[params['From'].gsub('+1', '')])
-              o = [%[welcome, #{@u.attr[:name]}.]]
-              o << %[to have #{@u.coins.value} credits.]
-              o << %[your boss level is #{@u.attr[:boss]}.]
-              o << %[you have earned #{@u.badges.members.length} badges.]
-              o << %[you are in #{@u.zones.members.length} zones.]
-              o << %[and you have #{@u.titles.members.length} titles.]
-              response.say(message: o.join(' '))
-              response.hangup()
-            elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+            if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
               o = "job #{i[0]}: #{JOBS[i[0]]}"
             elsif ZONES.include?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
               z = []; Zone.new(i[0]).pool.members.each { |e| z << e.split('').join(' ') }
@@ -959,6 +949,16 @@ class APP < Sinatra::Base
             end
             response.say(message: o)
           end
+        elsif params['Digits'] == '***'
+          @u = U.new(IDS[params['From'].gsub('+1', '')])
+          o = [%[welcome, #{@u.attr[:name]}.]]
+          o << %[to have #{@u.coins.value} credits.]
+          o << %[your boss level is #{@u.attr[:boss]}.]
+          o << %[you have earned #{@u.badges.members.length} badges.]
+          o << %[you are in #{@u.zones.members.length} zones.]
+          o << %[and you have #{@u.titles.members.length} titles.]
+          response.say(message: o.join(' '))
+          response.hangup()
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
           response.hangup()
