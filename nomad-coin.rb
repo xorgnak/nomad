@@ -949,7 +949,7 @@ class APP < Sinatra::Base
             end
             response.say(message: o)
           end
-        elsif params['Digits'] == '***'
+        elsif params['Digits'] == '0**'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
           o << %[to have #{@u.coins.value} credits.]
