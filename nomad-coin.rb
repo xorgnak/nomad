@@ -903,10 +903,10 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           when 'callcenter'
-            if @tree.has_key? :file
+            if File.exists? "public/#{@tree[:file]}"
               g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
             else
-              g.say(message: @tree[:message])
+              g.say(message: @tree[:message] || ENV['DOMAIN'])
             end
           end
         end
