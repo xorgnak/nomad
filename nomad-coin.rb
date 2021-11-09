@@ -881,7 +881,7 @@ class APP < Sinatra::Base
   get('/call') {
     Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
-    @tree = TREE[params['To']]
+    @tree = CallCenter.new(params['To'])
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
         response.gather(method: 'GET', action: '/call') do |g|
