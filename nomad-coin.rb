@@ -930,9 +930,10 @@ class APP < Sinatra::Base
               end
             when 1
               if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-                o = "#{i[0]}: #{JOBS[i[0]]}"
+                o = "job #{i[0]}: #{JOBS[i[0]]}"
               elsif ZONES.include?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-                o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
+                z = []; Zone.new(i[0]).pool.members.each { |e| z << e.split('').join(' ') }
+                o = "zone #{i[0].split('').join(' ')}: #{z.join(', ')}"
               else
                 o = "unknown #{i[0].split('').join(' ')}"
               end
