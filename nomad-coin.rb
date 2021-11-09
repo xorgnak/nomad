@@ -918,10 +918,10 @@ class APP < Sinatra::Base
             Redis.new.publish('DIGITS', "#{i}")
             case i.length
             when 2
-              if i[0] == '' && @tree[:pagers].has_key?(i[1])
+              if i[0] == '' && @tree[:pagers].has_key?(i[1]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
                 phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
                 @tree[:dispatcher] = @tree[:pagers][i[1]]
-                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
+                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] on")
                 o = "dispatchers updated."
               else
                 if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
