@@ -902,12 +902,8 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           when 'callcenter'
-            if @tree[:file] != nil
-              g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
-            else
-              g.play(url: "https://#{OPTS[:domain]}/answer")
-            end
-            if @tree[:message] != nil
+            g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
+            if @tree[:message] != ""
               g.say(message: @tree[:message])
             end
           end
