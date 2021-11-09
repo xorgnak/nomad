@@ -919,12 +919,12 @@ class APP < Sinatra::Base
             when 2
               if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
                 Zone.new(i[0]).pool << i[1]
-                response.say(message: 'added ' + i[1] + ' to ' + i[0])
+                ZONES << i[0]
+                U.new(IDS[i[1]]).zones << i[0]
+                response.say(message: 'added "' + i[1] + '" to "' + i[0] + '"')
               end
             when 1
-              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 7
-                o = "#{i[0]}: #{U.new(i[0]).zones.members.to_a.join(' ')}"
-              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+              if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                 o = "#{i[0]}: #{JOBS[i[0]]}"
               elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 10
                 o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
