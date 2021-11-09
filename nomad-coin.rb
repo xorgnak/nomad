@@ -941,7 +941,7 @@ class APP < Sinatra::Base
 #            end
 #            
           elsif @tree[:pagers].has_key? params['Digits']
-            g.dial(record: true, number: @tree[:pagers][params['Digits']])
+            response.dial(record: true, number: @tree[:pagers][params['Digits']])
             #response.message {|m| m.from(params['To']); m.to(@tree[:pagers][params['Digits']]); m.body(%[PAGE #{params['From']}]); }
           elsif JOBS.has_key? params['Digits']
             response.dial(record: true, number: JOBS[params['Digits']])
