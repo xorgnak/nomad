@@ -949,6 +949,7 @@ class APP < Sinatra::Base
             end
             response.say(message: o)
           end
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0**'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
@@ -958,7 +959,7 @@ class APP < Sinatra::Base
           o << %[you are in #{@u.zones.members.length} zones.]
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
-          response.hangup()
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
           response.hangup()
@@ -971,13 +972,13 @@ class APP < Sinatra::Base
           phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
           response.dial(record: true, number: JOBS[params['Digits']])
           JOBS.delete(params['Digits'])
-          response.hangup()
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif ZONES.include? params['Digits']
           j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
           Zone.new(params['Digits']).pool.members.each {|e|
             phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
           }
-          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
+          #phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
           response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
           response.hangup()
         else            
