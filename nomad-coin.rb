@@ -938,6 +938,8 @@ class APP < Sinatra::Base
                 o = "unknown #{i[0].split('').join(' ')}"
               end
               response.say(message: o)
+            else
+              response.say(message: 'OK')
             end
           elsif @tree[:pagers].has_key? params['Digits']
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
@@ -949,9 +951,9 @@ class APP < Sinatra::Base
           elsif ZONES.members.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
-              phone.send_sms( from: params['To'], to: e, body: %[[#{params['Digits']}] JOB: #{j.join('')}])
+              phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][[#{params['Digits']}] JOB: #{j.join('')}")
             }
-            response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone.")
+            response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
             response.hangup()
           else
             @u = U.new(IDS[params['From'].gsub('+1', '')])
@@ -960,7 +962,7 @@ class APP < Sinatra::Base
             o << %[your boss level is #{@u.attr[:boss]}.]
             o << %[you have earned #{@u.badges.members.length} badges.]
             o << %[you are in #{@u.zones.members.length} zones.]
-            o << %[and you have #{@u.titles.members.length} titles.]
+            o << %[and you have #{@u.titles.members.length} titles.]            
             response.say(message: o.join(' '))
             response.hangup()
           end
