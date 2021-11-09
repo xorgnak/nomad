@@ -921,7 +921,7 @@ class APP < Sinatra::Base
                 Zone.new(i[0]).pool << i[1]
                 ZONES << i[0]
                 U.new(IDS[i[1]]).zones << i[0]
-                response.say(message: 'added "' + i[1] + '" to "' + i[0] + '"')
+                response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
               end
             when 1
               if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
@@ -945,15 +945,18 @@ class APP < Sinatra::Base
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
             #response.message {|m| m.from(params['To']); m.to(@tree[:pagers][params['Digits']]); m.body(%[PAGE #{params['From']}]); }
           elsif JOBS.has_key? params['Digits']
+            U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
             response.dial(record: true, number: JOBS[params['Digits']])
           elsif ZONES.members.include? params['Digits']
+            j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
-              response.message { |m|
-                m.from(params['To']);
-                m.to(e);
-                m.body(%[[#{params['Digits']}] PAGE #{params['From']}]);
-              }
+              send_sms({
+               from: params['To'],
+               to: e,
+               body: %[[#{params['Digits']}] JOB: #{j.join('')}]
+              })
             }
+            response.say(message: "request sent to the #{params['Digits']} zone.")
           else
             if File.exists? "public/#{@tree[:file]}"
               response.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
