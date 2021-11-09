@@ -148,7 +148,7 @@ require 'pry'
 require 'rufus-scheduler'
 require 'twilio-ruby'
 require 'redcarpet'
-
+require 'cerebrum'
 
 CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
@@ -168,6 +168,15 @@ CODE = Redis::HashKey.new('CODE')
 TREE = Redis::HashKey.new('TREE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
+
+BRAIN = Cerebrum.new
+
+def phone_tree phone, h={}
+  if h.keys.length > 0
+    TREE[phone] = JSON.generate(h)
+  end
+end
+
 
 class Broker
   
@@ -491,14 +500,34 @@ module Bank
 end
 
 class CallCenter
-  include Redis::Objects
-  set :pool
-  value :dispatcher
-  value :mode
-  list :log
-  def id; 'calcenter'; end
+  def initialize phone
+    tree = {
+      message: "#{OPTS[:domain]}",
+      file: nil,
+      boss: ENV['ADMIN'],
+      dispatcher: ENV['ADMIN'],
+      pool: []
+    }
+    @phone = phone
+    if !TREE.has_key? @phone
+      TREE[@phone] = JSON.generate(tree)
+    end
+    @tree = JSON.parse(TREE[phone])
+  end
+  def [] k
+    @tree[k.to_s]
+  end
+  def []= k,v
+    @tree[k.to_s] = v
+  end
+  def << u
+    @tree['pool'] << u
+  end
+  def save!
+    TREE[@phone] = JSON.generate(@tree)
+  end
 end
-CALL = CallCenter.new()
+
 
 class Sash
   def initialize u, *b
@@ -610,6 +639,8 @@ class U
   end
 end
 
+
+
 @man = Slop::Options.new
 @man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
 @man.symbol '-b', '--boss', "the admin phone number", default: 'dummy'
@@ -626,6 +657,26 @@ end
 end
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
+
+def train!
+  us = []
+  IDS.all.each_pair do |user, id|
+    b, a = {}, {}
+    BADGES.each_pair do |n, i|
+      b[n] = ((U.new(id).badges[n].to_f || 0) / 1000).to_f
+      a[n] = ((U.new(id).awards[n].to_f || 0) / 1000).to_f
+    end
+    us << { input: b, output: a }
+  end
+  BRAIN.train(us)
+end
+def predict u
+  b = {}
+  BADGES.each_pair do |n, i|
+    b[n] = ((U.new(u).badges[n].to_f || 0) / 1000).to_f
+  end
+  BRAIN.run(b)
+end
 
 class K
   HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
@@ -651,14 +702,14 @@ class K
     o = []
     "#{`ls -lha #{self.dir.value}`}".split("\n").each {|e|
       f = e.split(' ')[-1]
-      if e != '.' || e != '..'
-        if /^d/.match(e)
-          b = %[<button class='material-icons' name='cmd' value='cd("#{f}")'>folder</button>]
-        else
-          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>file</button>]
-        end
-        o << %[<p>#{b} #{e}</p>]
+      if /^d/.match(e)
+        b = %[<button class='material-icons' name='cmd' value='cd("#{f}")'>folder</button>]
+      elsif /^total/.match(e)
+        b = %[]
+      else
+        b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
       end
+      o << %[<p>#{b} #{e}</p>]
     }
     return "<div>" + o.join('') + "</div>"
   end
@@ -820,8 +871,10 @@ class APP < Sinatra::Base
   }
   get('/answer') {
     content_type 'audio/mpeg'
-    if File.exist?("public/#{OPTS[:domain]}_answer.mp3");
-      File.read("public/#{OPTS[:domain]}_answer.mp3");
+    if File.exist?("public/#{OPTS[:domain]}-#{params[:x]}")
+      File.read("public/#{OPTS[:domain]}-#{params[:x]}")
+    elsif File.exist?("public/#{OPTS[:domain]}-answer.mp3");
+      File.read("public/#{OPTS[:domain]}-answer.mp3");
     else;
       File.read("public/ding.mp3");
     end
@@ -829,14 +882,17 @@ class APP < Sinatra::Base
   get('/call') {
     Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
+    tree = {
+      message: "#{OPTS[:domain]}",
+      file: nil,
+      boss: ENV['ADMIN'],
+      dispatcher: ENV['ADMIN'],
+      pool: []
+    }
     if TREE.has_key? params['To']
-      @tree = JSON.parse(TREE[params['To']])
+      @tree = tree.merge(JSON.parse(TREE[params['To']]))
     else
-      @tree = {
-        message: "#{OPTS[:domain]}",
-        boss: ENV['ADMIN'],
-        dispatcher: ENV['ADMIN']
-      }
+      @tree = tree
     end
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
@@ -859,28 +915,59 @@ class APP < Sinatra::Base
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
           else
-            g.play(url: "https://#{OPTS[:domain]}/answer")
-            g.say(message: @tree[:message])
+            if @tree[:file] != nil
+              g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
+            else
+              g.play(url: "https://#{OPTS[:domain]}/answer")
+            end
+            if @tree[:message] != nil
+              g.say(message: @tree[:message])
+            end
           end
         end
       else
-        response.gather(method: 'GET', action: '/call') do |g|
           if m = /\*(.+)/.match(params['Digits'])
-            
-          elsif m = /\*\*(.+)/.match(params['Digits'])
-            
-          elsif m = /\*\*\*(.+)/.match(params['Digits'])
-
+            i = m[1].split('*')
+            case i.length
+            when 2
+              if U.new(IDS[params['From']]).attr[:boss].to_i > 5
+                Zone.new(i[0]).pool << i[1]
+                response.say(message: 'added ' + i[1] + ' to ' + i[0])
+              end
+            when 1
+              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 7
+                o = "#{i[0]}: #{U.new(i[0]).zones.members.to_a.join(' ')}"
+              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 3
+                o = "#{i[0]}: #{JOBS[i[0]]}"
+              elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 10
+                o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
+              end
+              response.say(message: o)
+            else
+              @u = U.new(IDS[params['From']])
+              o = [%[welcome, #{@u.attr[:name]}.]]
+              o << %[to have #{@u.coins.value} credits.]
+              o << %[your boss level is #{@u.attr[:boss]}.]
+              o << %[you have earned #{@u.badges.members.length} badges.]
+              o << %[you are in #{@u.zones.members.length} zones.]
+              o << %[and you have #{@u.titles.members.length} titles.]
+              response.say(message: o.join(' '))
+            end
           elsif PAGERS.has_key? params['Digits']
-
+            response.message {|m| m.from(params['To']); m.to(PAGERS[params['Digits']]); m.body(%[PAGE #{params['From']}]); }
           elsif JOBS.has_key? params['Digits']
-
+            response.dial(record: true, number: JOBS[params['Digits']])
           elsif ZONES.members.include? params['Digits']
-            
+            Zone.new(params['Digits']).pool.members.each {|e|
+              response.message { |m|
+                m.from(params['To']);
+                m.to(PAGERS[params['Digits']]);
+                m.body(%[[#{params['Digits']}] PAGE #{params['From']}]);
+              }
+            }
           else
-            g.say(message: 'console')
+            response.say(message: 'console')
           end
-        end
       end
     end.to_s
   }
@@ -924,6 +1011,9 @@ class APP < Sinatra::Base
       File.open("public/#{OPTS[:domain]}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
     end
     if params.has_key? :editor
+      if !Dir.exists? "home/#{params[:u]}" 
+        Dir.mkdir("home/#{params[:u]}")
+      end
       File.open("#{params[:editor][:file]}", 'w') {|f| f.write("#{params[:editor][:content]}") }
       @term.attr.delete(:file)
     end
