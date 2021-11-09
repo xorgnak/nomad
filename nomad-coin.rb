@@ -918,14 +918,23 @@ class APP < Sinatra::Base
             Redis.new.publish('DIGITS', "#{i}")
             case i.length
             when 2
-              if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
-                if IDS.has_key? i[1]
-                  Zone.new(i[0]).pool << i[1]
-                  ZONES << i[0]
-                  U.new(IDS[i[1]]).zones << i[0]
-                  response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
+              if i[0] == '' && @tree[:pagers].has_key?(i[1])
+                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
+                @tree[:dispatcher] = @tree[:pagers][i[1]]
+                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
+                o = "dispatchers updated."
+              else
+                if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
+                  if IDS.has_key? i[1]
+                    Zone.new(i[0]).pool << i[1]
+                    ZONES << i[0]
+                    U.new(IDS[i[1]]).zones << i[0]
+                    response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
+                  else
+                    response.say(message: "unknown user #{i[1].split('').join(' ')}")
+                  end
                 else
-                  response.say(message: "unknown user #{i[1].split('').join(' ')}")
+                  response.say(message: "insufficient boss level.")
                 end
               end
             when 1
@@ -938,8 +947,6 @@ class APP < Sinatra::Base
                 o = "unknown #{i[0].split('').join(' ')}"
               end
               response.say(message: o)
-            else
-              response.say(message: 'OK')
             end
           elsif @tree[:pagers].has_key? params['Digits']
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
@@ -949,7 +956,7 @@ class APP < Sinatra::Base
             phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
             response.dial(record: true, number: JOBS[params['Digits']])
             response.hangup()
-          elsif ZONES.members.include? params['Digits']
+          elsif ZONES.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
               phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
