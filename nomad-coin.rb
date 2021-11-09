@@ -42,7 +42,7 @@ BDG = [
   :fixing,
   :emergency,
   :bug,
-  :network.
+  :network,
   :comms
 ]
 
