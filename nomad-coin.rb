@@ -913,7 +913,7 @@ class APP < Sinatra::Base
           end
         end
       else
-        if m = /\*(.+)/.match(params['Digits'])
+        if m = /^\*(.+)/.match(params['Digits'])
           i = m[1].split('*')
           Redis.new.publish('DIGITS', "#{i}")
           case i.length
