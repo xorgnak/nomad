@@ -949,7 +949,7 @@ class APP < Sinatra::Base
             end
             response.say(message: o)
           end
-        elsif params['Digits'] = '0'
+        elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
           response.hangup()
         elsif @tree[:pagers].has_key? params['Digits']
