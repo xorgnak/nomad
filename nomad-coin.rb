@@ -856,7 +856,7 @@ class APP < Sinatra::Base
   get('/ws') {
     request.websocket do |ws|
       ws.onopen do
-        h = { zone: 'network', input: "time: OA#{Time.now.utc}" }
+        h = { zone: 'network', input: %[{ time: "#{Time.now.utc}" }] }
         ws.send(JSON.generate(h))
         settings.sockets << ws
       end
@@ -871,8 +871,8 @@ class APP < Sinatra::Base
     end
   }
   get('/answer') {
-    if File.exists? "public/#{OPTS[:domain]}-#{params[:x]}"
-      send_file "public/#{OPTS[:domain]}-#{params[:x]}"
+    if File.exists? "public/#{params[:x]}"
+      send_file "public/#{params[:x]}"
     else
       send_file "public/ding.mp3"
     end
