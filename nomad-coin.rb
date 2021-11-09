@@ -937,17 +937,7 @@ class APP < Sinatra::Base
                 o = "unknown #{i[0].split('').join(' ')}"
               end
               response.say(message: o)
-            else
-              @u = U.new(IDS[params['From'].gsub('+1', '')])
-              o = [%[welcome, #{@u.attr[:name]}.]]
-              o << %[to have #{@u.coins.value} credits.]
-              o << %[your boss level is #{@u.attr[:boss]}.]
-              o << %[you have earned #{@u.badges.members.length} badges.]
-              o << %[you are in #{@u.zones.members.length} zones.]
-              o << %[and you have #{@u.titles.members.length} titles.]
-              response.say(message: o.join(' '))
             end
-            
           elsif @tree[:pagers].has_key? params['Digits']
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
             response.hangup()
@@ -963,7 +953,14 @@ class APP < Sinatra::Base
             response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone.")
             response.hangup()
           else
-            response.say(message: 'goodbye')
+            @u = U.new(IDS[params['From'].gsub('+1', '')])
+            o = [%[welcome, #{@u.attr[:name]}.]]
+            o << %[to have #{@u.coins.value} credits.]
+            o << %[your boss level is #{@u.attr[:boss]}.]
+            o << %[you have earned #{@u.badges.members.length} badges.]
+            o << %[you are in #{@u.zones.members.length} zones.]
+            o << %[and you have #{@u.titles.members.length} titles.]
+            response.say(message: o.join(' '))
             response.hangup()
           end
       end
