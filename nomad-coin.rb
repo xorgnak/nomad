@@ -913,72 +913,72 @@ class APP < Sinatra::Base
           end
         end
       else
-          if m = /\*(.+)/.match(params['Digits'])
-            i = m[1].split('*')
-            Redis.new.publish('DIGITS', "#{i}")
-            case i.length
-            when 2
-              if i[0] == '' && @tree[:pagers].has_key?(i[1]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
-                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
-                @tree[:dispatcher] = @tree[:pagers][i[1]]
-                @tree.save!
-                phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] on")
-                response.say(message: "dispatchers updated.")
-              else
-                if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-                  if IDS.has_key? i[1]
-                    Zone.new(i[0]).pool << i[1]
-                    ZONES << i[0]
-                    U.new(IDS[i[1]]).zones << i[0]
-                    response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
-                  else
-                    response.say(message: "unknown user #{i[1].split('').join(' ')}")
-                  end
+        if m = /\*(.+)/.match(params['Digits'])
+          i = m[1].split('*')
+          Redis.new.publish('DIGITS', "#{i}")
+          case i.length
+          when 2
+            if i[0] == '' && @tree[:pagers].has_key?(i[1]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
+              phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] off")
+              @tree[:dispatcher] = @tree[:pagers][i[1]]
+              @tree.save!
+              phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] on")
+              response.say(message: "dispatchers updated.")
+            else
+              if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+                if IDS.has_key? i[1]
+                  Zone.new(i[0]).pool << i[1]
+                  ZONES << i[0]
+                  U.new(IDS[i[1]]).zones << i[0]
+                  response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
                 else
-                  response.say(message: "insufficient boss level.")
+                  response.say(message: "unknown user #{i[1].split('').join(' ')}")
                 end
-              end
-            when 1
-              if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-                o = "job #{i[0]}: #{JOBS[i[0]]}"
-              elsif ZONES.include?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
-                z = []; Zone.new(i[0]).pool.members.each { |e| z << e.split('').join(' ') }
-                o = "zone #{i[0].split('').join(' ')}: #{z.join(', ')}"
               else
-                o = "unknown #{i[0].split('').join(' ')}"
+                response.say(message: "insufficient boss level.")
               end
-              response.say(message: o)
             end
-          elsif params['Digits'] = '0'
-            response.dial(record: true, number: @tree[:dispatcher])
-            response.hangup()
-          elsif @tree[:pagers].has_key? params['Digits']
-            response.dial(record: true, number: @tree[:pagers][params['Digits']])
-            response.hangup()
-          elsif JOBS.has_key? params['Digits']
-            U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
-            phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
-            response.dial(record: true, number: JOBS[params['Digits']])
-            JOBS.delete(params['Digits'])
-            response.hangup()
-          elsif ZONES.include? params['Digits']
-            j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
-            Zone.new(params['Digits']).pool.members.each {|e|
-              phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
-            }
-            response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
-            response.hangup()
-          else
-            @u = U.new(IDS[params['From'].gsub('+1', '')])
-            o = [%[welcome, #{@u.attr[:name]}.]]
-            o << %[to have #{@u.coins.value} credits.]
-            o << %[your boss level is #{@u.attr[:boss]}.]
-            o << %[you have earned #{@u.badges.members.length} badges.]
-            o << %[you are in #{@u.zones.members.length} zones.]
-            o << %[and you have #{@u.titles.members.length} titles.]            
-            response.say(message: o.join(' '))
-            response.hangup()
+          when 1
+            if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+              o = "job #{i[0]}: #{JOBS[i[0]]}"
+            elsif ZONES.include?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+              z = []; Zone.new(i[0]).pool.members.each { |e| z << e.split('').join(' ') }
+              o = "zone #{i[0].split('').join(' ')}: #{z.join(', ')}"
+            else
+              o = "unknown #{i[0].split('').join(' ')}"
+            end
+            response.say(message: o)
           end
+        elsif params['Digits'] = '0'
+          response.dial(record: true, number: @tree[:dispatcher])
+          response.hangup()
+        elsif @tree[:pagers].has_key? params['Digits']
+          response.dial(record: true, number: @tree[:pagers][params['Digits']])
+          response.hangup()
+        elsif JOBS.has_key? params['Digits']
+          U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
+          phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
+          response.dial(record: true, number: JOBS[params['Digits']])
+          JOBS.delete(params['Digits'])
+          response.hangup()
+        elsif ZONES.include? params['Digits']
+          j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
+          Zone.new(params['Digits']).pool.members.each {|e|
+            phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
+          }
+          response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
+          response.hangup()
+        else
+          @u = U.new(IDS[params['From'].gsub('+1', '')])
+          o = [%[welcome, #{@u.attr[:name]}.]]
+          o << %[to have #{@u.coins.value} credits.]
+          o << %[your boss level is #{@u.attr[:boss]}.]
+          o << %[you have earned #{@u.badges.members.length} badges.]
+          o << %[you are in #{@u.zones.members.length} zones.]
+          o << %[and you have #{@u.titles.members.length} titles.]            
+          response.say(message: o.join(' '))
+          response.hangup()
+        end
       end
     end.to_s
   }
