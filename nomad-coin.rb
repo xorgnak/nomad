@@ -979,8 +979,9 @@ class APP < Sinatra::Base
             t = "cache of credits."
             @u.coins.incr(b)
           end
+          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['From']}][#{params['Digits']}] +#{b} #{t}")
           response.say(message: "you found a #{b} #{t}.")
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.hangup()
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
           response.hangup()
