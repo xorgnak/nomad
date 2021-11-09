@@ -950,11 +950,7 @@ class APP < Sinatra::Base
           elsif ZONES.members.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
-              send_sms({
-               from: params['To'],
-               to: e,
-               body: %[[#{params['Digits']}] JOB: #{j.join('')}]
-              })
+              phone.send_sms( from: params['To'], to: e, body: %[[#{params['Digits']}] JOB: #{j.join('')}])
             }
             response.say(message: "request sent to the #{params['Digits']} zone.")
           else
