@@ -626,6 +626,7 @@ class U
   sorted_set :boss
   set :votes
   set :zones
+  set :jobs
   set :titles
   hash_key :attr
   counter :coins
