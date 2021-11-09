@@ -924,6 +924,16 @@ class APP < Sinatra::Base
               @tree.save!
               phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][DISPATCHER] on")
               response.say(message: "dispatchers updated.")
+            elsif i[0] == '' && i[1] == ''
+              @u = U.new(IDS[params['From'].gsub('+1', '')])
+              o = [%[welcome, #{@u.attr[:name]}.]]
+              o << %[to have #{@u.coins.value} credits.]
+              o << %[your boss level is #{@u.attr[:boss]}.]
+              o << %[you have earned #{@u.badges.members.length} badges.]
+              o << %[you are in #{@u.zones.members.length} zones.]
+              o << %[and you have #{@u.titles.members.length} titles.]
+              response.say(message: o.join(' '))
+              response.hangup()
             else
               if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                 if IDS.has_key? i[1]
@@ -968,16 +978,9 @@ class APP < Sinatra::Base
           }
           response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone. goodbye.")
           response.hangup()
-        else
-          @u = U.new(IDS[params['From'].gsub('+1', '')])
-          o = [%[welcome, #{@u.attr[:name]}.]]
-          o << %[to have #{@u.coins.value} credits.]
-          o << %[your boss level is #{@u.attr[:boss]}.]
-          o << %[you have earned #{@u.badges.members.length} badges.]
-          o << %[you are in #{@u.zones.members.length} zones.]
-          o << %[and you have #{@u.titles.members.length} titles.]            
-          response.say(message: o.join(' '))
-          response.hangup()
+        else            
+          response.say(message: "please try again.")
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         end
       end
     end.to_s
