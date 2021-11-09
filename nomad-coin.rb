@@ -871,7 +871,6 @@ class APP < Sinatra::Base
     end
   }
   get('/answer') {
-    content_type 'audio/mpeg'
     if params.has_key? :x
       send_file "public/#{OPTS[:domain]}-#{params[:x]}"
     else
