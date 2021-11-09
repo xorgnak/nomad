@@ -1016,8 +1016,12 @@ class APP < Sinatra::Base
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
-        elsif m = /^0\*(\d)\*(.+)/.match(params['Digits'])
-          @u = U.new(IDS[params['From'].gsub('+1', '')])
+        elsif m = /^0\*(\d)\*(.+)*(.+)*/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
+          if m[3].length > 0 && @tree[:pagers].has_key?(m[3]) && IDS.has_key?(@tree[:pagers][m[3]])
+            @i, @u = @tree[:pagers][m[3]], U.new(IDS[@i])
+          else
+            @i, @u = params['From'].gsub('+1', ''), U.new(IDS[@i])
+          end
           if m[1].to_i == 1
             t = "badge"
             b = BDG[m[2].to_i]
@@ -1031,17 +1035,18 @@ class APP < Sinatra::Base
             b = BDG[m[2].to_i]
             @u.stripes.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 4
-            t = "boss level"
+            t = "level"
             b = BDG[m[2].to_i]
             @u.boss.incr(BDG[m[2].to_i] )
-          elsif m[1].to_i == 0
+          elsif m[1].to_i == 0 && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 10
             t = "credits"
             b = m[2].to_i
             @u.coins.incr(m[2].to_i)
           end
-          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['From']}][#{params['Digits']}] +#{b} #{t}")
-          response.say(message: "you found a #{b} #{t}.")
-          response.hangup()
+          phone.send_sms( from: params['To'], to: @i, body: "[#{params['To']}][#{t}] +#{b}")
+          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{@i}][#{t}](#{params['Digits']}) #{params['From']} +#{b}")
+          response.say(message: "OK")
+          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif params['Digits'] == '0'
           response.dial(record: true, number: @tree[:dispatcher])
           response.hangup()
@@ -1050,15 +1055,15 @@ class APP < Sinatra::Base
           response.hangup()
         elsif JOBS.has_key? params['Digits']
           U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
-          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][JOB][#{params['Digits']}] #{params['From']} -> #{JOBS[params['Digits']]}")
-          phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB][#{params['Digits']}] #{JOBS[params['Digits']]}")
+          phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][JOB](#{params['Digits']}) #{params['From']} -> #{JOBS[params['Digits']]}")
+          phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB](#{params['Digits']}) #{JOBS[params['Digits']]}")
           response.dial(record: true, number: JOBS[params['Digits']])
           JOBS.delete(params['Digits'])
           response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
         elsif ZONES.include? params['Digits']
           j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
           Zone.new(params['Digits']).pool.members.each {|e|
-            phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
+            phone.send_sms( from: params['To'], to: e, body: "[#{params['To']}][#{params['Digits']}][JOB] #{j.join('')}")
           }
           #phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['Digits']}] JOB: #{j.join('')}")
           response.say(message: "your request has been received. thank you. goodbye.")
