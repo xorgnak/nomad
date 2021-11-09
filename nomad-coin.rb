@@ -871,7 +871,7 @@ class APP < Sinatra::Base
     end
   }
   get('/answer') {
-    if params.has_key? :x
+    if File.exists? "public/#{OPTS[:domain]}-#{params[:x]}"
       send_file "public/#{OPTS[:domain]}-#{params[:x]}"
     else
       send_file "public/ding.mp3"
