@@ -914,23 +914,24 @@ class APP < Sinatra::Base
       else
           if m = /\*(.+)/.match(params['Digits'])
             i = m[1].split('*')
+            Redis.new.publish('DIGITS', "#{i}")
             case i.length
             when 2
-              if U.new(IDS[params['From']]).attr[:boss].to_i > 5
+              if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
                 Zone.new(i[0]).pool << i[1]
                 response.say(message: 'added ' + i[1] + ' to ' + i[0])
               end
             when 1
-              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 7
+              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 7
                 o = "#{i[0]}: #{U.new(i[0]).zones.members.to_a.join(' ')}"
-              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 3
+              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                 o = "#{i[0]}: #{JOBS[i[0]]}"
-              elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 10
+              elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 10
                 o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
               end
               g.say(message: o)
             else
-              @u = U.new(IDS[params['From']])
+              @u = U.new(IDS[params['From'].gsub('+1', '')])
               o = [%[welcome, #{@u.attr[:name]}.]]
               o << %[to have #{@u.coins.value} credits.]
               o << %[your boss level is #{@u.attr[:boss]}.]
@@ -949,15 +950,15 @@ class APP < Sinatra::Base
             Zone.new(params['Digits']).pool.members.each {|e|
               response.message { |m|
                 m.from(params['To']);
-                m.to(PAGERS[params['Digits']]);
+                m.to(e);
                 m.body(%[[#{params['Digits']}] PAGE #{params['From']}]);
               }
             }
           else
             if File.exists? "public/#{@tree[:file]}"
-              g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
+              response.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
             else
-              g.say(message: @tree[:message] || ENV['DOMAIN'])
+              response.say(message: @tree[:message] || ENV['DOMAIN'])
             end
             
           end
