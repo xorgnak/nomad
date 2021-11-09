@@ -504,6 +504,7 @@ class CallCenter
     tree = {
       message: "#{OPTS[:domain]}",
       file: nil,
+      mode: 'callcenter',
       boss: ENV['ADMIN'],
       dispatcher: ENV['ADMIN'],
       pool: []
@@ -901,7 +902,7 @@ class APP < Sinatra::Base
             g.dial(record: true, number: @tree[:boss])
           when 'dispatcher'
             g.dial(record: true, number: @tree[:dispatcher])
-          else
+          when 'callcenter'
             if @tree[:file] != nil
               g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
             else
