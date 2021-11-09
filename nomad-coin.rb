@@ -871,29 +871,16 @@ class APP < Sinatra::Base
   }
   get('/answer') {
     content_type 'audio/mpeg'
-    if File.exist?("public/#{OPTS[:domain]}-#{params[:x]}")
-      File.read("public/#{OPTS[:domain]}-#{params[:x]}")
-    elsif File.exist?("public/#{OPTS[:domain]}-answer.mp3");
-      File.read("public/#{OPTS[:domain]}-answer.mp3");
-    else;
-      File.read("public/ding.mp3");
+    if params.has_key? :x
+      send_file "public/#{OPTS[:domain]}-#{params[:x]}"
+    else
+      send_file "public/ding.mp3"
     end
   }
   get('/call') {
     Redis.new.publish('CALL', JSON.generate(params))
     content_type 'text/xml'
-    tree = {
-      message: "#{OPTS[:domain]}",
-      file: nil,
-      boss: ENV['ADMIN'],
-      dispatcher: ENV['ADMIN'],
-      pool: []
-    }
-    if TREE.has_key? params['To']
-      @tree = tree.merge(JSON.parse(TREE[params['To']]))
-    else
-      @tree = tree
-    end
+    @tree = TREE[params['To']]
     Twilio::TwiML::VoiceResponse.new do | response |
       if !params.has_key? 'Digits'
         response.gather(method: 'GET', action: '/call') do |g|
