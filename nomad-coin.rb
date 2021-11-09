@@ -919,18 +919,24 @@ class APP < Sinatra::Base
             case i.length
             when 2
               if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 5
-                Zone.new(i[0]).pool << i[1]
-                ZONES << i[0]
-                U.new(IDS[i[1]]).zones << i[0]
-                response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
+                if IDS.has_key? i[1]
+                  Zone.new(i[0]).pool << i[1]
+                  ZONES << i[0]
+                  U.new(IDS[i[1]]).zones << i[0]
+                  response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
+                else
+                  response.say(message: "unknown user #{i[1].split('').join(' ')}")
+                end
               end
             when 1
               if JOBS.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                 o = "#{i[0]}: #{JOBS[i[0]]}"
               elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 10
                 o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
+              else
+                o = "unknown #{i[0].split('').join(' ')}"
               end
-              g.say(message: o)
+              response.say(message: o)
             else
               @u = U.new(IDS[params['From'].gsub('+1', '')])
               o = [%[welcome, #{@u.attr[:name]}.]]
@@ -944,23 +950,21 @@ class APP < Sinatra::Base
             
           elsif @tree[:pagers].has_key? params['Digits']
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
-            #response.message {|m| m.from(params['To']); m.to(@tree[:pagers][params['Digits']]); m.body(%[PAGE #{params['From']}]); }
+            response.hangup()
           elsif JOBS.has_key? params['Digits']
             U.new(IDS[params['From'].gsub('+1', '')]).jobs << params['Digits']
             response.dial(record: true, number: JOBS[params['Digits']])
+            response.hangup()
           elsif ZONES.members.include? params['Digits']
             j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
             Zone.new(params['Digits']).pool.members.each {|e|
               phone.send_sms( from: params['To'], to: e, body: %[[#{params['Digits']}] JOB: #{j.join('')}])
             }
-            response.say(message: "request sent to the #{params['Digits']} zone.")
+            response.say(message: "request sent to the #{params['Digits'].split('').join(' ')} zone.")
+            response.hangup()
           else
-            if File.exists? "public/#{@tree[:file]}"
-              response.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
-            else
-              response.say(message: @tree[:message] || ENV['DOMAIN'])
-            end
-            
+            response.say(message: 'goodbye')
+            response.hangup()
           end
       end
     end.to_s
