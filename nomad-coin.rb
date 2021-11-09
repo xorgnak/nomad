@@ -913,33 +913,33 @@ class APP < Sinatra::Base
         end
       else
           if m = /\*(.+)/.match(params['Digits'])
-#            i = m[1].split('*')
-#            case i.length
-#            when 2
-#              if U.new(IDS[params['From']]).attr[:boss].to_i > 5
-#                Zone.new(i[0]).pool << i[1]
-#                response.say(message: 'added ' + i[1] + ' to ' + i[0])
-#              end
-#            when 1
-#              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 7
-#                o = "#{i[0]}: #{U.new(i[0]).zones.members.to_a.join(' ')}"
-#              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 3
-#                o = "#{i[0]}: #{JOBS[i[0]]}"
-#              elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 10
-#                o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
-#              end
-#              g.say(message: o)
-#            else
-#              @u = U.new(IDS[params['From']])
-#              o = [%[welcome, #{@u.attr[:name]}.]]
-#              o << %[to have #{@u.coins.value} credits.]
-#              o << %[your boss level is #{@u.attr[:boss]}.]
-#              o << %[you have earned #{@u.badges.members.length} badges.]
-#              o << %[you are in #{@u.zones.members.length} zones.]
-#              o << %[and you have #{@u.titles.members.length} titles.]
-#              response.say(message: o.join(' '))
-#            end
-#            
+            i = m[1].split('*')
+            case i.length
+            when 2
+              if U.new(IDS[params['From']]).attr[:boss].to_i > 5
+                Zone.new(i[0]).pool << i[1]
+                response.say(message: 'added ' + i[1] + ' to ' + i[0])
+              end
+            when 1
+              if PAGERS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 7
+                o = "#{i[0]}: #{U.new(i[0]).zones.members.to_a.join(' ')}"
+              elsif JOBS.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 3
+                o = "#{i[0]}: #{JOBS[i[0]]}"
+              elsif ZONES.has_key?(i[0]) && U.new(IDS[params['From']]).attr[:boss].to_i > 10
+                o = "#{i[0]}: #{Zone.new(i[0]).pool.members.to_a.join(' ')}"
+              end
+              g.say(message: o)
+            else
+              @u = U.new(IDS[params['From']])
+              o = [%[welcome, #{@u.attr[:name]}.]]
+              o << %[to have #{@u.coins.value} credits.]
+              o << %[your boss level is #{@u.attr[:boss]}.]
+              o << %[you have earned #{@u.badges.members.length} badges.]
+              o << %[you are in #{@u.zones.members.length} zones.]
+              o << %[and you have #{@u.titles.members.length} titles.]
+              response.say(message: o.join(' '))
+            end
+            
           elsif @tree[:pagers].has_key? params['Digits']
             response.dial(record: true, number: @tree[:pagers][params['Digits']])
             #response.message {|m| m.from(params['To']); m.to(@tree[:pagers][params['Digits']]); m.body(%[PAGE #{params['From']}]); }
