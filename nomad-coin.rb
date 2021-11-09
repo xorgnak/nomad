@@ -1005,19 +1005,19 @@ class APP < Sinatra::Base
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           if m[1].to_i == 1
             t = "badge"
-            b = DG[m[2].to_i]
+            b = BDG[m[2].to_i]
             @u.badges.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 2
             t = "award"
-            b = DG[m[2].to_i]
+            b = BDG[m[2].to_i]
             @u.awards.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 3
             t = "stripe"
-            b = DG[m[2].to_i]
+            b = BDG[m[2].to_i]
             @u.stripes.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 4
             t = "boss level"
-            b = DG[m[2].to_i]
+            b = BDG[m[2].to_i]
             @u.boss.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 0
             t = "credits"
