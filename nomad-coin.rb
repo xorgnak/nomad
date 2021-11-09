@@ -1005,18 +1005,23 @@ class APP < Sinatra::Base
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           if m[1].to_i == 1
             t = "badge"
+            b = DG[m[2].to_i]
             @u.badges.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 2
             t = "award"
+            b = DG[m[2].to_i]
             @u.awards.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 3
             t = "stripe"
+            b = DG[m[2].to_i]
             @u.stripes.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 4
-            t = "boss level."
+            t = "boss level"
+            b = DG[m[2].to_i]
             @u.boss.incr(BDG[m[2].to_i] )
           elsif m[1].to_i == 0
-            t = "cache of credits."
+            t = "credits"
+            b = m[2].to_i
             @u.coins.incr(m[2].to_i)
           end
           phone.send_sms( from: params['To'], to: @tree[:dispatcher], body: "[#{params['To']}][#{params['From']}][#{params['Digits']}] +#{b} #{t}")
