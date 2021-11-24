@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx emacs-nox mosquitto';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt';
+DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology';
 
 
 mkdir -p run
@@ -61,8 +61,8 @@ export PHONE_KEY='$PHONE_KEY';
 EOF
     nano ~/nomad.conf
     fi
-    sudo apt update && sudo apt upgrade && sudo apt install $DEBS;
-    sudo gem install $GEMS;
+    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+    sudo gem install --no-rdoc --no-ri $GEMS;
     sudo ./nomadic/exe/nomad.sh
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
@@ -79,5 +79,8 @@ else
     if [[ "$1" == 'pi' ]]; then
 	sudo ruby bonnet.rb &
     fi
+    ruby mud.rb &
     ruby nomad-coin.rb -i
 fi
+
+
