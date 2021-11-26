@@ -59,6 +59,7 @@ export PHONE_KEY='$PHONE_KEY';
 # end of network configuration.
 #
 EOF
+    
     nano ~/nomad.conf
     fi
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
