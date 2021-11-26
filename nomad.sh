@@ -62,8 +62,10 @@ EOF
     
     nano ~/nomad.conf
     fi
-    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
-    sudo gem install $GEMS;
+    if [[ -z "$FULL" ]]; then
+	sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+	sudo gem install $GEMS;
+    fi
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
@@ -72,8 +74,43 @@ EOF
     sudo reboot
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
-elif [[ "$1" == "quick" ]]; then
-    ./nomad.sh install && ./nomad.sh config && ./nomad.sh $*
+elif [[ "$1" == "arduino" ]]; then
+    
+    curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh
+    arduino-cli config init
+    cat <<EOF ~/.arduino15/arduino-cli.yaml
+board_manager:
+  additional_urls: ["https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"]
+daemon:
+  port: "50051"
+directories:
+  data: /home/pi/.arduino15
+  downloads: /home/pi/.arduino15/staging
+  user: /home/pi/Arduino
+library:
+  enable_unsafe_install: false
+logging:
+  file: ""
+  format: text
+  level: info
+metrics:
+  addr: :9090
+  enabled: true
+output:
+  no_color: false
+sketch:
+  always_export_binaries: false
+updater:
+  enable_notification: true
+EOF
+    arduino-cli core update-index
+    arduino-cli core install esp32:esp32
+    echo "### NOMAD arduino-cli begin ###" >> ~/.bashrc
+    echo "function upload() { arduino-cli compile --fqbn esp32:esp32:esp32 `pwd` && arduino-cli upload --port /dev/ttyUSB0 --fqbn esp32:esp32:esp32 `pwd`; }" >> ~/.bashrc
+    echo "alias monitor='cat /dev/ttyUSB0'" >> ~/.bashrc
+    echo "function arduino() { arduino-cli lib install \"$1\" }" >> ~/.bashrc
+    echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
+
 else
     if [[ "$1" != "dev" ]]; then
 	git pull;
