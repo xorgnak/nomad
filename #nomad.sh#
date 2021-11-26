@@ -61,8 +61,8 @@ export PHONE_KEY='$PHONE_KEY';
 EOF
     nano ~/nomad.conf
     fi
-    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
-    sudo gem install $GEMS;
+    #sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+    #sudo gem install $GEMS;
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*

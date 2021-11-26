@@ -20,6 +20,11 @@ form { }
 <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 80%;'><%= LANDING[OPTS[:domain]] %></textarea>
 <button>save</button>
 <% else %>
+<% if Redis.new.get('ONION') != nil %>
+<div id='qrcode'></div>
+<script>$('#qrcode').qrcode('<%= Redis.new.get('ONION') %>');</script>
+<input value='<%= Redis.new.get('ONION') %>/term?u=anonymous' disabled>
+<% end %>
 <%= erb LANDING[OPTS[:domain]] || '' %>
 <% end %>
 <% end %>

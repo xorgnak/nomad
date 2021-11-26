@@ -59,7 +59,6 @@ cat << END > $DIR/index.org
   Nomadic linux believes in staying organized.  Org mode keeps notes well organized. Nomadic linux also integrates lots of other tools to automate the process of exporting these files.
 
 END
-chown $USERNAME:$USERNAME $DIR/index.org
 
 echo -e "$X PROMPT"
 cat << 'END' > $DIR/.prompt
@@ -169,7 +168,6 @@ else \
 fi)'
 
 END
-chown $USERNAME:$USERNAME $DIR/.prompt
 
 echo -e "$X BASH"
 if [[ $2 == '--live' ]]; then
@@ -197,7 +195,6 @@ function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
 fi
-chown $USERNAME:$USERNAME $DIR/.bashrc
 
 echo -e "$X PROFILE"
 cat << END >> /home/$USERNAME/.profile
@@ -205,7 +202,6 @@ cat << END >> /home/$USERNAME/.profile
 #nomad `date`
 ##### NOMADIC end #####
 END
-chown $USERNAME:$USERNAME $DIR/.profile
 
 echo -e "$X LEAH"
 cat << 'END' > /usr/bin/leah
@@ -324,9 +320,10 @@ include /etc/nginx/sites-enabled/*;
 
 }
 END
+rm /etc/nginx/sites-enabled/*
 service nginx restart
 
-cat << END > /etc/nginx/nginx.conf
+cat << END > /etc/tor/torrc
 #nomad
 HiddenServiceDir /var/lib/tor/nomad/
 HiddenServicePort 80 127.0.0.1:4567
@@ -460,7 +457,4 @@ This image was born on: `date`
 No warranty.  No help. May the force be with you.
 END
 
-chown $USERNAME:$USERNAME $DIR/*
-chown $USERNAME:$USERNAME $DIR/.*
-chown $USERNAME:$USERNAME $DIR
 echo -e "$X DONE!"

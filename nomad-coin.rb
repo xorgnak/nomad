@@ -742,6 +742,7 @@ class K
   HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
   TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 75%; }],
           %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
+          %[ #ui > * { vertical-align: middle; }],
           %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
           %[<h1 id='ui'><button type='button' onclick='$("#ls").toggle();'>FS</button>],
           %[<input name='cmd' placeholder='<%= Time.now.utc %>'>],
