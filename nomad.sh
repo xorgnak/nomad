@@ -80,7 +80,7 @@ elif [[ "$1" == "arduino" ]]; then
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
     rm -fR bin
     arduino-cli config init
-    cat <<EOF ~/.arduino15/arduino-cli.yaml
+    cat <<EOF > ~/.arduino15/arduino-cli.yaml
 board_manager:
   additional_urls: ["https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"]
 daemon:
