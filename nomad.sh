@@ -76,7 +76,7 @@ elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
 elif [[ "$1" == "arduino" ]]; then
     
-    curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh
+    curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sudo sh
     arduino-cli config init
     cat <<EOF ~/.arduino15/arduino-cli.yaml
 board_manager:
