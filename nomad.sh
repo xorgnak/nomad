@@ -67,6 +67,9 @@ EOF
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
+    sudo raspi-config
+    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh")| sudo crontab -
+    sudo reboot
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
 elif [[ "$1" == "quick" ]]; then
