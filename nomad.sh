@@ -116,9 +116,6 @@ EOF
     echo "function arduino() { arduino-cli lib install \"$1\" }" >> ~/.bashrc
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
 else
-    if [[ "$1" != "dev" ]]; then
-	git pull;
-    fi
     for f in run/*.sh;
     do
 	./$f
