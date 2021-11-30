@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto';
+DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk';
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud`';
 
 
@@ -62,14 +62,17 @@ EOF
     
     nano ~/nomad.conf
     fi
-    if [[ -z "$FULL" ]]; then
-	sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
-	sudo gem install $GEMS;
-    fi
+    
+#    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+#    sudo gem install $GEMS;
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
-    sudo raspi-config
+    sudo nano /etc/hostname
+    git clone https://github.com/revoxhere/duino-coin
+    cd duino-coin
+    python3 -m pip install -r requirements.txt
+    python3 PC_Miner.py
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh")| sudo crontab -
     sudo reboot
 elif [[ "$1" == "commit" ]]; then
@@ -112,7 +115,6 @@ EOF
     echo "alias monitor='cat /dev/ttyUSB0'" >> ~/.bashrc
     echo "function arduino() { arduino-cli lib install \"$1\" }" >> ~/.bashrc
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
-
 else
     if [[ "$1" != "dev" ]]; then
 	git pull;
@@ -124,6 +126,7 @@ else
     if [[ "$1" == 'pi' ]]; then
 	sudo ruby bonnet.rb &
     fi
+    (cd duino-coin && python3 PC_Miner.py &)
     ruby mud.rb &
     ruby nomad-coin.rb -i
 fi
