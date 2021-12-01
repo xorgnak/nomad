@@ -62,12 +62,16 @@ EOF
     
     nano ~/nomad.conf
     fi
-    
-    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
-    sudo gem install $GEMS;
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
+    MICRO_VERSION=$(curl -s "https://api.github.com/repos/zyedidia/micro/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
+    cd ~
+    curl -Lo micro.tar.gz "https://github.com/zyedidia/micro/releases/latest/download/micro-${MICRO_VERSION}-linux-arm.tar.gz"
+    tar xf micro.tar.gz
+    sudo mv "micro-${MICRO_VERSION}/micro" /usr/local/bin
+    rm -rf micro.tar.gz
+    rm -rf "micro-${MICRO_VERSION}"
     sudo nano /etc/hostname
     git clone https://github.com/revoxhere/duino-coin
     cd duino-coin
@@ -75,6 +79,9 @@ EOF
     python3 PC_Miner.py
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh")| sudo crontab -
     sudo reboot
+elif [[ "$1" == "init" ]]; then
+    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+    sudo gem install $GEMS;
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
 elif [[ "$1" == "arduino" ]]; then
