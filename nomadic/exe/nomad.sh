@@ -11,7 +11,7 @@ X="NOMADIC ->"
 echo -e "$X SCREEN"
 cat << END > $DIR/.screenrc 
 shell -${SHELL}
-caption always "[ %H ][ %t(%n) ] %w"
+caption always "[ %H ] %w"
 defscrollback 1024
 startup_message off
 hardstatus on
@@ -21,7 +21,6 @@ screen -t bash 1 bash
 screen -t '#' 9 redis-cli monitor
 select 0
 END
-chown $USERNAME:$USERNAME $DIR/.screenrc
 
 echo -e "$X INDEX"
 cat << END > $DIR/index.org
@@ -172,13 +171,14 @@ END
 echo -e "$X BASH"
 cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
-# installed at `date`
-echo "HOSTNAME: `hostname`"
-echo "SYSTEM: `uname -a`"
+echo "`cat /etc/logo`"
+echo "[`hostname`] `uname -a`"
 source ~/.prompt
 alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
-function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
-function leah() { su -c "source /root/leah.sh && $*"; }
+echo "commit -> push changes to the origin repo."
+function token() { git remote set-url origin https://$1:$2@github.com/$1/`pwd`.git; }
+echo "token <user> <token> -> set push token for repo."
+function leah() { su -c "source /root/leah.sh && \$*"; }
 ##### NOMADIC end #####
 END
 
@@ -407,50 +407,48 @@ sudo service tor restart
 
 echo -e "$X LOGO"
 
+cat << END > /etc/icon
+######  ####################
+#####    ###################
+#####    ########  +########
+######  #@  ####    ########
+#######   ; +###    ########
+######+   .  ####  ;@  #####
+######     + +####      ####
+######        ####      ####
+######      #####;    # ;###
+####:  +     ####       ####
+###   ##     ###  +    #####
+##  ####,    #.  ##:   ;####
+###; ###    ##  ###+   #####
+#### ##;    ### +##    #####
+##### #      ### ##    #####
+#####    :   ###.;.     ####
+######   ##  ####   #   ####
+######   ##,  ###: .##  ####
+######  ####  ###.  ##, ;###
+######   ###, +##   ###  ###
+#####: . :###  ##   ###: ###
+######  # ###: ## .# ###  ##
+END
+
 cat << END > /etc/logo
-############ NOMADIC #############
-#########  #######################
-########    ######################
-########    ########  +###########
-#########  #@  ####    ###########
-##########   ; +###    ###########
-#########+   .  ####  ;@  ########
-#########     + +####      #######
-#########        ####      #######
-#########      #####;    # ;######
-#######:  +     ####       #######
-######   ##     ###  +    ########
-#####  ####,    #.  ##:   ;#######
-######; ###    ##  ###+   ########
-####### ##;    ### +##    ########
-######## #      ### ##    ########
-########    :   ###.;.     #######
-#########   ##  ####   #   #######
-#########   ##,  ###: .##  #######
-#########  ####  ###.  ##, ;######
-#########   ###, +##   ###  ######
-########: . :###  ##   ###: ######
-#########  # ###: ## .# ###  #####
-##################################
-############## LINUX #############
+####### NOMADIC LINUX ######
 END
 
 echo -e "$X ISSUE"
 cat << END > /etc/issue
 `cat /etc/logo`
-$DISTRO_PRETTY_NAME 
-(`uname -a`)
+`uname -a`
 This image was born on: `date`
 No warranty.  No help. May the force be with you.
 END
 
 echo -e "$X MOTD"
 cat << END > /etc/motd
+`cat /etc/icon`
 `cat /etc/logo`
-$DISTRO_PRETTY_NAME
-(`uname -a`)
-This image was born on: `date`
-No warranty.  No help. May the force be with you. 
+No warranty.  No help. May the force be with you.
 END
 
 echo -e "$X DONE!"

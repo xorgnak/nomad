@@ -87,7 +87,6 @@ elif [[ "$1" == "init" ]]; then
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
 elif [[ "$1" == "arduino" ]]; then
-    
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
     rm -fR bin
@@ -102,7 +101,7 @@ directories:
   downloads: /home/pi/.arduino15/staging
   user: /home/pi/Arduino
 library:
-  enable_unsafe_install: false
+  enable_unsafe_install: true
 logging:
   file: ""
   format: text
@@ -123,8 +122,13 @@ EOF
     
     echo "### NOMAD arduino-cli begin ###" >> ~/.bashrc
     echo "function upload() { source config.sh; echo \"\$FQBN\"; arduino-cli compile --fqbn \$FQBN \`pwd\` && arduino-cli upload --port /dev/ttyUSB0 --fqbn \$FQBN \`pwd\`; }" >> ~/.bashrc
+    echo 'echo "upload -> upload sketch to device"' >> ~/.bashrc
     echo "alias monitor='cat /dev/ttyUSB0'" >> ~/.bashrc
-    echo "function arduino() { arduino-cli lib install \"$1\" }" >> ~/.bashrc
+    echo 'echo "monitor -> monitor serial traffic from device"' >> ~/.bashrc
+    echo "function arduino() { arduino-cli lib install \"$1\"; }" >> ~/.bashrc
+    echo 'echo "arduino <library> -> install arduino library"' >> ~/.bashrc
+    echo "function sketch() { arduino-cli sketch new \"\$1\" && echo 'export FQBN=\"\"' > \$1/config.sh && micro \$1/config.sh && micro \$1/\$1.ino; }" >> ~/.bashrc
+    echo 'echo "sketch <name> -> create new arduino sketch."' >> ~/.bashrc
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
 else
     if [[ "$BONNET" == 'true' ]]; then
