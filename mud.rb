@@ -1,4 +1,4 @@
-require 'ruby-mud'
+require 'ruby_mud'
 require 'redis-objects'
 require 'erb'
 
