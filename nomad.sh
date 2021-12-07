@@ -75,12 +75,14 @@ EOF
     rm -rf micro.tar.gz
     rm -rf "micro-${MICRO_VERSION}"
     sudo nano /etc/hostname
+    cd ~
     git clone https://github.com/revoxhere/duino-coin
     cd duino-coin
     python3 -m pip install -r requirements.txt
     python3 PC_Miner.py
+    
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh")| sudo crontab -
-    sudo reboot
+    echo "##### REBOOT!!! #####"
 elif [[ "$1" == "init" ]]; then
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
     sudo gem install $GEMS;
@@ -138,7 +140,7 @@ else
 	sudo ruby bonnet.rb &
     fi
     if [[ "$MINE" == 'true' ]]; then
-	(cd duino-coin && python3 PC_Miner.py &)
+	(cd ~/duino-coin && python3 PC_Miner.py &)
     fi
     if [[ "$MUSH" == 'true' ]]; then
 	ruby mud.rb &
