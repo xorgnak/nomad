@@ -2,6 +2,7 @@ require 'ruby-mud'
 require 'redis-objects'
 require 'erb'
 
+
 class Mud
   include Redis::Objects
   hash_key :attr
