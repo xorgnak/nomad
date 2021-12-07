@@ -173,8 +173,8 @@ echo -e "$X BASH"
 cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
 # installed at `date`
-echo "HOSTNAME: \`hostname\`"
-echo "SYSTEM: \`uname -a\`"
+echo "HOSTNAME: `hostname`"
+echo "SYSTEM: `uname -a`"
 source ~/.prompt
 alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
 function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
