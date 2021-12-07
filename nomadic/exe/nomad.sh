@@ -173,6 +173,7 @@ echo -e "$X BASH"
 if [[ $2 == '--live' ]]; then
 cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
+# installed at `date`
 cat /etc/logo
 hostname
 uname -a
@@ -185,6 +186,7 @@ END
 else
 cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
+# installed at `date`
 cat /etc/logo
 hostname
 uname -a
@@ -320,7 +322,7 @@ include /etc/nginx/sites-enabled/*;
 
 }
 END
-rm /etc/nginx/sites-enabled/*
+rm -f /etc/nginx/sites-enabled/*
 service nginx restart
 
 cat << END > /etc/tor/torrc
@@ -455,6 +457,15 @@ $DISTRO_PRETTY_NAME
 (`uname -a`)
 This image was born on: `date`
 No warranty.  No help. May the force be with you.
+END
+
+echo -e "$X MOTD"
+cat << END > /etc/motd
+`cat /etc/logo`
+$DISTRO_PRETTY_NAME
+(`uname -a`)
+This image was born on: `date`
+No warranty.  No help. May the force be with you. 
 END
 
 echo -e "$X DONE!"

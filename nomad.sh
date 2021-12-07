@@ -1,8 +1,7 @@
 #!/bin/bash
 
 DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud';
-
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker';
 
 mkdir -p run
 mkdir -p nginx
@@ -92,7 +91,7 @@ elif [[ "$1" == "arduino" ]]; then
     arduino-cli config init
     cat <<EOF > ~/.arduino15/arduino-cli.yaml
 board_manager:
-  additional_urls: ["https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"]
+  additional_urls: ["https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json", "https://github.com/Heltec-Aaron-Lee/WiFi_Kit_series/releases/download/0.0.5/package_heltec_esp32_index.json", "https://arduino.esp8266.com/stable/package_esp8266com_index.json"]
 daemon:
   port: "50051"
 directories:
@@ -117,22 +116,34 @@ updater:
 EOF
     arduino-cli core update-index
     arduino-cli core install esp32:esp32
+    arduino-cli core install esp8266:esp8266
+    
     echo "### NOMAD arduino-cli begin ###" >> ~/.bashrc
-    echo "function upload() { arduino-cli compile --fqbn esp32:esp32:esp32 `pwd` && arduino-cli upload --port /dev/ttyUSB0 --fqbn esp32:esp32:esp32 `pwd`; }" >> ~/.bashrc
+    echo "function upload() { source config.sh; echo \"\$FQBN\"; arduino-cli compile --fqbn \$FQBN \`pwd\` && arduino-cli upload --port /dev/ttyUSB0 --fqbn \$FQBN \`pwd\`; }" >> ~/.bashrc
     echo "alias monitor='cat /dev/ttyUSB0'" >> ~/.bashrc
     echo "function arduino() { arduino-cli lib install \"$1\" }" >> ~/.bashrc
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
 else
+    if [[ "$BONNET" == 'true' ]]; then
+	sudo ruby bonnet.rb &
+    fi
+    if [[ "$MINE" == 'true' ]]; then
+	(cd duino-coin && python3 PC_Miner.py &)
+    fi
+    if [[ "$MUSH" == 'true' ]]; then
+	ruby mud.rb &
+    fi
     for f in run/*.sh;
     do
 	./$f
     done
-    if [[ "$1" == 'pi' ]]; then
-	sudo ruby bonnet.rb &
-    fi
-    (cd duino-coin && python3 PC_Miner.py &)
-    ruby mud.rb &
     ruby nomad-coin.rb -i
+    cleanup() {
+        echo "EXIT"
+        exit 0
+    }
+    trap cleanup INT TERM
+
 fi
 
 
