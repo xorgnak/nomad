@@ -67,6 +67,7 @@ EOF
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
+
     MICRO_VERSION=$(curl -s "https://api.github.com/repos/zyedidia/micro/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
     cd ~
     curl -Lo micro.tar.gz "https://github.com/zyedidia/micro/releases/latest/download/micro-${MICRO_VERSION}-linux-arm.tar.gz"
@@ -75,6 +76,7 @@ EOF
     rm -rf micro.tar.gz
     rm -rf "micro-${MICRO_VERSION}"
     sudo nano /etc/hostname
+
     cd ~
     git clone https://github.com/revoxhere/duino-coin
     cd duino-coin
