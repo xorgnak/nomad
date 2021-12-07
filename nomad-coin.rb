@@ -867,6 +867,16 @@ class APP < Sinatra::Base
       end
     end
 
+    def banner
+      hostname = `hostname`.chomp
+      hh = hostname.split('-')
+      if OPTS[:domain] == 'localhost'
+        return hh.join("<br>")
+      else
+        return OPTS[:domain]
+      end
+    end
+    
     def id *i
       if i[0]
         return i[0]
@@ -1344,7 +1354,7 @@ begin
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     Process.detach( fork { APP.run! } )                                    
     Pry.config.prompt_name = :nomad
-    Pry.start(OPTS[:domain])
+    Pry.start(@host)
   else
     APP.run!
   end
