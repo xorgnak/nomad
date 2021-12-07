@@ -6,7 +6,7 @@ else
     DIR=$1
 fi
 
-X="NOMAD ->"
+X="NOMADIC ->"
 
 echo -e "$X SCREEN"
 cat << END > $DIR/.screenrc 
@@ -170,33 +170,18 @@ fi)'
 END
 
 echo -e "$X BASH"
-if [[ $2 == '--live' ]]; then
 cat << 'END' >> $DIR/.bashrc
 ##### NOMADIC begin #####
 # installed at `date`
-cat /etc/logo
-hostname
-uname -a
-source ~/.prompt
-alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
-function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
-function leah() { sudo su -c "source /root/leah.sh && $*"; }
-##### NOMADIC begin #####
-END
-else
-cat << 'END' >> $DIR/.bashrc
-##### NOMADIC begin #####
-# installed at `date`
-cat /etc/logo
-hostname
-uname -a
+echo "HOSTNAME: \`hostname\`"
+echo "SYSTEM: \`uname -a\`"
 source ~/.prompt
 alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git push"
 function token() { git remote set-url origin https://$1:$3@github.com/$1/$2.git; }
 function leah() { su -c "source /root/leah.sh && $*"; }
 ##### NOMADIC end #####
 END
-fi
+
 
 echo -e "$X PROFILE"
 cat << END >> /home/$USERNAME/.profile

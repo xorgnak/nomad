@@ -54,6 +54,9 @@ elif [[ "$1" == "install" ]]; then
 export DOMAIN_ROOT='$DOMAIN_ROOT'; 
 export PHONE_SID='$PHONE_SID';
 export PHONE_KEY='$PHONE_KEY';
+export BONNET='false';
+export MINE='false';
+export MUSH='false'
 #
 # end of network configuration.
 #
