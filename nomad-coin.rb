@@ -871,7 +871,7 @@ class APP < Sinatra::Base
       hostname = `hostname`.chomp
       hh = hostname.split('-')
       if OPTS[:domain] == 'localhost'
-        return hh.join("<br>")
+        return hh[0]
       else
         return OPTS[:domain]
       end
