@@ -133,14 +133,14 @@ EOF
     echo 'echo "sketch <name> -> create new arduino sketch."' >> ~/.bashrc
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
 else
-    source ../nomad.conf
+    source /home/pi/nomad.conf
     echo "MINE: $MINE"
     echo "MUSH: $MUSH"
     if [[ "$BONNET" == 'true' ]]; then
 	sudo ruby bonnet.rb &
     fi
     if [[ "$MINE" == 'true' ]]; then
-	(cd ../duino-coin && python3 PC_Miner.py &)
+	(cd /home/pi/duino-coin && python3 PC_Miner.py &)
     fi
     if [[ "$MUSH" == 'true' ]]; then
 	ruby mud.rb &
