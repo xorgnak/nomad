@@ -140,7 +140,7 @@ else
 	sudo ruby bonnet.rb &
     fi
     if [[ "$MINE" == 'true' ]]; then
-	(cd ~/duino-coin && python3 PC_Miner.py &)
+	(cd ../duino-coin && python3 PC_Miner.py &)
     fi
     if [[ "$MUSH" == 'true' ]]; then
 	ruby mud.rb &
