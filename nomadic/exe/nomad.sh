@@ -256,6 +256,11 @@ echo -e "############################\n# Dont do anything stupid. #\n###########
 END
 chmod +x /usr/bin/leah
 
+CAMS="";
+for c in `redis-cli hkeys CAMS`
+do
+    CAMS+="location /$c { proxy_pass http://`redis-cli hget CAMS $c`; }\n"
+done
 cat << END > /etc/nginx/nginx.conf
 user www-data;
 worker_processes auto;
@@ -267,6 +272,7 @@ events {
 }
 
 http {
+        server_names_hash_bucket_size 128;
         sendfile on;
         tcp_nopush on;
         tcp_nodelay on;
@@ -287,7 +293,13 @@ server {
 server {
 listen 80;
 listen [::]:80;
-server_name localhost `hostname`.local;
+listen unix:/var/run/nginx.sock;
+server_name localhost `hostname`.local `sudo cat /var/lib/tor/nomad/hostname`;
+
+### devices
+`echo -e $CAMS`
+###
+
 location / {
     proxy_pass_header  Set-Cookie;
     proxy_set_header   Host               \$host;
@@ -313,7 +325,7 @@ service nginx restart
 cat << END > /etc/tor/torrc
 #nomad
 HiddenServiceDir /var/lib/tor/nomad/
-HiddenServicePort 80 127.0.0.1:4567
+HiddenServicePort 80 unix:/var/run/nginx.sock
 HiddenServicePort 6667 127.0.0.1:6667
 HiddenServicePort 4321 127.0.0.1:4321
 END

@@ -1,7 +1,11 @@
 #!/bin/bash
 
 DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom';
+
+if [[ "$1" == 'boot' ]]; then
+    rm -f nomad.lock
+fi
 
 mkdir -p run
 mkdir -p nginx
@@ -83,7 +87,7 @@ EOF
     python3 -m pip install -r requirements.txt
     python3 PC_Miner.py
     
-    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh")| sudo crontab -
+    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot")| sudo crontab -
     echo "##### REBOOT!!! #####"
 elif [[ "$1" == "init" ]]; then
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
@@ -136,28 +140,30 @@ EOF
     echo "### NOMAD arduino-cli end ###" >> ~/.bashrc
 else
     source /home/pi/nomad.conf
-    echo "MINE: $MINE"
-    echo "MUSH: $MUSH"
-    if [[ "$BONNET" == 'true' ]]; then
-	sudo ruby bonnet.rb &
+    if [[ -f nomad.lock ]]; then
+	ruby nomad-coin.rb -I
+    else
+	if [[ "$BONNET" == 'true' ]]; then
+	    sudo ruby bonnet.rb &
+	fi
+	if [[ "$MINE" == 'true' ]]; then
+	    (cd /home/pi/duino-coin && python3 PC_Miner.py &)
+	fi
+	if [[ "$MUSH" == 'true' ]]; then
+	    ruby mud.rb &
+	fi
+	for f in run/*.sh;
+	do
+	    ./$f
+	done
+	touch nomad.lock
+	ruby nomad-coin.rb -i
     fi
-    if [[ "$MINE" == 'true' ]]; then
-	(cd /home/pi/duino-coin && python3 PC_Miner.py &)
-    fi
-    if [[ "$MUSH" == 'true' ]]; then
-	ruby mud.rb &
-    fi
-    for f in run/*.sh;
-    do
-	./$f
-    done
-    ruby nomad-coin.rb -i
     cleanup() {
+	rm nomad.lock
         echo "EXIT"
         exit 0
     }
     trap cleanup INT TERM
 
 fi
-
-

@@ -192,6 +192,11 @@ require 'redcarpet'
 require 'cerebrum'
 require 'cryptology'
 
+require 'digest/md5'
+require 'securerandom'
+require 'browser'
+
+
 CRON = Rufus::Scheduler.new
 VOTES = Redis::Set.new("VOTES")
 ZONES = Redis::Set.new("ZONES")
@@ -210,6 +215,7 @@ CODE = Redis::HashKey.new('CODE')
 TREE = Redis::HashKey.new('TREE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
+CAMS = Redis::HashKey.new("CAMS")
 
 BRAIN = Cerebrum.new
 
@@ -233,6 +239,98 @@ module Cypher
     return plain
   end
 end
+
+class Blockchain
+  attr_accessor :chain, :current_transactions
+  def initialize pfx
+    @wallet = Redis::SortedSet.new('WALLET:' + pfx)
+    @action = Redis::SortedSet.new('ACTION:' + pfx)
+    @finger = Redis::SortedSet.new('FINGER:' + pfx)
+    @chain = Redis::List.new('CHAIN:' + pfx, marshal: true)
+    @a = Redis::HashKey.new('A:' + pfx)
+    @l = Redis::HashKey.new('L:' + pfx)
+    @current_transactions = []
+    new_block(1, 100)
+  end
+  
+  # Creates a new Block and adds it to the chain
+  def new_block(proof, previous_hash = nil)
+    active = {}
+    #    @current_transactions.each {|e| if e[:recipient] != '0'; active[e[:recipient]] = wallet(e[:recipient]); end; }
+    @wallet.members(with_scores: true).to_h.each_pair { |k,v| if k != '0'; active[@a[k]] = v; end }
+    block = {
+      index: @chain.length + 1,
+      epoch: Time.now.utc.to_f,
+      transactions:  @current_transactions,
+      cost:          @current_transactions.length - 1,
+      proof:         proof,
+      previous_hash: previous_hash || Blockchain.hash(chain.last)
+    }
+    @current_transactions = []; @chain << block; block
+  end
+  
+  # Adds a new transaction to the list of transactions
+  def new_transaction(sender, recipient, amount, fing, act)
+    @action.incr(recipient + ":" + act)
+    @finger.incr(recipient + "#" + fing.join(':'))
+    @wallet.incr(recipient, amount)
+    @wallet.decr(sender, amount)
+    h = {
+      epoch: Time.now.utc.to_f,
+      sender: sender,
+      recipient: recipient,
+      amount: amount,
+      fingerprint: fing,
+      act: act
+    }
+    @current_transactions << h
+    last_block[:index] + 1
+    return h
+  end
+
+  def wallet k
+    @wallet[k]
+  end
+  def wallets
+    h = {}
+    @wallet.members(with_scores: true).to_h.each_pair {|k,v| if k == '0'; h[:balance] = v; else; h[@a[k]] = v; end }
+    return h
+  end
+  def acts
+    h = Hash.new {|h,k| h[k] = {} }
+    @action.members(with_scores: true).to_h.each_pair {|k,v| kk = k.split(':'); h[@a[kk[0]]][kk[1]] = v; }
+    return h
+  end
+  def fingers
+    @finger.members(with_scores: true).to_h
+  end
+  
+  def proof_of_work(last_proof); proof = 0; while !valid_proof?(last_proof, proof); proof += 1; end; proof; end
+  def last_block; @chain.values.last; end
+  def hash(block); Digest::MD5.hexdigest(block.sort.to_h.to_json.encode); end
+  def uuid; SecureRandom.uuid.gsub("-", ""); end
+
+  def [] a
+    if !@l.has_key? a
+      u = uuid
+      @a[u] = a
+      @l[a] = u
+    end
+    return @l[a]
+  end
+
+  private
+
+  # Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
+  def valid_proof?(last_proof, proof)
+    Digest::MD5.hexdigest("#{last_proof}#{proof}".encode)[0..3] == "0000"
+  end
+end
+
+
+
+
+
 
 class Broker
   
@@ -709,6 +807,7 @@ end
 @man.int '-p', '--port', "the port we're running on", default: 4567
 @man.float '-f', '--frequency', "the radio frequency we're operating on.", default: 462.700
 @man.bool '-i', '--interactive', 'run interactively', default: false
+@man.bool '-I', '--indirect', 'run indirectly', default: false
 
 @man.on '--help' do
   puts "[HELP][#{Time.now.utc.to_f}]"
@@ -876,6 +975,10 @@ class APP < Sinatra::Base
         return OPTS[:domain]
       end
     end
+
+    def blockchain
+      Blockchain.new(OPTS[:domain])
+    end
     
     def id *i
       if i[0]
@@ -923,6 +1026,55 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
+
+
+get '/m' do
+  last_block = blockchain.last_block
+  last_proof = last_block[:proof]
+  proof = blockchain.proof_of_work(last_proof)
+  tx = blockchain.new_transaction('0', '0', 0, ['miner'], 'mine')
+  previous_hash = blockchain.hash(last_block)
+  block = blockchain.new_block(proof, previous_hash)
+  #response = { message: "New Block Forged", tx: tx, block: block }
+  status 200
+  block.to_json
+end
+
+# generate transacton to hash("campaign:rep:element") from "client"`
+get '/x/:t/:a' do
+  if params[:t] != ''
+    browser = Browser.new(request.user_agent)
+    b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
+    tx = blockchain.new_transaction('0', params[:t], 1, browser.meta, params[:a])
+    #response = { message: "New Transaction Recorded", tx: tx }
+    status 200
+    tx.to_json
+  end
+end
+
+get '/tx' do
+  @browser = Browser.new(request.user_agent)
+  @blockchain = blockchain
+  erb :tx
+end
+
+get '/dx' do
+  last_block = blockchain.last_block
+  last_proof = last_block[:proof]
+  proof = blockchain.proof_of_work(last_proof)
+  tx = blockchain.new_transaction('0', '0', 0, ['miner'], 'report')
+  previous_hash = blockchain.hash(last_block)
+  block = blockchain.new_block(proof, previous_hash)
+  status 200
+  {
+    ledger: blockchain.wallets,
+    action: blockchain.acts,
+    blocks: blockchain.chain.values
+  }.to_json
+end
+
+
+
   get('/ws') {
     request.websocket do |ws|
       ws.onopen do
@@ -1338,10 +1490,18 @@ class APP < Sinatra::Base
   end
 end
 
-
-
 b = OPTS[:port].to_s[3].to_i
 DB[OPTS[:domain]] = b
+
+def cam n, u
+  CAMS[n] = u
+end
+
+def update!
+  `sudo ./nomadic/exe/nomad.sh && rm -f nomad.lock && sudo reboot`
+end
+
+
 
 def db d 
   Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d].to_i )
@@ -1349,12 +1509,21 @@ end
 
 db b
 
+
+
+
 begin
+  host = `hostname`.chomp
   if OPTS[:interactive]
-    Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
+    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     Process.detach( fork { APP.run! } )                                    
     Pry.config.prompt_name = :nomad
-    Pry.start(@host)
+    Pry.start(host)
+  elsif OPTS[:indirect]
+    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
+    puts "##### running indirectly... #####"
+    Pry.config.prompt_name = :nomad
+    Pry.start(host)
   else
     APP.run!
   end
