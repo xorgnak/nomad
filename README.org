@@ -1,38 +1,29 @@
 
-The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible.  The tools, along with accompanying configurations and documentation are installed to the directory specified, or the directory above.  The '--live' flag may be passed to install the leah tool with the appropriate prefix to run in a live environment.
+The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible. 
 
-* Tools
-
-- Ruby: A functional, object-oriented, interpreted language.
-- Emacs: A feature rich text editor.
-- Redis: A lightweight key/value datastore.
-
-* Installation
-
-** Personal
-This installs the nomadic tools on your local system and for your local user.
+** Quick Installation
+1. install git if necessary.
+2. clone repository.
+3. install system packages.
+4. install nomad scripts.
 #+BEGIN_SRC 
 cd ~/
-apt-get install git
-git clone https://github.com/xorgnak/nomad
-cd nomad
-su -c "export USERNAME=$USER; ./setup.sh"
+sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh init && ./nomad.sh install"
 #+END_SRC
 
-** Server
-This installs the nomadic tools system-wide.
-#+BEGIN_SRC 
-apt-get install git
-git clone https://github.com/xorgnak/nomad
-cd nomad
-su -c "export USERNAME='root'; ./setup.sh /etc/skel"
+** Domain Configuration
+1. generate configuration for domain.
+2. re-install nomad scripts.
+#+BEGIN_SRC
+cd ~/nomad && ./nomad.sh config && ./nomad install
 #+END_SRC
 
-** Live
-This installs the nomadic tools within a live environment.
-#+BEGIN_SRC 
-apt-get install git
-git clone https://github.com/xorgnak/nomad
-cd nomad
-su -c "export USERNAME='root'; ./setup.sh /etc/skel --live"
+** Interactive Client
+- interact with users, zones, the bank, the brain, and the iot network.
+- communicate on the irc, mush, and nomadic networks.
+- generate, interact, and track zone campaigns for domains, zones, and users.
+#+BEGIN_SRC
+cd ~/nomad && ./nomad.sh
 #+END_SRC
+
+** that's it.
