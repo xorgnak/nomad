@@ -7,8 +7,7 @@ The nomadic tool kit consists of a standard core of packages designed to get dev
 3. install system packages.
 4. install nomad scripts.
 #+BEGIN_SRC 
-cd ~/
-sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh init && ./nomad.sh install"
+cd ~/ && sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh init && ./nomad.sh install"
 #+END_SRC
 
 ** Domain Configuration
