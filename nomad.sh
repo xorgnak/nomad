@@ -154,6 +154,9 @@ else
 	if [[ "$MUSH" == 'true' ]]; then
 	    ruby mud.rb &
 	fi
+	if [[ "$DEVS" == 'true' ]]; then
+	    ruby proxy_sub.rb &
+	fi
 	for f in run/*.sh;
 	do
 	    ./$f
