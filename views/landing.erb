@@ -21,8 +21,8 @@ form { }
 <button>save</button>
 <% else %>
 <% if Redis.new.get('ONION') != nil %>
-<div id='qrcode'></div>
-<script>$('#qrcode').qrcode('<%= Redis.new.get('ONION') %>');</script>
+<div id='qrcode' style='background-color: white; padding: 2%;'></div>
+<script>$('#qrcode').qrcode('<%= Redis.new.get('ONION') + "/term?u=anonymous" %>');</script>
 <input value='<%= Redis.new.get('ONION') %>/term?u=anonymous' disabled>
 <% end %>
 <%= erb LANDING[OPTS[:domain]] || '' %>

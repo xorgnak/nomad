@@ -191,7 +191,7 @@ require 'twilio-ruby'
 require 'redcarpet'
 require 'cerebrum'
 require 'cryptology'
-
+require 'sentimental'
 require 'digest/md5'
 require 'securerandom'
 require 'browser'
@@ -218,6 +218,15 @@ ADVENTURES = Redis::Set.new("ADVENTURES")
 CAMS = Redis::HashKey.new("CAMS")
 
 BRAIN = Cerebrum.new
+
+SENTIMENT = Sentimental.new
+SENTIMENT.load_defaults
+SENTIMENT.threshold = 0.1
+
+def sentiment s
+{ sentment:  SENTIMENT.sentiment(s), score: SENTIMENT.score(s) }  
+end
+
 
 def phone_tree phone, h={}
   if h.keys.length > 0
@@ -1520,7 +1529,7 @@ begin
     Pry.config.prompt_name = :nomad
     Pry.start(host)
   elsif OPTS[:indirect]
-    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
+    Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     puts "##### running indirectly... #####"
     Pry.config.prompt_name = :nomad
     Pry.start(host)

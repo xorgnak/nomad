@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental';
 
 if [[ "$1" == 'boot' ]]; then
     rm -f nomad.lock
@@ -89,6 +89,8 @@ EOF
     
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot")| sudo crontab -
     echo "##### REBOOT!!! #####"
+elif [[ "$1" == "update" ]]; then
+    sudo ./nomadic/exe/nomad.sh
 elif [[ "$1" == "init" ]]; then
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
     sudo gem install $GEMS;
