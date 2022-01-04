@@ -206,12 +206,13 @@ padding: 3%;
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
+    $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=<%= QRO[params[:u]] %>');
+    log('<span class="material-icons">directions_walking</span> <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
     log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>');
     log('<span class="material-icons">info</span> Add to homescreen to install.');
 <%= erb :scan %>
 <%= erb :sha %>
-<%= erb :coin %>
+<%# erb :coin %>
 <%= erb :mqtt %>
 <%# erb :websocket %>
 </script>
