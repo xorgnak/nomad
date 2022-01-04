@@ -19,7 +19,7 @@ function tick() {
 	canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
 	var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
 	var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-	var dom = /<%= @path %>/g;
+	var dom = /<%= @path.gsub('://', ':\/\/') %>/g;
 	if (code) {
 	    if (dom.test(code.data)) {
 		var h = {};
