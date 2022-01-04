@@ -216,6 +216,9 @@ TREE = Redis::HashKey.new('TREE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
 CAMS = Redis::HashKey.new("CAMS")
+QRI = Redis::HashKey.new("QRI")
+QRO = Redis::HashKey.new("QRO")
+
 
 BRAIN = Cerebrum.new
 
@@ -795,6 +798,7 @@ class U
   counter :coins
   list :log
   value :pin, expireat: 180
+  value :password
   def initialize i
     @id = i
   end
@@ -848,7 +852,7 @@ end
 
 class K
   HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
-  TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 75%; }],
+  TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 65%; }],
           %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
           %[ #ui > * { vertical-align: middle; }],
           %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
@@ -876,7 +880,11 @@ class K
       elsif /^total/.match(e)
         b = %[]
       else
-        b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
+        if /.html/.match(e)
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
+        else
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>post_add</button>]
+        end
       end
       o << %[<p>#{b} #{e}</p>]
     }
@@ -885,6 +893,9 @@ class K
   def cd *d
     self.dir.value = %[#{home}#{d[0]}]
     Dir.mkdir(self.dir.value)
+    if !File.exist?("#{self.dir.value}/index.html")
+      File.open("#{self.dir.value}/index.html", "w") { |f| f.write("<h1>Hello, World!</h1>"); }
+    end
   end
   def pwd
     if self.dir.value == nil
@@ -902,7 +913,9 @@ class K
     self.content.clear
     markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, filter_html: true)
     Dir["#{home}/*"].each {|f|
-      self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+      if !/.html/.match(f)
+        self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+      end
     }
     return nil
   end
@@ -917,7 +930,7 @@ class K
       if File.exist? f
         ff = File.read(f)
       else
-        ff = %[# created at #{Time.now.utc}]
+        ff = %[### New note\n[created]: #{Time.now.utc}]
       end
       o << [%[<input type='hidden' name='editor[file]' value='#{f}'>],
               %[<textarea name='editor[content]' style='width: 100%; height: 80%;'>#{ff}</textarea>]].join('')
@@ -1318,9 +1331,12 @@ end
       redirect "https://#{OPTS[:domain]}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
+      qrp = []; 16.times { cha << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
       if !IDS.has_key? params[:usr]
         IDS[params[:usr]] = params[:u]
+        QRI[qrp.join('')] = params[:u]
+        QRO[params[:u]] = qrp.join('')
       else
         params[:u] = IDS[params[:usr]]
       end
@@ -1482,6 +1498,20 @@ end
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
+      end
+
+      if params.has_key? :login
+        
+        if !IDS.has_key? params[:login][:username]
+          IDS[params[:login][:username]] = @id
+          @by.password.value = params[:login][:password]
+        end
+
+        @by = U.new(IDS[params[:login][:username]])
+       
+        if @by.password.value == params[:login][:password]
+          token(@by.id, ttl: (((60 * 60) * 24) * 7))
+        end
       end
       
       if params.has_key? :landing
