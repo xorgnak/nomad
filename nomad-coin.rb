@@ -1353,12 +1353,12 @@ end
       if params.has_key? :ts
         @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
       elsif params.has_key? :target
-        @user = U.new(QRI[params[:target]])
+        @user = U.new(IDS[QRI[params[:target]]])
       else
         @user = U.new(@id);
       end
       
-      Redis.new.publish 'POST', "#{@user.id}"
+      Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
