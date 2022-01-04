@@ -1491,7 +1491,7 @@ end
             #            end
           end
         end
-        @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type]]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type]]}]
+        @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
 
       if params.has_key?(:message) && params[:message] != ''
