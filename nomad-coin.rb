@@ -1331,7 +1331,7 @@ end
       redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
-      qrp = []; 16.times { cha << rand(16).to_s(16) }
+      qrp = []; 16.times { qrp << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
       if !IDS.has_key? params[:usr]
         IDS[params[:usr]] = params[:u]
@@ -1504,6 +1504,9 @@ end
         
         if !IDS.has_key? params[:login][:username]
           IDS[params[:login][:username]] = @id
+          qrp = []; 16.times { qrp << rand(16).to_s(16) }
+          QRI[qrp.join('')] = params[:login][:username]
+          QRO[params[:login][:username]] = qrp.join('')
           @by.password.value = params[:login][:password]
         end
 
