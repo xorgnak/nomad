@@ -1353,7 +1353,7 @@ end
       if params.has_key? :ts
         @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
       elsif params.has_key? :target
-        @user = U.new(params[:target])
+        @user = U.new(QRI[params[:target]])
       else
         @user = U.new(@id);
       end
