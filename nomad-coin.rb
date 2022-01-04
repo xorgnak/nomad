@@ -82,7 +82,6 @@ BADGES = {
   building: 'carpenter',
   fixing: 'construction',
   emergency: 'fire_extinguisher',
-
   bug: 'pest_control',
   network: 'router',
   comms: 'leak_add'
