@@ -4,14 +4,14 @@
     "display": "fullscreen",
     "scope": "/",
     <% if params.has_key?(:x) %>
-    "start_url": "https://<%= OPTS[:domain] %>/?x=<params[:x]>&u=<%= params[:u] %>",
-    "short_name": "<%= U.new(params[:u]).attr[:name].upcase %>",
+    "start_url": "<%= @path %>/?x=<params[:x]>&u=<%= params[:u] %>",
+    "short_name": "NOMAD",
     <% else %>
-    "start_url": "https://<%= OPTS[:domain] %>/<%= params[:u] %>",
-    "short_name": "<%= OPTS[:domain].gsub('.com', '') %>",
+    "start_url": "<%= @path %>/<%= params[:u] %>",
+    "short_name": "NOMAD",
     <% end %>
-    "name": "<%= OPTS[:domain] %>",
-    "description": "the nomad user interface for <%= OPTS[:domain] %>.",
+    "name": "NOMAD",
+    "description": "the nomad user interface.",
     "icons": [
 	{
 	    "src": "\/android-icon-36x36.png",
