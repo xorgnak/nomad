@@ -1033,7 +1033,7 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before { @path = %[#{request.scheme}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}") }
+  before { if request.host == 'localhost'; s = 'http'; else; s = 'https'; end; @path = %[#{s}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}") }
   
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
