@@ -1504,6 +1504,8 @@ end
         
         if !IDS.has_key? params[:login][:username]
           IDS[params[:login][:username]] = @id
+          BOOK[params[:login][:username]] = @id
+          LOOK[@id] = params[:login][:username]
           qrp = []; 16.times { qrp << rand(16).to_s(16) }
           QRI[qrp.join('')] = params[:login][:username]
           QRO[params[:login][:username]] = qrp.join('')
