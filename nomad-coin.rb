@@ -1282,7 +1282,7 @@ end
       phone.send_sms(to: params['From'], body: b)
     end
   }
-  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
+  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(IDS[QRI[@id]]); pool << IDS[QRI[@id]]; erb :goto; else erb :landing; end }
   get('/:u') {
     if token(params[:u]) == 'true';
       @id = id(params[:u]);
