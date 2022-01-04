@@ -1033,7 +1033,7 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before { @term = K.new(params[:u]) }
+  before { @path = %[#{request.scheme}://#{request.host}]; @term = K.new(params[:u]) }
   
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
@@ -1190,7 +1190,7 @@ end
             end
             response.say(message: o)
           end
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif params['Digits'] == '0*'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
@@ -1200,7 +1200,7 @@ end
           o << %[you are in #{@u.zones.members.length} zones.]
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif m = /^0\*(\d)\*(.+)\*(.+)/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
           Redis.new.publish("MAGIC", "#{m}")
           if m[3].length > 0
@@ -1245,7 +1245,7 @@ end
           phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB](#{params['Digits']}) #{JOBS[params['Digits']]}")
           response.dial(record: true, number: JOBS[params['Digits']])
           JOBS.delete(params['Digits'])
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif ZONES.include? params['Digits']
           j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
           Zone.new(params['Digits']).pool.members.each {|e|
@@ -1256,7 +1256,7 @@ end
           response.hangup()
         else            
           response.say(message: "please try again.")
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         end
       end
     end.to_s
@@ -1291,7 +1291,7 @@ end
       pool << @id;
       erb :index
     else
-      redirect "https://#{OPTS[:domain]}/?w=#{params[:u]}"
+      redirect "#{@path}/?w=#{params[:u]}"
     end
   }
   post('/') do
@@ -1328,7 +1328,7 @@ end
       @id = id(params[:u]);
       params.delete(:cha)
       params.delete(:pin)
-      redirect "https://#{OPTS[:domain]}/#{params[:u]}"
+      redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       qrp = []; 16.times { cha << rand(16).to_s(16) }
@@ -1515,15 +1515,15 @@ end
       end
       
       if params.has_key? :landing
-        redirect "https://#{OPTS[:domain]}/"
+        redirect "#{@path}"
       elsif params.has_key? :cmd
-        redirect "/term?u=#{params[:u]}"
+        redirect "#{@path}/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
+        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
       elsif params.has_key? :a
-        redirect "https://#{OPTS[:domain]}/adventure?u=#{params[:u]}&a=#{params[:a]}"
+        redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
-        redirect "https://#{OPTS[:domain]}/#{@by.id}"
+        redirect "#{@path}/#{@by.id}"
       end
     end
   end

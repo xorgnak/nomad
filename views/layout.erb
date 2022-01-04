@@ -9,9 +9,9 @@ body { margin: 0; padding: 0; }
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <% if params.has_key?(:u) %>
 <% if params.has_key?(:x) %>
-<link rel="manifest" href="https://<%= OPTS[:domain] %>/manifest.webmanifest?u=<%= params[:u] %>&x=<%= params[:x] %>" crossorigin="use-credentials" />
+<link rel="manifest" href="<%= @path %>/manifest.webmanifest?u=<%= params[:u] %>&x=<%= params[:x] %>" crossorigin="use-credentials" />
 <% else %>
-<link rel="manifest" href="https://<%= OPTS[:domain] %>/manifest.webmanifest?u=<%= params[:u] %>" crossorigin="use-credentials" />
+<link rel="manifest" href="<%= @path %>/manifest.webmanifest?u=<%= params[:u] %>" crossorigin="use-credentials" />
 <% end %>
 <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
 <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
@@ -39,7 +39,7 @@ body { margin: 0; padding: 0; }
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 
-<title id='banner'><%= OPTS[:domain] %></title>
+<title id='banner'><%= @path %></title>
 <form action='/' method='POST' enctype="multipart/form-data">
 <input type='hidden' id='u' name='u' value='<%= params[:u] || @id %>'>
 <% if params.has_key?(:x) %>

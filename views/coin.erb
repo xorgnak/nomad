@@ -24,7 +24,7 @@ peer.on('open', function (id) {
     }
 //    log("<span class='material-icons'>info</span> " + peer.id);
     state.id = peer.id;
-    $('#qrcode').qrcode('https://<%= OPTS[:domain] %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
+    $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
 });
 
 peer.on('connection', function (c) {
