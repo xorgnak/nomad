@@ -14,15 +14,14 @@ mkdir -p run
 mkdir -p nginx
 mkdir -p home
 
-if [[ "$1" == "-h" || "$1" == "-u" ]]; then
-    echo "usage: $0 [install [gui]|create|config|dev]"
+if [[ "$1" == "-h" || "$1" == "-u" || "$1" == "--help" || "$1" == "help" ]]; then
+    echo "usage: $0 [install [gui]|create|update|config|dev]"
     echo "install: normalize system, install packages, and install gems."
     echo "install gui: install system with graphical tools."
     echo "create: create a nomad instance."
+    echo "update: update the nomad instace."
     echo "config: add a domain configuration to the nomad instance."
-    echo "dev: install hardware device platform."
-    
-    
+    echo "dev: install hardware device platform."    
 elif [[ "$1" == "config" ]]; then
     rm run.sh
     mkdir -p public/$DOMAIN
@@ -67,12 +66,25 @@ elif [[ "$1" == "create" ]]; then
 #
 # network wide configuration.
 #
+# set to the ssl certificate root for the system.
+# this will be generated with letsencrypt.
 export DOMAIN_ROOT='$DOMAIN_ROOT'; 
+
+# the twilio api sid and key used for sms authentication, etc.
 export PHONE_SID='$PHONE_SID';
 export PHONE_KEY='$PHONE_KEY';
-export BONNET='false';
-export MINE='false';
-export MUSH='false'
+
+# uncomment to enable pi-bonnet interface.
+#export BONNET='true';
+
+# uncomment to enable duino-coin miner.
+#export MINE='true';
+
+# uncomment to enable mush.
+#export MUSH='true';
+
+# uncomment to auto proxy devices.
+#export DEVS='true';
 #
 # end of network configuration.
 #
@@ -85,18 +97,9 @@ EOF
     sudo chown $USERNAME:$USERNAME ~/.*
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
 
-    if [[ "$MINE" == 'true' ]]; then
-	MICRO_VERSION=$(curl -s "https://api.github.com/repos/zyedidia/micro/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
-	cd ~
-	curl -Lo micro.tar.gz "https://github.com/zyedidia/micro/releases/latest/download/micro-${MICRO_VERSION}-linux-arm.tar.gz"
-	tar xf micro.tar.gz
-	sudo mv "micro-${MICRO_VERSION}/micro" /usr/local/bin
-	rm -rf micro.tar.gz
-	rm -rf "micro-${MICRO_VERSION}"
-	sudo nano /etc/hostname
-    fi
+    sudo editor /etc/hostname
 
-    if [[ "$MINE" == 'true' ]]; then
+    if [[ "$2" == 'mine' ]]; then
 	cd ~
 	git clone https://github.com/revoxhere/duino-coin
 	cd duino-coin
@@ -111,16 +114,20 @@ elif [[ "$1" == "install" ]]; then
     echo "##### normalizing..."
     su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
     echo "##### normal."
-    echo "##### installing core..."
-    sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
-    echo "##### adding ham..."
-    sudp apt install -y $DEBS_HAM;
-    echo "##### adding fun..."
-    sudo apt install -y $DEBS_FUN;
+    debs="$DEBS $DEBS_HAM $DEBS_FUN ";
     if [[ "$2" == "gui" ]]; then
-	echo "##### installing gui..."
-	sudo apt install -y $DEBS_GUI;
+	$debs += $DEBS_GUI;
     fi
+    echo "##### installing debs..."
+    sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
+#    echo "##### adding ham..."
+#    sudo apt install -y $DEBS_HAM;
+#    echo "##### adding fun..."
+#    sudo apt install -y $DEBS_FUN;
+#    if [[ "$2" == "gui" ]]; then
+#	echo "##### installing gui..."
+#	sudo apt install -y $DEBS_GUI;
+#    fi
     echo "##### installing gems..."
     sudo gem install $GEMS;
     echo "##### DONE! reboot now."
