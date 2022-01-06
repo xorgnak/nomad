@@ -1,7 +1,10 @@
 #!/bin/bash
 
-DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk mednafen';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt';
+DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk mumble-server';
+DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools'
+DEBS_FUN='games-console tintin++ slashem';
+DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler';
 
 if [[ "$1" == 'boot' ]]; then
     rm -f nomad.lock
@@ -11,7 +14,16 @@ mkdir -p run
 mkdir -p nginx
 mkdir -p home
 
-if [[ "$1" == "config" ]]; then
+if [[ "$1" == "-h" || "$1" == "-u" ]]; then
+    echo "usage: $0 [install [gui]|create|config|dev]"
+    echo "install: normalize system, install packages, and install gems."
+    echo "install gui: install system with graphical tools."
+    echo "create: create a nomad instance."
+    echo "config: add a domain configuration to the nomad instance."
+    echo "dev: install hardware device platform."
+    
+    
+elif [[ "$1" == "config" ]]; then
     rm run.sh
     mkdir -p public/$DOMAIN
     cat ~/nomad.conf > run/$DOMAIN.sh
@@ -27,7 +39,7 @@ export ADMIN='$ADMIN';
 export FREQUENCY='$FREQUENCY';
 ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY -s \$PHONE_SID -k \$PHONE_KEY &
 EOF
-emacs run/$DOMAIN.sh;
+editor run/$DOMAIN.sh;
 chmod +x run/$DOMAIN.sh;
 sudo cat <<EOF > nginx/$DOMAIN.conf
 server {
@@ -47,7 +59,7 @@ EOF
 #sudo cp nginx/* /etc/nginx/sites-enabled/
 #sudo service nginx restart
 
-elif [[ "$1" == "install" ]]; then
+elif [[ "$1" == "create" ]]; then
     if [[ ! -f ~/nomad.conf ]]; then
     cat <<EOF > ~/nomad.conf
 #
@@ -66,37 +78,55 @@ export MUSH='false'
 #
 EOF
     
-    nano ~/nomad.conf
+    editor ~/nomad.conf
     fi
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
+    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
 
-    MICRO_VERSION=$(curl -s "https://api.github.com/repos/zyedidia/micro/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
-    cd ~
-    curl -Lo micro.tar.gz "https://github.com/zyedidia/micro/releases/latest/download/micro-${MICRO_VERSION}-linux-arm.tar.gz"
-    tar xf micro.tar.gz
-    sudo mv "micro-${MICRO_VERSION}/micro" /usr/local/bin
-    rm -rf micro.tar.gz
-    rm -rf "micro-${MICRO_VERSION}"
-    sudo nano /etc/hostname
+    if [[ "$MINE" == 'true' ]]; then
+	MICRO_VERSION=$(curl -s "https://api.github.com/repos/zyedidia/micro/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
+	cd ~
+	curl -Lo micro.tar.gz "https://github.com/zyedidia/micro/releases/latest/download/micro-${MICRO_VERSION}-linux-arm.tar.gz"
+	tar xf micro.tar.gz
+	sudo mv "micro-${MICRO_VERSION}/micro" /usr/local/bin
+	rm -rf micro.tar.gz
+	rm -rf "micro-${MICRO_VERSION}"
+	sudo nano /etc/hostname
+    fi
 
-    cd ~
-    git clone https://github.com/revoxhere/duino-coin
-    cd duino-coin
-    python3 -m pip install -r requirements.txt
-    python3 PC_Miner.py
-    
-    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot")| sudo crontab -
+    if [[ "$MINE" == 'true' ]]; then
+	cd ~
+	git clone https://github.com/revoxhere/duino-coin
+	cd duino-coin
+	python3 -m pip install -r requirements.txt
+	python3 PC_Miner.py
+    fi
+ 
     echo "##### REBOOT!!! #####"
 elif [[ "$1" == "update" ]]; then
     sudo ./nomadic/exe/nomad.sh
-elif [[ "$1" == "init" ]]; then
+elif [[ "$1" == "install" ]]; then
+    echo "##### normalizing..."
+    su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
+    echo "##### normal."
+    echo "##### installing core..."
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $DEBS;
+    echo "##### adding ham..."
+    sudp apt install -y $DEBS_HAM;
+    echo "##### adding fun..."
+    sudo apt install -y $DEBS_FUN;
+    if [[ "$2" == "gui" ]]; then
+	echo "##### installing gui..."
+	sudo apt install -y $DEBS_GUI;
+    fi
+    echo "##### installing gems..."
     sudo gem install $GEMS;
+    echo "##### DONE! reboot now."
 elif [[ "$1" == "commit" ]]; then
     git add . && git commit && git push;
-elif [[ "$1" == "arduino" ]]; then
+elif [[ "$1" == "dev" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
     rm -fR bin
