@@ -66,6 +66,9 @@ elif [[ "$1" == "create" ]]; then
 #
 # network wide configuration.
 #
+
+# set to cluster root
+export CLUSTER='localhost';
 # set to the ssl certificate root for the system.
 # this will be generated with letsencrypt.
 export DOMAIN_ROOT='$DOMAIN_ROOT'; 
