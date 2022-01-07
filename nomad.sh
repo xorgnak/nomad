@@ -4,7 +4,7 @@ DEBS='git screen ruby-full redis-server redis-tools build-essential certbot ngin
 DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools'
 DEBS_FUN='games-console tintin++ slashem';
 DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch';
 
 if [[ "$1" == 'boot' ]]; then
     rm -f nomad.lock
@@ -182,6 +182,7 @@ else
     if [[ -f nomad.lock ]]; then
 	ruby nomad-coin.rb -I
     else
+	ruby cluster.rb &
 	if [[ "$BONNET" == 'true' ]]; then
 	    sudo ruby bonnet.rb &
 	fi
