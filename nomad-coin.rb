@@ -82,7 +82,6 @@ BADGES = {
   building: 'carpenter',
   fixing: 'construction',
   emergency: 'fire_extinguisher',
-
   bug: 'pest_control',
   network: 'router',
   comms: 'leak_add'
@@ -216,6 +215,9 @@ TREE = Redis::HashKey.new('TREE')
 LOCS = Redis::Set.new("LOCS")
 ADVENTURES = Redis::Set.new("ADVENTURES")
 CAMS = Redis::HashKey.new("CAMS")
+QRI = Redis::HashKey.new("QRI")
+QRO = Redis::HashKey.new("QRO")
+
 
 BRAIN = Cerebrum.new
 
@@ -795,6 +797,7 @@ class U
   counter :coins
   list :log
   value :pin, expireat: 180
+  value :password
   def initialize i
     @id = i
   end
@@ -848,7 +851,7 @@ end
 
 class K
   HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
-  TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 75%; }],
+  TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 65%; }],
           %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
           %[ #ui > * { vertical-align: middle; }],
           %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
@@ -876,7 +879,11 @@ class K
       elsif /^total/.match(e)
         b = %[]
       else
-        b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
+        if /.html/.match(e)
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
+        else
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>post_add</button>]
+        end
       end
       o << %[<p>#{b} #{e}</p>]
     }
@@ -885,6 +892,9 @@ class K
   def cd *d
     self.dir.value = %[#{home}#{d[0]}]
     Dir.mkdir(self.dir.value)
+    if !File.exist?("#{self.dir.value}/index.html")
+      File.open("#{self.dir.value}/index.html", "w") { |f| f.write("<h1>Hello, World!</h1>"); }
+    end
   end
   def pwd
     if self.dir.value == nil
@@ -902,7 +912,9 @@ class K
     self.content.clear
     markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, filter_html: true)
     Dir["#{home}/*"].each {|f|
-      self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+      if !/.html/.match(f)
+        self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+      end
     }
     return nil
   end
@@ -917,7 +929,7 @@ class K
       if File.exist? f
         ff = File.read(f)
       else
-        ff = %[# created at #{Time.now.utc}]
+        ff = %[### New note\n[created]: #{Time.now.utc}]
       end
       o << [%[<input type='hidden' name='editor[file]' value='#{f}'>],
               %[<textarea name='editor[content]' style='width: 100%; height: 80%;'>#{ff}</textarea>]].join('')
@@ -1020,7 +1032,7 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before { @term = K.new(params[:u]) }
+  before { if request.host == 'localhost'; s = 'http'; else; s = 'https'; end; @path = %[#{s}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}") }
   
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
@@ -1177,7 +1189,7 @@ end
             end
             response.say(message: o)
           end
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif params['Digits'] == '0*'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
@@ -1187,7 +1199,7 @@ end
           o << %[you are in #{@u.zones.members.length} zones.]
           o << %[and you have #{@u.titles.members.length} titles.]
           response.say(message: o.join(' '))
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif m = /^0\*(\d)\*(.+)\*(.+)/.match(params['Digits']) && U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
           Redis.new.publish("MAGIC", "#{m}")
           if m[3].length > 0
@@ -1232,7 +1244,7 @@ end
           phone.send_sms( from: params['To'], to: params['From'], body: "[#{params['To']}][JOB](#{params['Digits']}) #{JOBS[params['Digits']]}")
           response.dial(record: true, number: JOBS[params['Digits']])
           JOBS.delete(params['Digits'])
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         elsif ZONES.include? params['Digits']
           j = []; 6.times { j << rand(9) }; JOBS[j.join('')] = params['From']
           Zone.new(params['Digits']).pool.members.each {|e|
@@ -1243,7 +1255,7 @@ end
           response.hangup()
         else            
           response.say(message: "please try again.")
-          response.redirect('https://#{OPTS[:domain]}/call', method: 'GET')
+          response.redirect("#{@path}/call", method: 'GET')
         end
       end
     end.to_s
@@ -1270,7 +1282,7 @@ end
       phone.send_sms(to: params['From'], body: b)
     end
   }
-  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(@id); pool << @id; erb :goto; else erb :landing; end }
+  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(IDS[QRI[@id]]); pool << IDS[QRI[@id]]; erb :goto; else erb :landing; end }
   get('/:u') {
     if token(params[:u]) == 'true';
       @id = id(params[:u]);
@@ -1278,7 +1290,7 @@ end
       pool << @id;
       erb :index
     else
-      redirect "https://#{OPTS[:domain]}/?w=#{params[:u]}"
+      redirect "#{@path}/?w=#{params[:u]}"
     end
   }
   post('/') do
@@ -1315,12 +1327,15 @@ end
       @id = id(params[:u]);
       params.delete(:cha)
       params.delete(:pin)
-      redirect "https://#{OPTS[:domain]}/#{params[:u]}"
+      redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
+      qrp = []; 16.times { qrp << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
       if !IDS.has_key? params[:usr]
         IDS[params[:usr]] = params[:u]
+        QRI[qrp.join('')] = params[:u]
+        QRO[params[:u]] = qrp.join('')
       else
         params[:u] = IDS[params[:usr]]
       end
@@ -1337,12 +1352,12 @@ end
       if params.has_key? :ts
         @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
       elsif params.has_key? :target
-        @user = U.new(params[:target])
+        @user = U.new(IDS[QRI[params[:target]]])
       else
         @user = U.new(@id);
       end
       
-      Redis.new.publish 'POST', "#{@user.id}"
+      Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
@@ -1476,24 +1491,43 @@ end
             #            end
           end
         end
-        @user.log << %[<span class='material-icons'>#{params[:give][:type]}</span> #{params[:give][:of]}]
+        @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
 
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
+
+      if params.has_key? :login
+        
+        if !IDS.has_key? params[:login][:username]
+          IDS[params[:login][:username]] = @id
+          BOOK[params[:login][:username]] = @id
+          LOOK[@id] = params[:login][:username]
+          qrp = []; 16.times { qrp << rand(16).to_s(16) }
+          QRI[qrp.join('')] = params[:login][:username]
+          QRO[params[:login][:username]] = qrp.join('')
+          @by.password.value = params[:login][:password]
+        end
+
+        @by = U.new(IDS[params[:login][:username]])
+       
+        if @by.password.value == params[:login][:password]
+          token(@by.id, ttl: (((60 * 60) * 24) * 7))
+        end
+      end
       
       if params.has_key? :landing
-        redirect "https://#{OPTS[:domain]}/"
+        redirect "#{@path}"
       elsif params.has_key? :cmd
-        redirect "/term?u=#{params[:u]}"
+        redirect "#{@path}/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "https://#{OPTS[:domain]}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
+        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
       elsif params.has_key? :a
-        redirect "https://#{OPTS[:domain]}/adventure?u=#{params[:u]}&a=#{params[:a]}"
+        redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
-        redirect "https://#{OPTS[:domain]}/#{@by.id}"
+        redirect "#{@path}/#{@by.id}"
       end
     end
   end

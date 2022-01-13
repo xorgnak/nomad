@@ -23,7 +23,7 @@ padding: 3%;
 <canvas id='canvas'></canvas> 
 
   <input type='file' id='pic-file' style='position: fixed; top: -100px;' name='config[pic]'>
-  <h1 style='color: white; background-color: black;'>
+  <h1 style='color: white; background-color: black; margin: 0;'>
     <button class='material-icons' type='button'
 	    onclick='$("#badge").toggle(); $("#display").toggle();'
 	    style='background-color: black;font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
@@ -39,6 +39,7 @@ padding: 3%;
   <div id='config' style='background-color: black; display: none;'>
     <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
     <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>
+    
     <h1>
       <select id='title' name='config[icon]' style='width: 20%;'>
         <option value='title' selected disabled>icon</option>
@@ -48,6 +49,7 @@ padding: 3%;
       </select>
       <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 70%;'>
     </h1>
+
     <h1 style='width: 100%;'>
       <select id='title' name='config[title]' style='width: 100%;'>
 	<option value='title' selected disabled>title</option>
@@ -66,6 +68,7 @@ padding: 3%;
 	<% end %>
       </select>
     </h1>
+
     <h1 style='width: 100%;'>
       <select id='sponsor' name='config[sponsor]' style='width: 100%;'>
 	<option value='sponsor' selected disabled>sponsor</option>
@@ -74,31 +77,18 @@ padding: 3%;
 	<% end %>
       </select>
     </h1>
+
     <h1>
-      <select id='contact' name='config[contact]' style='width: 20%;'>
+    <select id='contact' name='config[contact]' style='width: 20%;'>
       	<option value='none' selected disabled>contact</option>
 	<option value='sms'>sms</option>
 	<option value='tel'>tel</option>
       </select>
-      <input type='tel' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'></h1>
-    <h1><span style='vertical-align: middle; color: white;' class='material-icons'>podcasts</span><select id='stream' style='vertical-align: middle;' name='config[live]'>
-    <option value='false' selected>private.</option>
-    <option value='<%= @id %>'>public</option>
-    <% @user.zones.members.each do |e| %>
-       <option value='<%= e %>'><%= e %></option>
-    <% end %>
-    <% @user.titles.members.each do |e| %>
-       <option value='<%= e %>'><%= e %></option>
-    <% end %>
-    </select></h1>
+      <input type='tel' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'>
+    </h1>
+      
     <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
     <h1 style='text-align: center;'><button>SAVE</button></h1>
-    <% if @user.attr[:boss].to_i > 3 %>
-    <fieldset style='background-color: white;'>
-      <legend style='color: black; background-color: white; border-radius: 1000px;'>invite</legend>
-      <div id='invite' style='padding: 2%; border: thick solid white; background-color: white;'></div>
-    </fieldset>
-    <% end %>
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
@@ -158,9 +148,12 @@ padding: 3%;
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
     <% end %>
 
+
+    <!--
     <% if @user.attr[:boss].to_i > 7 %>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='message' placeholder='message'></h3>
     <% end %>
+    -->
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='give[of]' style='width: 15%; padding: 0;'>
@@ -181,7 +174,7 @@ padding: 3%;
       <select name='give[type]' style='width: 15%; padding: 0;'>
 	<option selected disabled></option>
 	<% BADGES.each_pair do |name, badge| %>
-	<option value='<%= badge %>'><%= name %></option>
+	<option value='<%= name %>'><%= name %></option>
 	<% end %>
       </select>
       <input type='text' name='give[desc]' placeholder='for...'>
@@ -200,6 +193,14 @@ padding: 3%;
       <%= @user.log.values.join("<br>") %>
     </code>
     <% @user.log.clear() %>
+    <h1 style='width: 100%; text-align: center; position: fixed; bottom: 0;'>
+    <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
+    	    <option value='callback' selected>callback</option>
+    	    <option value='invite'>invite</option>
+    </select>
+    <input name='send[number]' placeholder='PHONE' style='width: 55%; vertical-align: middle;'>
+    <button class='material-icons' style='vertical-align: middle; border: none;'>send</button>
+    </h1>
   </div>
   <script>
   var inv = false;
@@ -208,12 +209,13 @@ padding: 3%;
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
+    $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=<%= QRO[LOOK[params[:u]]] %>');
+    log('<span class="material-icons">directions</span> <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
     log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>');
     log('<span class="material-icons">info</span> Add to homescreen to install.');
 <%= erb :scan %>
 <%= erb :sha %>
-<%= erb :coin %>
+<%# erb :coin %>
 <%= erb :mqtt %>
 <%# erb :websocket %>
 </script>
