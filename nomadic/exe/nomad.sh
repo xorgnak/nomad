@@ -285,6 +285,7 @@ http {
         access_log /var/log/nginx/access.log;
         error_log /var/log/nginx/error.log;
         gzip on;
+	client_max_body_size 8M;
 server {
     listen 80 default_server;
     server_name _;

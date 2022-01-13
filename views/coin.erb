@@ -1,7 +1,5 @@
 var state = { peers: [] };
 
-var id = '<%= QRO[@id] %>'
-
 var lastPeerId = null;
 var peer = null; // own peer object
 var conn = null;
@@ -24,8 +22,8 @@ peer.on('open', function (id) {
     }
 //    log("<span class='material-icons'>info</span> " + peer.id);
     state.id = peer.id;
-    $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
 });
+
 
 peer.on('connection', function (c) {
 c.on('open', function() {

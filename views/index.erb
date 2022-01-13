@@ -203,13 +203,14 @@ padding: 3%;
     </h1>
   </div>
   <script>
+  var id = '<%= QRO[@id] %>';
+  $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
   var inv = false;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
     $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=<%= QRO[LOOK[params[:u]]] %>');
     log('<span class="material-icons">directions</span> <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <a href="https://github.com/xorgnak/nomad/commit/HEAD" style="color: white; text-decoration: none;"><%= `git log --format="%H" -n 1`[0..7] %></a>');
     log('<span class="material-icons">copyright</span> 2021 <%= OPTS[:domain] %>');
     log('<span class="material-icons">info</span> Add to homescreen to install.');

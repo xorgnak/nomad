@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 # network
 ID_SIZE = 16
 VAULT_SIZE = 8
@@ -217,6 +217,7 @@ ADVENTURES = Redis::Set.new("ADVENTURES")
 CAMS = Redis::HashKey.new("CAMS")
 QRI = Redis::HashKey.new("QRI")
 QRO = Redis::HashKey.new("QRO")
+LOGINS = Redis::HashKey.new("LOGINS")
 
 
 BRAIN = Cerebrum.new
@@ -397,7 +398,9 @@ end
 
 class Phone
   def twilio
-    Twilio::REST::Client.new(OPTS[:sid], OPTS[:key])
+    if OPTS[:sid] != ''
+      Twilio::REST::Client.new(OPTS[:sid], OPTS[:key])
+    end
   end
   def send_sms h={}
     to = []
@@ -419,21 +422,23 @@ class Phone
       end
     end
     to.each do |t|
-      Redis.new.publish "DEBUG.send_sms", "#{t}"
-      if h[:body] != ''
-        if h[:image]
-          twilio.messages.create(
-            to: t,
-            from: ENV['PHONE'],
-            body: h[:body],
-            media_url: [ h[:image] ]
-          )
-        else
-          twilio.messages.create(
-            to: t,
-            from: ENV['PHONE'],
-            body: h[:body]
-          )
+      Redis.new.publish "DEBUG.send_sms", "#{t} #{h}"
+      if OPTS[:sid] != ""
+        if h[:body] != ''
+          if h[:image]
+            twilio.messages.create(
+              to: t,
+              from: ENV['PHONE'],
+              body: h[:body],
+              media_url: [ h[:image] ]
+            )
+          else
+            twilio.messages.create(
+              to: t,
+              from: ENV['PHONE'],
+              body: h[:body]
+            )
+          end
         end
       end
     end
@@ -813,9 +818,9 @@ end
 
 @man = Slop::Options.new
 @man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
-@man.symbol '-b', '--boss', "the admin phone number", default: 'dummy'
-@man.symbol '-s', '--sid', "the twilio sid", default: 'dummy twilio sid'
-@man.symbol '-k', '--key', "the twilio key", default: 'dummy twilio key'
+@man.symbol '-b', '--boss', "the admin phone number", default: ''
+@man.symbol '-s', '--sid', "the twilio sid", default: ''
+@man.symbol '-k', '--key', "the twilio key", default: ''
 @man.int '-p', '--port', "the port we're running on", default: 4567
 @man.float '-f', '--frequency', "the radio frequency we're operating on.", default: 462.700
 @man.bool '-i', '--interactive', 'run interactively', default: false
@@ -1282,7 +1287,7 @@ end
       phone.send_sms(to: params['From'], body: b)
     end
   }
-  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(IDS[QRI[@id]]); pool << IDS[QRI[@id]]; erb :goto; else erb :landing; end }
+  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(QRI[@id]); erb :goto; else erb :landing; end }
   get('/:u') {
     if token(params[:u]) == 'true';
       @id = id(params[:u]);
@@ -1474,7 +1479,7 @@ end
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
       end
       
-      if params.has_key? :give
+      if params.has_key?(:give) && params[:give][:type] != nil
         if params[:give][:of] == 'award'
           @user.awards.incr(params[:give][:type])
         # given in scan lvl > 1.  
@@ -1499,9 +1504,33 @@ end
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
       end
 
+      if params.has_key?(:send) && params[:send][:number].length == 10
+        if params[:send][:mode] == 'invite'
+          tok = []; 64.times { tok << rand(16).to_s(16) }
+          phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: "invite: https://#{@path}/?w=#{tok.join('')}")
+        else
+          r = "#{@by.attr[:name]}\n#{@by.attr[:name]}\nhttps://#{@path}/?u=#{QRO[@by.id]}"
+          phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: r)
+        end
+      end
+      
+      if params.has_key? :quick
+        ###################################################################
+        @tree = CallCenter.new(ENV['PHONE'])
+        r = ["thank you for your request."]
+        r << "One of our agents will contack you shortly."  
+        r << "You may also contact us immediately at this number."
+        r << "\n"
+        r << "Gracias por su solicitud."
+        r << "Te llamaremos lo antes posible."
+        r << "También puede ponerse en contacto con nosotros inmediatamente en este número."
+        phone.send_sms( from: ENV['PHONE'], to: @tree[:dispatcher], body: "#{params[:quick][:phone]} #{params[:quick][:rx]}")
+        phone.send_sms( from: ENV['PHONE'], to: params[:quick][:phone], body: r.join("\n"))                  
+      end
+      
       if params.has_key? :login
         
-        if !IDS.has_key? params[:login][:username]
+        if !IDS.has_key? params[:login][:username] && LOGINS[params[:login][:username]] == params[:login][:password]
           IDS[params[:login][:username]] = @id
           BOOK[params[:login][:username]] = @id
           LOOK[@id] = params[:login][:username]
@@ -1519,6 +1548,8 @@ end
       end
       
       if params.has_key? :landing
+        redirect "#{@path}"
+      elsif params.has_key? :quick
         redirect "#{@path}"
       elsif params.has_key? :cmd
         redirect "#{@path}/term?u=#{params[:u]}"
