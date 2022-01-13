@@ -86,7 +86,14 @@ padding: 3%;
       </select>
       <input type='tel' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>'>
     </h1>
-      
+    <h1>
+    <% if @user.attr[:class].to_i > 1 %>
+<a href='<%= @path %>/term?u=<%= @user.id %>' style='text-decoration: none; color: white; border: thick solid white;'>mgt</a>
+    <% end %>
+    <% if @user.attr[:class].to_i > 2 %>
+        <a href='<%= @path %>/adventures?u=<%= @user.id %>' style='text-decoration: none; color: white; border: thick solid white;'>ops</a>
+    <% end %>
+    </h1>
     <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
     <h1 style='text-align: center;'><button>SAVE</button></h1>
   </div>
