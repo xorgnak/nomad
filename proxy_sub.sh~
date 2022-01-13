@@ -1,0 +1,6 @@
+#!/bin/bash
+
+while read -u 10 m
+do
+  echo "Message: $m"
+done 10< <(mosquitto_sub -h vango.me -t '#' -v)

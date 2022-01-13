@@ -5,7 +5,7 @@ form { }
 <h1 id='bar' style='width: 100%; text-align: center; background-color: white; margin-top: 10%;'>
 <span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= banner %></span></h1>
 <div style='width: 100%; text-align:center;'>
-<% if params.has_key?(:w) ||  params.has_key?(:cha) %>
+<% if ENV['LOGIN'] == '2fa' %>
 <% if params.has_key? :cha %>
 <h3>we sent you a pin.</h3>
 <input type='hidden' name='cha' value='<%= params[:cha] %>'>
