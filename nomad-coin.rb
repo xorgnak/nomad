@@ -1506,10 +1506,10 @@ end
 
       if params.has_key?(:send) && params[:send][:number].length == 10
         if params[:send][:mode] == 'invite'
-          tok = []; 64.times { tok << rand(16).to_s(16) }
-          phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: "invite: https://#{@path}/?w=#{tok.join('')}")
+          tok = []; 20.times { tok << rand(16).to_s(16) }
+          phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: "invite: #{@path}/?w=#{tok.join('')}")
         else
-          r = "#{@by.attr[:name]}\n#{@by.attr[:pitch]}\nhttps://#{@path}/?u=#{QRO[@by.id]}"
+          r = "#{@by.attr[:name]}\n#{@by.attr[:pitch]}\n#{@path}/?u=#{QRO[@by.id]}"
           phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: r)
         end
       end
