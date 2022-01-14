@@ -189,18 +189,8 @@ padding: 3%;
     </h3>
   </div>
   
-  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black; height: 35%; overflow-y: scroll;'>
-      <% if @user.attr[:zone] %>
-      <h1 style='width: 100%; margin: 0;'>
-      <button id='msg' name='msg' value='<%= @user.attr[:zone] %>' class='material-icons' style='float: right;'>send</button>
-        <input id='input' type='text' placeholder='@<%= @user.attr[:zone] %>' style='width: 75%; vertical-align: middle;'>
-      </h1>
-      <% end %>
-    <code id='log' style='width: 100%; height: 100%; color: white;'>
-      <%= @user.log.values.join("<br>") %>
-    </code>
-    <% @user.log.clear() %>
-    <h1 style='width: 100%; text-align: center; position: fixed; bottom: 0;'>
+  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
+    <h1 style='width: 100%; text-align: center; margin: 0;'>
     <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
     	    <option value='callback' selected>callback</option>
     	    <option value='invite'>invite</option>
@@ -208,6 +198,13 @@ padding: 3%;
     <input name='send[number]' placeholder='PHONE' style='width: 55%; vertical-align: middle;'>
     <button class='material-icons' style='vertical-align: middle; border: none;'>send</button>
     </h1>
+    <div id='log' style='width: 100%; height: 100%; color: white; overflow-y: scroll; margin: 0;'>
+      <% @user.log.values.to_a.reverse.each do |e| %>
+      <p style='width: 100%; margin: 0;'><%= e %></p>
+      <% end %>
+    </div>
+    <% @user.log.clear() %>
+		      
   </div>
   <script>
   var id = '<%= QRO[@id] %>';

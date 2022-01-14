@@ -855,16 +855,30 @@ def predict u
 end
 
 class K
-  HELP = %[<h1><%= `hostname` %></h1><h3><%`date`%></h3><h3><%= `uname -a`%></h3>this is only a test.]
+  HELP = [
+    %[<style>#help li code { border: thin solid black; padding: 1%; }</style>],
+    %[<ul id='help'>],
+    %[<li><code>cd :name</code><span>focus on a campaign.</span></li>],
+    %[<li><code>conf :name</code><span>create or edit campaign configuration.</span></li>],
+    %[<li><code>app :name</code><span>create or edit an html template to be used for a campaign.</span></li>],
+    %[<li><code>pin :name</code><span>pin a block of content to be rendered as html from within an app.</span></li>],
+    %[</ul>],
+    %[<ul>],
+    %[<li>the campaign index files are the main focus of the campaign.</li>],
+    %[<li>adding other files adds pins, app elements, and sub-campaign configuratons.</li>],
+    %[</ul>]
+  ].join('')
   TERM = [%[<style>#ui { width: 100%; text-align: center; } #ui > input { width: 65%; }],
           %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
           %[ #ui > * { vertical-align: middle; }],
           %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
-          %[<h1 id='ui'><button type='button' onclick='$("#ls").toggle();'>FS</button>],
-          %[<input name='cmd' placeholder='<%= Time.now.utc %>'>],
+          %[<h1 id='ui'><a href='/<%= @id %>' class='material-icons' style='border: thin solid black;'>home</a>],
+          %[<button type='button' onclick='$("#ls").toggle();'>FS</button>],
+          %[<input name='cmd' placeholder='<%= `hostname` %>'>],
           %[<button type='submit' class='material-icons'>send</button></h1>],
-          %[<fieldset id='ls' style='display: none;'><legend><%= pwd %></legend><%= ls  %></fieldset>],
+          %[<fieldset id='ls' style='display: none;'><legend><a href='/<%= QRO[id] %><%= pwd %>'><%= pwd %></legend></a><%= ls  %></fieldset>],
           %[<div id='output'><%= html %></div>],
+          %[#{HELP}],
           %[<script>$(function() { <%= self.scripts.values.join('; ') %>; });</script>]].join('')
   include Redis::Objects
   list :content
@@ -884,10 +898,12 @@ class K
       elsif /^total/.match(e)
         b = %[]
       else
-        if /.html/.match(e)
-          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
-        else
+        if /.markdown/.match(e)
           b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>post_add</button>]
+        elsif /.erb/.match(e)
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>article</button>]
+        elsif /.json/.match(e)
+          b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>list</button>]
         end
       end
       o << %[<p>#{b} #{e}</p>]
@@ -895,17 +911,20 @@ class K
     return "<div>" + o.join('') + "</div>"
   end
   def cd *d
-    self.dir.value = %[#{home}#{d[0]}]
+    self.dir.value = %[#{home}/#{d[0]}]
     Dir.mkdir(self.dir.value)
-    if !File.exist?("#{self.dir.value}/index.html")
-      File.open("#{self.dir.value}/index.html", "w") { |f| f.write("<h1>Hello, World!</h1>"); }
+    if !File.exist?("#{self.dir.value}/index.json")
+      h = { goal: '', ga: '', fb: '' }
+      File.open("#{self.dir.value}/index.json", "w") { |f| f.write("#{JSON.generate(h)}"); }
+      File.open("#{self.dir.value}/index.erb", "w") { |f| f.write("<h1>Hello, World!</h1><>This plan was made at:</h3><p><% Time.now.utc %></p>"); }
+      File.open("#{self.dir.value}/index.markdown", "w") { |f| f.write("# Hello, World!\n\n## markdown is a simple way to organize text to be rendered as html.\n- it supports lists.\n- and tables,\n- etc.\n- google it."); }
     end
   end
   def pwd
     if self.dir.value == nil
       self.dir.value = home
     end
-    "#{self.dir.value}/".gsub(home, '')
+    "#{self.dir.value}".gsub(home, '')
   end
   def home
     %[home/#{@id}]
@@ -915,29 +934,37 @@ class K
   end
   def clear
     self.content.clear
+    return nil
+  end
+  def peek
     markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, filter_html: true)
+    o = []
     Dir["#{home}/*"].each {|f|
-      if !/.html/.match(f)
-        self.content << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
+      if /.json/.match(f)
+        o << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + File.read(f) + "</fieldset>"
+      elsif /.erb/.match(f)
+        o << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + ERB.new(File.read(f)).result(binding) + "</fieldset>"
+      elsif /.markdown/.match(f)
+        o << "<fieldset><legend>#{f.gsub(home, '')}</legend>" + markdown.render(File.read(f)) + "</fieldset>"
       end
     }
-    return nil
+    return o.join('')
   end
   def id; @id; end
   
   def html
     o = []
     if self.attr[:file] == nil
-      self.content.values.each {|e| o << %[<p><code>#{e}</code></p>] }
+      self.content.values.each {|e| o << e }
     else
       f = "#{self.dir.value}/#{self.attr[:file]}"
       if File.exist? f
         ff = File.read(f)
       else
-        ff = %[### New note\n[created]: #{Time.now.utc}]
+        ff = ''
       end
       o << [%[<input type='hidden' name='editor[file]' value='#{f}'>],
-              %[<textarea name='editor[content]' style='width: 100%; height: 80%;'>#{ff}</textarea>]].join('')
+            %[<textarea name='editor[content]' style='width: 100%; height: 80%;'>#{ff}</textarea>]].join('')
       
     end
     return o.join('')
@@ -957,6 +984,17 @@ class K
   def edit(f);
     self.attr[:file] = f
   end
+  def conf(*f)
+    edit "#{f[0] || 'index'}.json"
+  end
+  def app(*f)
+    edit "#{f[0] || 'index'}.erb"
+  end
+  def pin(*f)
+    edit "#{f[0] || 'index'}.markdown"
+  end
+  
+  
   def button(t, h={}); a = []; h.each_pair { |k,v| a << %[#{k}='#{v}'] };
     return %[<button #{a.join(' ')}>#{t}</button>]
   end
@@ -967,7 +1005,7 @@ class K
   def eval(e);
     begin;
       if e == ''; e = 'help'; end
-      e.split(';').each { |each| self.content << "#{self.instance_eval(each)}".gsub("\n", '<br>') }
+      e.split(';').each { |ea| self.content << "#{self.instance_eval(ea)}".gsub("\n", '<br>') }
     rescue => e
       self.content << "<p>#{e.class} #{e.message}</p>"
     end
@@ -1288,6 +1326,23 @@ end
     end
   }
   get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(QRI[@id]); erb :goto; else erb :landing; end }
+  get('/:q/:c') {
+    u = QRI[params[:q]]
+    @conf = JSON.parse(File.read("home/#{u}/#{params[:c]}/index.json"))
+    ga = %[<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', '<%= @conf["ga"] %>', 'auto');
+ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->]
+    ta = %[<!-- integrate internal analytics trackr -->]
+    ERB.new(File.read("home/#{u}/#{params[:c]}/index.erb") + ga + ta).result(binding)
+  }
   get('/:u') {
     if token(params[:u]) == 'true';
       @id = id(params[:u]);
@@ -1417,7 +1472,7 @@ end
             @user.log << %[<span class='material-icons'>info</span> +#{e}.]
           end
         else
-
+          
         end
       end
 
