@@ -185,7 +185,9 @@ else
     if [[ -f nomad.lock ]]; then
 	ruby nomad-coin.rb -I
     else
-	ruby cluster.rb &
+	if [[ "$BOT" == 'true' ]]; then
+	    ruby cluster.rb &
+	fi
 	if [[ "$BONNET" == 'true' ]]; then
 	    sudo ruby bonnet.rb &
 	fi

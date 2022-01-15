@@ -751,19 +751,19 @@ class Sash
 
   def lvl
     r = []
-    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];  if @u.attr[:boss].to_i > 0
-    "#{@u.attr[:boss]}".length.times {
+    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
+    if @u.attr[:boss].to_i > 0
+      "#{@u.attr[:boss]}".length.times {
         r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i + 1]}</span>]
-    }
-    r << %[<br>]
-    @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{k[0]}</span>] }
-    p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
-                                                                                                                 else
-                                                                                                                   @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{k[0]}</span>] }
-                                                                                                                                     
-    p = style(0, 0, 0, 0, 0)
-  end
-      return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
+      }
+      r << %[<br>]
+      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{k[0]}</span>] }
+      p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
+    else
+      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{k[0]}</span>] }    
+      p = style(0, 0, 0, 0, 0)
+    end
+    return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
   end
   
   def badges
@@ -1421,14 +1421,13 @@ ga('send', 'pageview');
         @user = U.new(@id);
       end
       @user.attr.incr(:xp)
-      
+      @by.attr.incr(:xp)
       Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
-
+      
       if params.has_key? :admin
-        @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
-        if @by.attr[:boss].to_i > 100
         if params[:admin].to_sym == :boss
+          @user.attr.incr(params[:admin].to_sym)
           pr = []
           case @user.attr[:boss]
           when "1"
@@ -1466,9 +1465,9 @@ ga('send', 'pageview');
         end
       end
                        
-      if params.has_key?(:landing) && LOCKED[OPTS[:domain]] != 'true'
-        LANDING[OPTS[:domain]] = params[:landing]
-      end
+                       if params.has_key?(:landing) && LOCKED[OPTS[:domain]] != 'true'
+  LANDING[OPTS[:domain]] = params[:landing]
+end          
       
       if params.has_key? :code
         if c = code(params[:code])
