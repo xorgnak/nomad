@@ -1426,7 +1426,7 @@ ga('send', 'pageview');
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
         if params[:admin].to_sym == :boss
-          if @by.attr[].to_i > 100
+          if @by.attr[:boss].to_i > 100
           pr = []
           case @user.attr[:boss]
           when "1"
