@@ -752,8 +752,8 @@ class Sash
   def lvl
     r = []
     k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
-    @u.attr[:class].to_i.times {
-      r << %[<span class='material-icons pin'>#{k[@u.attr[:boss].length]}</span>]
+    @u.attr[:boss].length.times {
+      r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i]}</span>]
     }
     p = style(@u.attr[:boss], @u.attr[:rank], @u.attr[:class], @u.attr[:stripes], 0)
     return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
