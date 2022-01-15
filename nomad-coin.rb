@@ -1460,7 +1460,7 @@ ga('send', 'pageview');
           end
           @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
         elsif params[:admin].to_sym == :rank
-          @user.attr.incr(:rank]
+          @user.attr.incr(:rank)
         else
           @user.log << %[{params[:admin]}: #{@user.attr[params[:admin].to_sym]}]
         end
