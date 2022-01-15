@@ -1546,7 +1546,7 @@ ga('send', 'pageview');
             @user.sash << params[:give][:type]
           end
         elsif params[:give][:of] == 'boss'
-          if @by.boss[params[:give][:type]] > 4 || @by.attr[:boss] > 5
+          if @by.boss[params[:give][:type]] > 4 || @by.attr[:boss].to_i > 5
             @user.boss.incr params[:give][:type]
           end
         end
