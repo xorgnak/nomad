@@ -755,6 +755,8 @@ class Sash
     "#{@u.attr[:boss]}".length.times {
         r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i + 1]}</span>]
     }
+    r << %[<br>]
+    @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{k[0]}</span>] }
     p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
                                                                                                                  else
                                                                                                                    @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{k[0]}</span>] }
@@ -1457,11 +1459,8 @@ ga('send', 'pageview');
             pr = %[do everything.]
           end
           @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
-          else
-            if @user.attr[:rank].to_i > 5
-              @user.attr.incr(:rank)
-            end
-          end
+        elsif params[:admin].to_sym == :rank
+          @user.attr.incr(:rank]
         else
           @user.log << %[{params[:admin]}: #{@user.attr[params[:admin].to_sym]}]
         end
