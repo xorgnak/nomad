@@ -33,6 +33,7 @@ function tick() {
 		log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
 
 $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+$('#boss').text(h.b);
 		$('#scan').val(h.u);
 		$('#view').hide();
 		$('#display').hide();

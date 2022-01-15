@@ -40,14 +40,8 @@ padding: 3%;
     <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
     <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>
     
-    <h1>
-      <select id='title' name='config[icon]' style='width: 20%;'>
-        <option value='title' selected disabled>icon</option>
-	<% ICONS.each_pair do |k,v| %>
-	<option value='<%= v %>'><%= k %></option>
-	<% end %>
-      </select>
-      <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 70%;'>
+    <h1 style='width: 100%;'>
+      <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 100%;'>
     </h1>
 
     <h1 style='width: 100%;'>
@@ -141,6 +135,10 @@ padding: 3%;
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <% if @user.attr[:boss].to_i > 10 %>
         <div style='width: 100%;'>
+	<span style='border: thin solid black;'>
+	<span>boss</span>
+	<span id='#boss'></span>
+	</span>
 	<label for="promote" >promote</label>
         <input type='checkbox' id='promote' name='admin' value='boss'>
 	<br>
@@ -189,7 +187,7 @@ padding: 3%;
   </div>
   <script>
   var id = '<%= QRO[@id] %>';
-  $('#qrcode').qrcode('<%= @path %>/?x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
+  $('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss] %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
   var inv = false;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
     $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
