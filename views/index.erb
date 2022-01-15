@@ -143,15 +143,10 @@ padding: 3%;
     <% end %>
 
 
-    <!--
-    <% if @user.attr[:boss].to_i > 7 %>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='message' placeholder='message'></h3>
-    <% end %>
-    -->
-
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <select name='give[of]' style='width: 15%; padding: 0;'>
-        <option value='vote' selected>vote</option>
+      <select name='give[of]' style='width: 30%; padding: 0;'>
+      	<option selected disabled>give</option>
+        <option value='vote'>vote</option>
 	<% if @user.attr[:boss].to_i > 2 %>
 	<option value='badge'>badge</option>
 	<% end %>
@@ -162,14 +157,13 @@ padding: 3%;
         <option value='boss'>boss</option>
         <% end %>
       </select>
-      <select name='give[type]' style='width: 15%; padding: 0;'>
-	<option selected disabled></option>
+      <select name='give[type]' style='width: 30%; padding: 0;'>
+	<option selected disabled>category</option>
 	<% BADGES.each_pair do |name, badge| %>
 	<option value='<%= name %>'><%= name %></option>
 	<% end %>
       </select>
-      <input type='text' name='give[desc]' placeholder='for...'>
-      <button class='material-icons' style='background-color: green; color: white;'>send</button>
+      <button style='background-color: green; color: white;'>send</button>
     </h3>
   </div>
   
