@@ -115,15 +115,16 @@ padding: 3%;
     <h1 style='width: 100%; text-align: center; background-color: white; color: black;'>
       <% if @user.attr[:boss].to_i > 100 %>
         <div style='width: 100%;'>
-	  <span style='border: thin solid black;'>
-	    <span>boss</span>
-	    <span id='boss'></span>
-	  </span>
-	  <label for="promote" >promote</label>
+	  <label for="promote" >boss</label>
 	  <input type='checkbox' id='promote' name='admin' value='boss'>
 	  <br>
 	</div>
-      <% end %>
+	<% end %>
+	<div style='width: 100%;'>
+	  <label for="promote" >rank</label>
+	  <input type='checkbox' id='promote' name='admin' value='admin'>
+	  <br>
+	</div>
     </h1>
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
