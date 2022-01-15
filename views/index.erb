@@ -104,8 +104,14 @@ padding: 3%;
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;'>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
     <input type='text' id='scan' name='scan' value='<%= @id %>' disabled>
-    </h3> 
-
+    </h3>
+    <ul style='background-color: white; color: black;'>
+    <li><span class='l' style='padding: 1%;'>xp</span><span id='xp'></span></li>
+    <li><span class='l' style='padding: 1%;'>rank</span><span id='rank'></span></li>
+    <li><span class='l' style='padding: 1%;'>boss</span><span id='boss'></span></li>
+    <li><span class='l' style='padding: 1%;'>class</span><span id='class'></span></li>
+    <li><span class='l' style='padding: 1%;'>zone</span><span id='z'></span></li>
+    </ul>
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
@@ -133,7 +139,7 @@ padding: 3%;
     <% end %>
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <% if @user.attr[:boss].to_i > 10 %>
+      <% if @user.attr[:boss].to_i > 100 %>
         <div style='width: 100%;'>
 	<span style='border: thin solid black;'>
 	<span>boss</span>
@@ -187,7 +193,7 @@ padding: 3%;
   </div>
   <script>
   var id = '<%= QRO[@id] %>';
-  $('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss] %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
+  $('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss] %>&p=<%= @user.attr[:xp] %>&r=<%= @user.attr[:rank] %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id);
   var inv = false;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
     $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');

@@ -751,11 +751,16 @@ class Sash
 
   def lvl
     r = []
-    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
+    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];  if @u.attr[:boss].to_i > 0
     "#{@u.attr[:boss]}".length.times {
-        r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i]}</span>]
-      }
-      p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
+        r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i + 1]}</span>]
+    }
+    p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
+                                                                                                                 else
+                                                                                                                   @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{k[0]}</span>] }
+                                                                                                                                     
+    p = style(0, 0, 0, 0, 0)
+  end
       return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
   end
   
@@ -779,9 +784,6 @@ class Sash
     @u.stat[:boss] = t[:boss]
     @u.stat[:awards] = t[:awards]
     @u.stat[:stripes] = t[:stripes]
-    @u.attr[:rank] = "#{@u.stat[:badges].to_i}".length
-    @u.attr[:lvl] = "#{@u.stat[:awards].to_i}".length - 1
-    @u.attr[:pin] = "#{@u.attr[:rank].to_i}".length - 1
     return %[<div id='badges'>#{r.join('')}</div>]
   end
 end
@@ -1416,12 +1418,15 @@ ga('send', 'pageview');
       else
         @user = U.new(@id);
       end
+      @user.attr.incr(:xp)
       
       Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
+
       if params.has_key? :admin
         @user.attr.incr(params[:admin].to_sym)
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
         if params[:admin].to_sym == :boss
+          if @by.attr[].to_i > 100
           pr = []
           case @user.attr[:boss]
           when "1"
@@ -1451,12 +1456,17 @@ ga('send', 'pageview');
             @user.attr[:class] = 4
             pr = %[do everything.]
           end
-          @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}] 
+          @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
+          else
+            if @user.attr[:rank].to_i > 5
+              @user.attr.incr(:rank)
+            end
+          end
         else
           @user.log << %[{params[:admin]}: #{@user.attr[params[:admin].to_sym]}]
         end
       end
-
+                       
       if params.has_key?(:landing) && LOCKED[OPTS[:domain]] != 'true'
         LANDING[OPTS[:domain]] = params[:landing]
       end
