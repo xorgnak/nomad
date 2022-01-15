@@ -64,7 +64,7 @@ padding: 3%;
     </h1>
 
     <h1 style='width: 100%;'>
-      <select id='sponsor' name='config[sponsor]' style='width: 100%;'>
+      <select id='sponsor' name='config[zone]' style='width: 100%;'>
 	<option value='sponsor' selected disabled>sponsor</option>
 	<% @user.zones.members.each do |e| %>
 	<option value='<%= e %>'><%= e %></option>
