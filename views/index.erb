@@ -106,12 +106,25 @@ padding: 3%;
     <input type='text' id='scan' name='scan' value='<%= @id %>' disabled>
     </h3>
     <ul style='background-color: white; color: black;'>
-    <li><span class='l' style='padding: 1%;'>xp</span><span id='xp'></span></li>
-    <li><span class='l' style='padding: 1%;'>rank</span><span id='rank'></span></li>
-    <li><span class='l' style='padding: 1%;'>boss</span><span id='boss'></span></li>
-    <li><span class='l' style='padding: 1%;'>class</span><span id='class'></span></li>
-    <li><span class='l' style='padding: 1%;'>zone</span><span id='z'></span></li>
+      <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
+    <li><span style='padding: 2%;'>rank:</span><span id='rank'></span></li>
+    <li><span style='padding: 2%;'>boss:</span><span id='boss'></span></li>
+    <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
+    <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
+    <h1 style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <% if @user.attr[:boss].to_i > 100 %>
+        <div style='width: 100%;'>
+	  <span style='border: thin solid black;'>
+	    <span>boss</span>
+	    <span id='boss'></span>
+	  </span>
+	  <label for="promote" >promote</label>
+	  <input type='checkbox' id='promote' name='admin' value='boss'>
+	  <br>
+	</div>
+      <% end %>
+    </h1>
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
@@ -139,18 +152,6 @@ padding: 3%;
     <% end %>
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <% if @user.attr[:boss].to_i > 100 %>
-        <div style='width: 100%;'>
-	<span style='border: thin solid black;'>
-	<span>boss</span>
-	<span id='boss'></span>
-	</span>
-	<label for="promote" >promote</label>
-        <input type='checkbox' id='promote' name='admin' value='boss'>
-	<br>
-	</div>
-      <% end %>
-		    
       <select name='give[of]' style='width: 30%; padding: 0;'>
       	<option selected disabled>give</option>
         <option value='vote'>vote</option>
