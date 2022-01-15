@@ -1412,7 +1412,7 @@ ga('send', 'pageview');
       if params.has_key? :ts
         @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
       elsif params.has_key? :target
-        @user = U.new(IDS[QRI[params[:target]]])
+        @user = U.new(QRI[params[:target]])
       else
         @user = U.new(@id);
       end
@@ -1536,19 +1536,18 @@ ga('send', 'pageview');
       
       if params.has_key?(:give) && params[:give][:type] != nil
         if params[:give][:of] == 'award'
-          @user.awards.incr(params[:give][:type])
-        # given in scan lvl > 1.  
+          if @by.boss[params[:give][:type]] > 2
+            @user.awards.incr(params[:give][:type])
+          end  
         elsif params[:give][:of] == 'vote'
           Vote.new(params[:give][:type]).pool << @user.id
         elsif params[:give][:of] == 'badge' && params[:give][:desc] != ''
-          if params.has_key?(:ts) || params.has_key?(:target)
-            # from goto
-            @by.sash << params[:give][:type]
+          if @by.boss[params[:give][:type]] > 0
             @user.sash << params[:give][:type]
-          else
-            #            if @by.boss[params[:give][:type]] > 0
-            @user.sash << params[:give][:type]
-            #            end
+          end
+        elsif params[:give][:of] == 'boss'
+          if @by.boss[params[:give][:type]] > 4 || @by.attr[:boss] > 5
+            @user.boss.incr params[:give][:type]
           end
         end
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]

@@ -110,24 +110,11 @@ padding: 3%;
   <div id='magic' style='background-color: black; display: none;'>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
     <input type='text' id='scan' name='scan' value='<%= @id %>' disabled>
-    </h3>
-    <% if @user.attr[:boss].to_i > 4 %>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <select name='admin' style='width: 100%;'>
-	<option selected disabled>promote</option>
-	<% if @user.attr[:boss].to_i > 5 %>
-	<option value='lvl'>level</option>
-	<option value='stripes'>stripes</option>
-	<option value='pin'>pin</option>
-	<% end %>
-	
-	<% if @user.attr[:boss].to_i > 10 %>
-	<option value='boss'>boss</option>
-	<% end %>
-	
-      </select>
-    </h3>
+    </h3> 
+    <% if @user.attr[:boss].to_i > 10 %>
+    <button name='admin' value='boss'>promote</button>
     <% end %>
+	
 
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
@@ -164,19 +151,16 @@ padding: 3%;
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='give[of]' style='width: 15%; padding: 0;'>
-	<option selected>badge</option>
-	<% if @user.attr[:boss].to_i > 1 %>
+        <option value='vote' selected>vote</option>
+	<% if @user.attr[:boss].to_i > 2 %>
+	<option value='badge'>badge</option>
+	<% end %>
+	<% if @user.attr[:boss].to_i > 4 %>
 	<option value='award'>award</option>
 	<% end %>
-	<% if @user.attr[:boss].to_i > 2 %>
-	<option value='stripe'>stripe</option>
-	<% end %>
-	<% if @user.attr[:boss].to_i > 2 %>
-	<option value='boss'>boss</option>
-	<% end %>
-	<% if @user.attr[:boss].to_i > 0 %>
-	<option value='vote'>vote</option>
-	<% end %>
+        <% if @user.attr[:boss].to_i > 9 %>
+        <option value='boss'>boss</option>
+        <% end %>
       </select>
       <select name='give[type]' style='width: 15%; padding: 0;'>
 	<option selected disabled></option>
