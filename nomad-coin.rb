@@ -755,7 +755,7 @@ class Sash
     @u.attr[:boss].length.times {
       r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i]}</span>]
     }
-    p = style(@u.attr[:boss], @u.attr[:rank], @u.attr[:class], @u.attr[:stripes], 0)
+    p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
     return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
   end
   
