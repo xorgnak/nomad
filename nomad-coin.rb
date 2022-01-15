@@ -1583,7 +1583,7 @@ ga('send', 'pageview');
       end
       
       if params.has_key? :login
-        if params[:login][:username].length == ''
+        if params[:login][:username].length != ''
           if LOGINS[params[:login][:username]] == params[:login][:password]
             if !IDS.has_key? params[:login][:username]
               IDS[params[:login][:username]] = @id
