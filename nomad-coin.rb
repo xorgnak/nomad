@@ -1584,21 +1584,28 @@ ga('send', 'pageview');
       end
       
       if params.has_key? :login
-        
-        if !IDS.has_key? params[:login][:username] && LOGINS[params[:login][:username]] == params[:login][:password]
-          IDS[params[:login][:username]] = @id
-          BOOK[params[:login][:username]] = @id
-          LOOK[@id] = params[:login][:username]
-          qrp = []; 16.times { qrp << rand(16).to_s(16) }
-          QRI[qrp.join('')] = params[:login][:username]
-          QRO[params[:login][:username]] = qrp.join('')
-          @by.password.value = params[:login][:password]
-        end
-
-        @by = U.new(IDS[params[:login][:username]])
-       
-        if @by.password.value == params[:login][:password]
-          token(@by.id, ttl: (((60 * 60) * 24) * 7))
+        if params[:login][:username].length == ''
+          if LOGINS[params[:login][:username]] == params[:login][:password]
+            if !IDS.has_key? params[:login][:username]
+              IDS[params[:login][:username]] = @id
+              BOOK[params[:login][:username]] = @id
+              LOOK[@id] = params[:login][:username]
+              qrp = []; 16.times { qrp << rand(16).to_s(16) }
+              QRI[qrp.join('')] = params[:login][:username]
+              QRO[params[:login][:username]] = qrp.join('')
+              @by.password.value = params[:login][:password]
+            end
+            
+            @by = U.new(IDS[params[:login][:username]])
+            
+            if @by.password.value == params[:login][:password]
+              token(@by.id, ttl: (((60 * 60) * 24) * 7))
+            end
+          else
+            redirect "#{@path}"
+          end
+        else
+          redirect "#{@path}"
         end
       end
       
