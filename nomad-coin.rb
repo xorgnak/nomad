@@ -752,11 +752,11 @@ class Sash
   def lvl
     r = []
     k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
-    @u.attr[:lvl].to_i.times {
-      r << %[<span class='material-icons pin'>#{k[@u.attr[:pin].to_i]}</span>]
+    @u.attr[:class].to_i.times {
+      r << %[<span class='material-icons pin'>#{k[@u.attr[:boss].length]}</span>]
     }
     p = style(@u.attr[:boss], @u.attr[:rank], @u.attr[:class], @u.attr[:stripes], 0)
-    return %[<h1 id='lvl' style='#{p[:style]}'>#{r.join('')}</h1>]
+    return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
   end
   
   def badges
