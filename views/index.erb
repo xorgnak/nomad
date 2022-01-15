@@ -140,10 +140,10 @@ padding: 3%;
 
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <% if @user.attr[:boss].to_i > 10 %>
-        <div style='width: 30%;'>
-	<label for="promote">PROMOTE</label>
-	<br>
+        <div style='width: 100%;'>
+	<label for="promote" >PROMOTE</label>
         <input type='checkbox' id='promote' name='admin' value='boss'>
+	<br>
 	</div>
       <% end %>
 		    
@@ -166,8 +166,8 @@ padding: 3%;
 	<option value='<%= name %>'><%= name %></option>
 	<% end %>
       </select>
-      <button style='background-color: green; color: white;'>send</button>
     </h3>
+    <button style='background-color: green; color: white;'>send</button>
   </div>
   
   <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
