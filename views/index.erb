@@ -138,14 +138,15 @@ padding: 3%;
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
     <% end %>
 
-    <% if @user.attr[:boss].to_i > 10 %>
-    <h3>
-    <input type='checkbox' id='promote' name='admin' value='boss'><label for="promote">PROMOTE</label>
-    </h3>
-    <% end %>
-		
-
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <% if @user.attr[:boss].to_i > 10 %>
+        <div style='width: 30%;'>
+	<label for="promote">PROMOTE</label>
+	<br>
+        <input type='checkbox' id='promote' name='admin' value='boss'>
+	</div>
+      <% end %>
+		    
       <select name='give[of]' style='width: 30%; padding: 0;'>
       	<option selected disabled>give</option>
         <option value='vote'>vote</option>
