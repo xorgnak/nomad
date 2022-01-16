@@ -39,6 +39,12 @@ redis-cli set ONION `sudo cat /var/lib/tor/nomad/hostname`
 redis-cli del ONION
 #+END_SRC
 
+** iot devices.
+Nomad network handles a variety of iot devices,  Each device has it's own devid, but we configure the wifi ssid and password, and admin userid.
+#+BEGIN_SRC
+./nomad.sh iot
+#+END_SRC
+
 ** the system
 *** rsvp
 - a digital calback card app.
@@ -58,16 +64,16 @@ redis-cli del ONION
 *** cat
 - iot network io bridge  
 - flashed custom to operator ssid, passkey, and userid
-#+BEGIN_SRC
-./nomad.sh iot
-#+END_SRC
 - features
   - lora mesh beacon
   - mqtt client subscribed to userid, devids, and network telelmetry channels.
   - hid device for mumble client in operator mode.
   - nomad network lora cw keyer.
 *** turtle
-- networked camera robot. 
+- iot network camera robot.
+- flashed custom to operator ssid and passkey.
+- streams ip camera footage over wifi network to be bridged at a local gateway box.
+- subscribes for telemetry controlling lights and movement.
 - features
   - two-wheeled robot.
   - ip camera.
