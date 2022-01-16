@@ -63,12 +63,11 @@ redis-cli del ONION
 #+END_SRC
 - features
   - lora mesh beacon
-  - mqtt client subscribed to userid, devid, and network telemetry.
+  - mqtt client subscribed to userid, devids, and network telelmetry channels.
   - hid device for mumble client in operator mode.
   - nomad network lora cw keyer.
 *** turtle
-- networked camera robot.
-- flashed custom to operator ssid, passkey, and userid. 
+- networked camera robot. 
 - features
   - two-wheeled robot.
   - ip camera.
