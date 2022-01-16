@@ -25,4 +25,81 @@ cd ~/nomad && ./nomad.sh config && ./nomad install
 cd ~/nomad && ./nomad.sh
 #+END_SRC
 
-** that's it.
+** Remote accessibility.
+- nomad support access via the tor network over the http, irc, and telnet protocols
+  - http: 80
+  - irc: 6667
+  - telnet: 4321
+- to enable this
+#+BEGIN_SRC
+redis-cli set ONION `sudo cat /var/lib/tor/nomad/hostname`
+#+END_SRC
+- to disable this
+#+BEGIN_SRC
+redis-cli del ONION
+#+END_SRC
+
+** the system
+*** rsvp
+- a digital calback card app.
+- install by qr scan or callback link.
+- features
+  - call/sms direct link.
+  - social link.
+  - badge.
+*** app
+- installable progressive web app.
+- install by invite link.
+- features
+  - recognizes network qrcodes and manages user profiles.
+  - manages content of rsvp.
+  - manages zones and waypoints within them.
+  - manages social marketing content generation and hosting.
+*** cat
+- iot network io bridge  
+- flashed custom to operator ssid, passkey, and userid
+#+BEGIN_SRC
+./nomad.sh iot
+#+END_SRC
+- features
+  - lora mesh beacon
+  - mqtt client subscribed to userid, devid, and network telemetry.
+  - hid device for mumble client in operator mode.
+  - nomad network lora cw keyer.
+*** turtle
+- networked camera robot.
+- flashed custom to operator ssid, passkey, and userid. 
+- features
+  - two-wheeled robot.
+  - ip camera.
+  - flash.
+  - rear light.
+*** box
+- raspberry pi running nomad network services.
+
+  
+** operator mode
+An operator has operator level (boss 1000+) network access.  They can set up zones, and manage zone operations.
+- setup
+#+BEGIN_SRC
+./nomad.sh install operator
+#+END_SRC
+- what it does
+  1. install command line mumble client.
+  2. boots to headless mumble client.
+  3. listens for input (via cat) for push-to-talk or channel interactions.
+
+- hardware
+  - usb power source
+    - powers phone, raspbery pi, headset, and cat.
+  - phone
+    - tethers internet connection for local devices,
+  - raspberry pi 3b+/4
+    - runs local nomad instance.
+    - connects to mumble server.
+  - usb headset/mic
+    - allows voice communication.
+  - nomad cat device.
+    - button 0 is used for push-to-talk toggle.
+    - screen displays lora and mqtt telemetry.
+    
