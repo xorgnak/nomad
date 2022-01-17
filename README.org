@@ -112,11 +112,11 @@ An operator has operator level (boss 100000+) network access.
     - allows voice communication.
     
 ** usage
-  - <kbd>F1</kbd>: toggle voice transmission
-  - <kbd>Ctrl+L</kbd>: clear chat log
-  - <kbd>Tab</kbd>: toggle focus between chat and user tree
-  - <kbd>Page Up</kbd>: scroll chat up
-  - <kbd>Page Down</kbd>: scroll chat down
-  - <kbd>Home</kbd>: scroll chat to the top
-  - <kbd>End</kbd>: scroll chat to the bottom
-  - <kbd>F10</kbd>: quit
+  - F1: toggle voice transmission
+  - Ctrl+L: clear chat log
+  - Tab: toggle focus between chat and user tree
+  - Page Up: scroll chat up
+  - Page Down: scroll chat down
+  - Home: scroll chat to the top
+  - End: scroll chat to the bottom
+  - F10: quit
