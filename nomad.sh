@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk mumble-server';
-DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools'
+DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools golang libopus0 libopus-dev libopenal-dev';
 DEBS_FUN='games-console tintin++ slashem';
 DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch';
@@ -15,13 +15,14 @@ mkdir -p nginx
 mkdir -p home
 
 if [[ "$1" == "-h" || "$1" == "-u" || "$1" == "--help" || "$1" == "help" ]]; then
-    echo "usage: $0 [install [gui]|create|update|config|dev]"
+    echo "usage: $0 [install [gui]|create|update|config|dev|init|operator]"
     echo "install: normalize system, install packages, and install gems."
     echo "install gui: install system with graphical tools."
-    echo "create: create a nomad instance."
     echo "update: update the nomad instace."
     echo "config: add a domain configuration to the nomad instance."
-    echo "dev: install hardware device platform."    
+    echo "iot: install hardware device platform."
+    echo "sd: pre-configure raspberry pi os for network."
+    echo "op: begin operator mode."
 elif [[ "$1" == "config" ]]; then
     rm run.sh
     mkdir -p public/$DOMAIN
@@ -36,7 +37,7 @@ export PORT='$PORT';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
 export FREQUENCY='$FREQUENCY';
-ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY -s \$PHONE_SID -k \$PHONE_KEY &
+ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY -s \$PHONE_SID -k \$PHONE_KEY
 EOF
 editor run/$DOMAIN.sh;
 chmod +x run/$DOMAIN.sh;
@@ -58,7 +59,7 @@ EOF
 #sudo cp nginx/* /etc/nginx/sites-enabled/
 #sudo service nginx restart
 
-elif [[ "$1" == "create" ]]; then
+elif [[ "$1" == "update" ]]; then
     if [[ ! -f ~/nomad.conf ]]; then
     cat <<EOF > ~/nomad.conf
 #
@@ -68,14 +69,23 @@ elif [[ "$1" == "create" ]]; then
 #
 
 # set to cluster root
+# this is te server we connect to for telemetry and communications.
 export CLUSTER='localhost';
+export NICK='nomad';
+
 # set to the ssl certificate root for the system.
 # this will be generated with letsencrypt.
 export DOMAIN_ROOT='$DOMAIN_ROOT'; 
 
+# comment this out for cloud (hub) usage.
+# default: connect and announce to cluster.
+export BOX='true';
+
 # the twilio api sid and key used for sms authentication, etc.
 export PHONE_SID='$PHONE_SID';
 export PHONE_KEY='$PHONE_KEY';
+
+
 
 # uncomment to enable pi-bonnet interface.
 #export BONNET='true';
@@ -98,21 +108,14 @@ EOF
     sudo ./nomadic/exe/nomad.sh
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
-    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
-
-    sudo editor /etc/hostname
-
-    if [[ "$2" == 'mine' ]]; then
-	cd ~
-	git clone https://github.com/revoxhere/duino-coin
-	cd duino-coin
-	python3 -m pip install -r requirements.txt
-	python3 PC_Miner.py
-    fi
- 
-    echo "##### REBOOT!!! #####"
-elif [[ "$1" == "update" ]]; then
-    sudo ./nomadic/exe/nomad.sh
+    echo "##### REBOOT TO RUN #####"
+elif [[ "$1" == 'sd' ]]; then
+    sudo cp /etc/wpa_supplicant/wpa_supplicant.conf /media/pi/boot/
+    sudo touch /media/pi/boot
+    sudo cp -fR ~/nomad /media/pi/rootfs/home/pi/nomad
+elif [[ "$1" == 'operator' ]]; then
+    source ~/nomad.conf
+    $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:64738 -username `hostname`-$NICK;
 elif [[ "$1" == "install" ]]; then
     echo "##### normalizing..."
     su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
@@ -123,24 +126,36 @@ elif [[ "$1" == "install" ]]; then
     fi
     echo "##### installing debs..."
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
-#    echo "##### adding ham..."
-#    sudo apt install -y $DEBS_HAM;
-#    echo "##### adding fun..."
-#    sudo apt install -y $DEBS_FUN;
-#    if [[ "$2" == "gui" ]]; then
-#	echo "##### installing gui..."
-#	sudo apt install -y $DEBS_GUI;
-#    fi
     echo "##### installing gems..."
     sudo gem install $GEMS;
-    echo "##### DONE! reboot now."
-elif [[ "$1" == "commit" ]]; then
-    git add . && git commit && git push;
-elif [[ "$1" == "dev" ]]; then
+    echo "##### installing comms";
+    go get -u layeh.com/barnard
+    sudo cp -f alsa.conf /usr/share/alsa/alsa.conf
+    cat << EOF > /etc/asound.conf
+pcm.!default {
+ type hw
+ card 1
+}
+ctl.!default {
+ type hw
+ card 1
+}
+EOF
+    if [[ "$2" == 'mine' ]]; then
+	cd ~
+	git clone https://github.com/revoxhere/duino-coin
+	cd duino-coin
+	python3 -m pip install -r requirements.txt
+	python3 PC_Miner.py
+    fi
+    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
+    sudo raspi-config
+    echo "##### DONE! #####"
+elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
     rm -fR bin
-    arduino-cli config init
+    /usr/local/bin/arduino-cli config init
     cat <<EOF > ~/.arduino15/arduino-cli.yaml
 board_manager:
   additional_urls: ["https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json", "https://github.com/Heltec-Aaron-Lee/WiFi_Kit_series/releases/download/0.0.5/package_heltec_esp32_index.json", "https://arduino.esp8266.com/stable/package_esp8266com_index.json"]
@@ -202,16 +217,21 @@ else
 	fi
 	for f in run/*.sh;
 	do
-	    ./$f
+	    ./$f &
+	    PIDS="$PIDS $!";
 	done
 	touch nomad.lock
-	ruby nomad-coin.rb -i
+	if [[ "BOX" != 'false' ]]; then
+	    redis-cli set ONION `cat /var/lib/tor/nomad/hostname`
+	    ruby nomad-coin.rb -i
+	    PIDS="$PIDS $!";
+	else
+	    redis-cli del ONION
+	fi
     fi
     cleanup() {
 	rm nomad.lock
-        echo "EXIT"
         exit 0
     }
-    trap cleanup INT TERM
-
+    trap cleanup INT TERM 
 fi

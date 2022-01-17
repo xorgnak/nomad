@@ -17,7 +17,8 @@ startup_message off
 hardstatus on
 hardstatus alwayslastline
 screen -t emacs 0 emacs -nw --visit ~/index.org
-screen -t bash 1 bash
+screen -t '$' 1 ./nomad.sh
+screen -t bash 2 bash
 screen -t '#' 9 redis-cli monitor
 select 0
 END
@@ -178,6 +179,8 @@ alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git
 echo "commit -> push changes to the origin repo."
 function token() { git remote set-url origin https://$1:$2@github.com/$1/`pwd`.git; }
 echo "token <user> <token> -> set push token for repo."
+alias op="cd ~/nomad && screen -t '@' ./nomad.sh operator"
+echo "op -> enter operator mode."
 function leah() { su -c "source /root/leah.sh && \$*"; }
 ##### NOMADIC end #####
 END
