@@ -1,59 +1,76 @@
+* The Nomad Network
 
 The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible. 
 
-** Quick Installation
-1. install git if necessary.
-2. clone repository.
-3. install system packages.
-4. install nomad scripts.
+* RUN AS A NODE (connect to another cluster)
+First, flash raspberry pi os to sd card. Then Run:
 #+BEGIN_SRC 
-cd ~/ && sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh init && ./nomad.sh install"
+cd ~/ && sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install && ./nomad.sh update
 #+END_SRC
-
-** Domain Configuration
-1. generate configuration for domain.
-2. re-install nomad scripts.
+Set the Cluster and nick for your node when asked.  After rebooting you should be able to see your device appear on your network.  You may now use your nomad box. Ssh into your raspberry and run:
 #+BEGIN_SRC
-cd ~/nomad && ./nomad.sh config && ./nomad install
+op
 #+END_SRC
-
-** Interactive Client
-- interact with users, zones, the bank, the brain, and the iot network.
-- communicate on the irc, mush, and nomadic networks.
-- generate, interact, and track zone campaigns for domains, zones, and users.
-#+BEGIN_SRC
-cd ~/nomad && ./nomad.sh
-#+END_SRC
-
-** Remote accessibility.
-- nomad support access via the tor network over the http, irc, and telnet protocols
-  - http: 80
-  - irc: 6667
-  - telnet: 4321
-- to enable this
-#+BEGIN_SRC
-redis-cli set ONION `sudo cat /var/lib/tor/nomad/hostname`
-#+END_SRC
-- to disable this
-#+BEGIN_SRC
-redis-cli del ONION
-#+END_SRC
+This will start a nomad network operator session for your local cluster.
 
 ** iot devices.
-Nomad network handles a variety of iot devices,  Each device has it's own devid, but we configure the wifi ssid and password, and admin userid.
+Nomad network handles a variety of iot devices,  Each device has it's own devid, but we configure the wifi ssid and password, and admin nick based upon your local node configuration.
 #+BEGIN_SRC
 ./nomad.sh iot
 #+END_SRC
 
-** the system
+* RUN AS A HUB (host domains on a nomad cluster)
+When running on a cloud VM, you can host domains with nomad network services.
+1. Use certbot to generate ssl a certificate. 
+2. Edit the ~/nomad.conf file to update your DOMAIN_ROOT from the generated certificate. 
+3. set BOX to false so the instance will act as a cluster host.  
+4. Then run:
+#+BEGIN_SRC
+cd ~/nomad && ./nomad.sh config example.com
+#+END_SRC
+Repeat for each domain being hosted. Then run:
+#+BEGIN_SRC
+cd ~/nomad && ./nomad.sh update
+#+END_SRC
+This will update your nomad network instance to host your domains as a nomad network cluster.  You will be able to interract with it via ssh.  You should not attempt operator mode on these instances, rather you should use the interactive client.
+
+* WHAT IT DOES
+
+** Remote Access.
+- nomad support access via the tor network over the http, irc, and telnet protocols
+  - http: 80
+    - accessible via tor. 
+    - user accounts may be created from via ssh with the interractive client as follows.
+#+BEGIN_SRC
+LOGINS['pi'] = 'raspberry'
+#+END_SRC
+  - irc: 6667
+    - no authorization is necessary by default.
+  - telnet: 4321
+    - simple multi-user text environment.
+
+** Tor QR Link
+Network nodes are accessible via tor.  A qr code displaying the node's onion address can be hosted from the local area network's web interface.  Nomad network services will still be available if disabled.
+From within the interractive client:
+- enable
+#+BEGIN_SRC
+Redis::Value.new('ONION').value = `sudo cat /var/lib/tor/nomad/hostname`.chomp
+#+END_SRC
+- disable
+#+BEGIN_SRC
+Redis.new.del('ONION')
+#+END_SRC
+
+* PLATFORM
+** the web app
 *** rsvp
 - a digital calback card app.
 - install by qr scan or callback link.
 - features
   - call/sms direct link.
   - social link.
-  - badge.
-*** app
+  - network badge.
+*** user interface
 - installable progressive web app.
 - install by invite link.
 - features
@@ -61,13 +78,14 @@ Nomad network handles a variety of iot devices,  Each device has it's own devid,
   - manages content of rsvp.
   - manages zones and waypoints within them.
   - manages social marketing content generation and hosting.
+
+** iot devices
 *** cat
 - iot network io bridge  
 - flashed custom to operator ssid, passkey, and userid
 - features
   - lora mesh beacon
   - mqtt client subscribed to userid, devids, and network telelmetry channels.
-  - hid device for mumble client in operator mode.
   - nomad network lora cw keyer.
 *** turtle
 - iot network camera robot.
@@ -79,32 +97,26 @@ Nomad network handles a variety of iot devices,  Each device has it's own devid,
   - ip camera.
   - flash.
   - rear light.
-*** box
-- raspberry pi running nomad network services.
+    
+* node operator mode
+An operator has operator level (boss 100000+) network access.
 
-  
-** operator mode
-An operator has operator level (boss 1000+) network access.  They can set up zones, and manage zone operations.
-- setup
-#+BEGIN_SRC
-./nomad.sh install operator
-#+END_SRC
-- what it does
-  1. install command line mumble client.
-  2. boots to headless mumble client.
-  3. listens for input (via cat) for push-to-talk or channel interactions.
-
-- hardware
-  - usb power source
-    - powers phone, raspbery pi, headset, and cat.
+** hardware
   - phone
-    - tethers internet connection for local devices,
+    - tethers internet connection for local devices.
+    - provides access via ssh to tethered node.
   - raspberry pi 3b+/4
     - runs local nomad instance.
     - connects to mumble server.
   - usb headset/mic
     - allows voice communication.
-  - nomad cat device.
-    - button 0 is used for push-to-talk toggle.
-    - screen displays lora and mqtt telemetry.
     
+** usage
+  - F1: toggle voice transmission
+  - Ctrl+L: clear chat log
+  - Tab: toggle focus between chat and user tree
+  - Page Up: scroll chat up
+  - Page Down: scroll chat down
+  - Home: scroll chat to the top
+  - End: scroll chat to the bottom
+  - F10: quit
