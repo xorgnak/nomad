@@ -5,10 +5,10 @@
     "scope": "/",
     <% if params.has_key?(:x) %>
     "start_url": "<%= @path %>/?x=<params[:x]>&u=<%= params[:u] %>&installed=true",
-    "short_name": "NOMAD",
+    "short_name": "<%= OPTS[:domain] %> - rsvp",
     <% else %>
     "start_url": "<%= @path %>/<%= params[:u] %>?installed=true",
-    "short_name": "NOMAD",
+    "short_name": "<%= OPTS[:domain] %> - app",
     <% end %>
     "name": "NOMAD",
     "description": "the nomad user interface.",
