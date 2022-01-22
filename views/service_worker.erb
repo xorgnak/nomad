@@ -1,0 +1,68 @@
+// Immediately take control of the page, see the 'Immediate Claim' recipe
+// for a detailed explanation of the implementation of the following two
+// event listeners.
+
+self.addEventListener('install', function(event) {
+    console.log(event);
+    event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', function(event) {
+    console.log(event);
+    event.waitUntil(self.clients.claim());
+});
+
+// Register event listener for the 'push' event.
+self.addEventListener('push', function(event) {
+    console.log(event);
+    const j = event.data ? JSON.parse(event.data.text()) : {};
+    event.waitUntil(
+	self.registration.showNotification( j.title || '<%= OPTS[:domain] %>', {
+	    tag: 'nomad.' + '<%= OPTS[:domain] %>',
+	    body: j.body || 'ping',
+	    icon: j.icon || 'favicon.ico',
+	    timestamp: j.timestamp,
+	    vibrate: j.vibrate || [500,100,500],
+	})
+    )
+});
+
+
+// Register event listener for the 'notificationclick' event.
+self.addEventListener('notificationclick', function(event) {
+    console.log(event);
+    var p;
+    if (event.action == 'mgt') {
+	p = "<%= @path %>/term?u=<%= @id %>" 
+    } else if (event.action == 'mgt') {
+	p = "<%= @path %>/adventures?u=<%= @id %>"
+    } else {
+	p = "<%= @path %>/<%= @id %>"
+    }
+    
+    event.waitUntil(
+    self.clients.matchAll().then(function(clientList) {
+	if (clientList.length > 0) {
+	    return clientList[0].focus();
+	}
+	return self.clients.openWindow(p);
+    })
+    )
+});
+
+
+//serviceWorkerRegistration.pushManager.getSubscription()
+//    .then((subscription) => {
+//	vapid = subscription;
+//	$.post("/sw?u=<%= params[:u] %>", { subscription: subscription.toJSON() });
+//    });
+
+self.registration.showNotification( '<%= OPTS[:domain] %>', {
+    tag: 'nomad.' + '<%= OPTS[:domain] %>',
+    body: 'runing!',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    image: '/QR<%= params[:u] %>.png',
+    vibrate: [500,100,500],
+    timestamp: '<%= Time.now.utc.to_i %>'
+});

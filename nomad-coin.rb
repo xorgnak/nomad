@@ -176,7 +176,8 @@ ICONS = {
   instagram: 'instagram',
   snapchat: 'snapchat'
 }
-
+require 'rqrcode'
+require 'webpush'
 require 'paho-mqtt'
 require 'redis-objects'
 require 'sinatra/base'
@@ -229,6 +230,8 @@ SENTIMENT.threshold = 0.1
 def sentiment s
 { sentment:  SENTIMENT.sentiment(s), score: SENTIMENT.score(s) }  
 end
+
+
 
 
 def phone_tree phone, h={}
@@ -1025,7 +1028,22 @@ class APP < Sinatra::Base
   set :sockets, []
   
   helpers do
-    
+    def notify u, h={}
+      @u = U.new(u)
+      @v = JSON.parse(@u.attr[:vapid])
+      Redis.new.publish('NOTIFY', "#{@v}")
+      Webpush.payload_send(
+        message: JSON.generate(h),
+        endpoint: @v['endpoint'],
+        p256dh: @v['keys']['p256dh'],
+        auth: @v['keys']['auth'],
+        vapid: {
+          subject: "mailto:#{u}@#{OPTS[:domain]}",
+          public_key: @u.attr[:pub],
+          private_key: @u.attr[:priv]
+        }
+      )
+    end
     def code c
       if CODE.has_key? c
         return JSON.parse(CODE[c])
@@ -1079,7 +1097,8 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before { if request.host == 'localhost'; s = 'http'; else; s = 'https'; end; @path = %[#{s}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}") }
+  before { if request.host == 'localhost'; s = 'http'; else; s = 'https'; end; @path = %[#{s}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}")
+  }
   
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
@@ -1095,7 +1114,12 @@ class APP < Sinatra::Base
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
 
-
+  get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
+  post('/sw') {
+    @user = U.new(params[:u])
+    @user.attr[:vapid] = JSON.generate(params[:subscription])
+    notify(params[:u], title: OPTS[:domain], body: 'connected')
+  }
 get '/m' do
   last_block = blockchain.last_block
   last_proof = last_block[:proof]
@@ -1329,7 +1353,15 @@ end
       phone.send_sms(to: params['From'], body: b)
     end
   }
-  get('/') { @id = id(params[:u]); if params.has_key?(:u); @user = U.new(QRI[@id]); erb :goto; else erb :landing; end }
+  get('/') {
+    @id = id(params[:u]);
+    if params.has_key?(:u);
+      @user = U.new(QRI[@id]);
+      erb :goto;
+    else
+      erb :landing;
+    end
+  }
   get('/:q/:c') {
     u = QRI[params[:q]]
     @conf = JSON.parse(File.read("home/#{u}/#{params[:c]}/index.json"))
@@ -1349,8 +1381,26 @@ ga('send', 'pageview');
   }
   get('/:u') {
     if token(params[:u]) == 'true';
+      @vapid = Webpush.generate_key;
       @id = id(params[:u]);
       @user = U.new(@id);
+      @user.attr[:pub] = @vapid.public_key
+      @user.attr[:priv] = @vapid.private_key
+      qrcode = RQRCode::QRCode.new("#{@path}/?x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}")
+      png = qrcode.as_png(
+        bit_depth: 1,
+        border_modules: 0,
+        color_mode: ChunkyPNG::COLOR_GRAYSCALE,
+        color: "black",
+        file: nil,
+        fill: "white",
+        module_px_size: 6,
+        resize_exactly_to: false,
+        resize_gte_to: false,
+        size: 200
+      )
+
+      IO.binwrite("public/#{OPTS[:domain]}/QR#{@id}.png", png.to_s)
       pool << @id;
       erb :index
     else

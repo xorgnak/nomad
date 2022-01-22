@@ -28,4 +28,6 @@ function onConnectionLost(responseObject) {
 // called when a message arrives
 function onMessageArrived(message) {
     console.log(message.destinationName + ": " + message.payloadString);
+    var j = JSON.parse(message.payloadString);
+    self.registration.showNotification(j.title, { body: j.body });
 }
