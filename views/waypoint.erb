@@ -1,23 +1,17 @@
 <style>
 input { margin: 0; width: 100%; }
+textarea { margin: 0; width: 100%; font-size: x-large; }
+legend { background-color: white; color: black; padding: 1%; border-radius: 50px; }
 </style>
-<datalist>
-<% LOCS.each do |e| %>
-<option value='<%= e %>'>
-<% end %>
-</datalist>
-<% [ :u, :a, :i ].each do |e| %>
-<input type='hidden' name='<%= e %>' value='<%= params[e] %>'>
-<% end %>
-<input type="text" name='waypoint[name]' placeholder='name'>
 <input type="text" name='waypoint[location]' list='locs' placeholder='location'>
-<textarea style='width: 100%; height: 20%; font-size: x-large;' name='waypoint[description]' placeholder='description'></textarea>
-<textarea style='width: 100%; height: 20%; font-size: x-large;' name='waypoint[instructions]' placeholder='instructions'></textarea>
-<select style='width: 100%;' name='waypoint[type]'>
-<option selected disabled>type</option>
-<% [ :entry, :info, :waypoint, :extra, :exit ].each_with_index do |e, i| %>
-<option value='<%= i %>'><%= e %></option>
-<% end %>
-</select>
-
-<p style='width: 100%; text-align: center;'><button>save</button></p>
+<textarea name='waypoint[description]' placeholder='description'></textarea>
+<fieldset id='passwords'><legend>passwords</legend>
+  <p style='width: 100%; text-align: center;'>
+    <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>child_friendly</span>
+    <input type='range' min='0' max='7' name='waypoint[passwords][lvl]' style='width: 65%;'>
+    <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>nightlife</span>
+  </p>
+  <input name='waypoint[passwords][say]' placeholder='SAY'>
+  <input name='waypoint[passwords][to]' placeholder='TO'>
+  <input name='waypoint[passwords][for]' placeholder='FOR'>
+</fieldset>

@@ -1,10 +1,36 @@
 #!/bin/bash
 
-DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk mumble-server';
+DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk mumble-server golang alsa-base alsa-tools alsa-utils';
 DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools golang libopus0 libopus-dev libopenal-dev';
 DEBS_FUN='games-console tintin++ slashem';
 DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
+DEBS_SHELL='shellinabox openssl'
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch';
+
+if [[ ! -f ~/nomad.conf ]]; then
+        cat << EOF > ~/nomad.conf                                                                                                                        
+# do no edit.                                                                                                                                            
+# network wide configuration.                                                                                                                            
+# this is te server we connect to for telemetry and communications.                                                                                      
+export CLUSTER='localhost';                                                                                                                              
+export NICK='nomad';                                                                                                                                     
+# set to the ssl certificate root for the system.                                                                                                        
+export DOMAIN_ROOT='$DOMAIN_ROOT';                                                                                                                       
+# comment this out for cloud (hub) usage.                                                                                                                
+export BOX='true';                                                                                                                                       
+# the twilio api sid and key used for sms authentication, etc.                                                                                           
+export PHONE_SID='$PHONE_SID';                                                                                                                           
+export PHONE_KEY='$PHONE_KEY';
+#export GUI="true";
+#export BONNET='true';                                                                                                                                   
+#export MINE='true';                                                                                                                                     
+#export MUSH='true';                                                                                                                                     
+#export DEVS='true';                                                                                                                                     
+# end of network configuration.                                                                                                                          
+EOF
+	editor ~/nomad.conf
+fi
+source ~/nomad.conf
 
 if [[ "$1" == 'boot' ]]; then
     rm -f nomad.lock
@@ -15,33 +41,30 @@ mkdir -p nginx
 mkdir -p home
 
 if [[ "$1" == "-h" || "$1" == "-u" || "$1" == "--help" || "$1" == "help" ]]; then
-    echo "usage: $0 [install [gui]|create|update|config|dev|init|operator]"
+    echo "usage: $0 [install [gui]|config|update|iot|sd|op]"
     echo "install: normalize system, install packages, and install gems."
     echo "install gui: install system with graphical tools."
-    echo "update: update the nomad instace."
     echo "config: add a domain configuration to the nomad instance."
+    echo "update: update the nomad instace."
     echo "iot: install hardware device platform."
     echo "sd: pre-configure raspberry pi os for network."
     echo "op: begin operator mode."
 elif [[ "$1" == "config" ]]; then
-    rm run.sh
     mkdir -p public/$DOMAIN
     cat ~/nomad.conf > run/$DOMAIN.sh
 cat <<EOF >> run/$DOMAIN.sh;
 #
 # EDIT TO SUIT YOUR NEEDS.
 #
-export DOMAIN_ROOT='$DOMAIN_ROOT';
 export DOMAIN='$DOMAIN';
 export PORT='$PORT';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
-export FREQUENCY='$FREQUENCY';
-ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -f \$FREQUENCY -s \$PHONE_SID -k \$PHONE_KEY
+ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -s \$PHONE_SID -k \$PHONE_KEY
 EOF
 editor run/$DOMAIN.sh;
 chmod +x run/$DOMAIN.sh;
-sudo cat <<EOF > nginx/$DOMAIN.conf
+cat <<EOF > nginx/$DOMAIN.conf
 server {
   listen 443 ssl;
   listen [::]:443;
@@ -55,57 +78,9 @@ server {
   ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_ROOT/privkey.pem; # managed by Certbot 
 }
 EOF
-
-#sudo cp nginx/* /etc/nginx/sites-enabled/
-#sudo service nginx restart
-
 elif [[ "$1" == "update" ]]; then
-    if [[ ! -f ~/nomad.conf ]]; then
-    cat <<EOF > ~/nomad.conf
-#
-# do no edit.
-#
-# network wide configuration.
-#
-
-# set to cluster root
-# this is te server we connect to for telemetry and communications.
-export CLUSTER='localhost';
-export NICK='nomad';
-
-# set to the ssl certificate root for the system.
-# this will be generated with letsencrypt.
-export DOMAIN_ROOT='$DOMAIN_ROOT'; 
-
-# comment this out for cloud (hub) usage.
-# default: connect and announce to cluster.
-export BOX='true';
-
-# the twilio api sid and key used for sms authentication, etc.
-export PHONE_SID='$PHONE_SID';
-export PHONE_KEY='$PHONE_KEY';
-
-
-
-# uncomment to enable pi-bonnet interface.
-#export BONNET='true';
-
-# uncomment to enable duino-coin miner.
-#export MINE='true';
-
-# uncomment to enable mush.
-#export MUSH='true';
-
-# uncomment to auto proxy devices.
-#export DEVS='true';
-#
-# end of network configuration.
-#
-EOF
-    
-    editor ~/nomad.conf
-    fi
     sudo ./nomadic/exe/nomad.sh
+    sudo cp -f nginx/* /etc/nginx/sites-enabled/
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
     echo "##### REBOOT TO RUN #####"
@@ -118,20 +93,27 @@ elif [[ "$1" == 'operator' ]]; then
     $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:64738 -username `hostname`-$NICK;
 elif [[ "$1" == "install" ]]; then
     echo "##### normalizing..."
-    su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
+#    su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
     echo "##### normal."
     debs="$DEBS $DEBS_HAM $DEBS_FUN ";
-    if [[ "$2" == "gui" ]]; then
-	$debs += $DEBS_GUI;
+    if [[ "$GUI" == "true" ]]; then
+	debs="$debs $DEBS_GUI";
+    fi
+    if [[ "$BOX" == 'true' ]]; then
+	debs="$debs $DEBS_SHELL";
     fi
     echo "##### installing debs..."
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
+    #echo $debs
+    echo "##### post-install..."
+    sudo mv /etc/shellinabox/options-enabled/00\+Black\ on\ White.css /etc/shellinabox/options-enabled/00_Black\ on\ White.css
+    sudo mv /etc/shellinabox/options-enabled/00_White\ On\ Black.css /etc/shellinabox/options-enabled/00+White\ On\ Black.css
     echo "##### installing gems..."
     sudo gem install $GEMS;
     echo "##### installing comms";
     go get -u layeh.com/barnard
     sudo cp -f alsa.conf /usr/share/alsa/alsa.conf
-    cat << EOF > /etc/asound.conf
+    sudo cat << EOF > /etc/asound.conf
 pcm.!default {
  type hw
  card 1
@@ -141,15 +123,15 @@ ctl.!default {
  card 1
 }
 EOF
-    if [[ "$2" == 'mine' ]]; then
+    if [[ "$MINE" == 'true' ]]; then
 	cd ~
 	git clone https://github.com/revoxhere/duino-coin
 	cd duino-coin
 	python3 -m pip install -r requirements.txt
 	python3 PC_Miner.py
     fi
-    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
-    sudo raspi-config
+#    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
+#    sudo raspi-config
     echo "##### DONE! #####"
 elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh

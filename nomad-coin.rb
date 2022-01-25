@@ -219,7 +219,7 @@ CAMS = Redis::HashKey.new("CAMS")
 QRI = Redis::HashKey.new("QRI")
 QRO = Redis::HashKey.new("QRO")
 LOGINS = Redis::HashKey.new("LOGINS")
-
+QUICK = Redis::HashKey.new("QUICK")
 
 BRAIN = Cerebrum.new
 
@@ -490,9 +490,14 @@ class Waypoint
   hash_key :attr
   sorted_set :stat
   set :contributors
+  hash_key :passwords
   def initialize i
-    @a, @p = i.split(':')
-    @url = "https://#{OPTS[:domain]}/waypoint?a=#{@a}&i=#{@p}"
+    if OPTS[:domain] == 'localhost'
+      h = 'http'
+    else
+      h = 'https'
+    end
+    @url = "#{h}://#{OPTS[:domain]}/waypoint?i=#{@id}"
     @id = i
   end
   def id
@@ -500,12 +505,17 @@ class Waypoint
   end
   def html
     o = []
-    o << %[<p class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</p>]
-    o << %[<p class='location'>#{self.attr[:location]}</p>]
-    o << %[<p class='description'>#{self.attr[:description]}</p>]
-    o << %[<p class='instructions'>#{self.attr[:instructions]}</p>]
-    o << %[<p class='goal'>#{self.attr[:goal]}</p>]
-    return %[<div>#{o.join('')}</div>]
+    o << %[<ul>]
+    o << %[<li class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</li>]
+    o << %[<li class='location'>#{self.attr[:location]}</li>]
+    o << %[<li class='description'>#{self.attr[:description]}</li>]
+    o << %[<li class='instructions'>#{self.attr[:instructions]}</li>]
+    o << %[<li class='goal'>#{self.attr[:goal]}</li>]
+    o << %[<ul>]
+    o << %[<fieldset><legend>passwords</legend><ul>]
+    self.passwords.all.each_pair { |k,v| o << %[<li><span style='padding: 0 1% 0 0;'>#{v}</span><span>#{k}</span></li>] }
+    o << %[</ul></fieldset>]
+    return %[<fieldset><legend>#{@id}</legend>#{o.join('')}</fieldset>]
   end
 end
 
@@ -568,10 +578,14 @@ class Vote
     return { user: x, votes: self.votes[x] }
   end
 end
+
 class Zone
   include Redis::Objects
   set :pool
   hash_key :attr
+  set :waypoints
+  set :adventures
+  set :urls
   def initialize i
     @id = i
   end
@@ -707,6 +721,7 @@ end
 
 class Sash
   def initialize u, *b
+    @pins = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars', 'spa'];
     @u = U.new(u)
   end
   def [] b
@@ -754,16 +769,15 @@ class Sash
 
   def lvl
     r = []
-    k = ['trip_origin', 'circle', 'adjust', 'stop', 'check_box_outline_blank', 'star', 'star_border', 'stars'];
     if @u.attr[:boss].to_i > 0
       "#{@u.attr[:boss]}".length.times {
-        r << %[<span class='material-icons pin'>#{k[@u.attr[:class].to_i + 1]}</span>]
+        r << %[<span class='material-icons pin'>#{@pins[@u.attr[:class].to_i + 1]}</span>]
       }
       r << %[<br>]
-      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{k[0]}</span>] }
+      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{@pins[0]}</span>] }
       p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
     else
-      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{k[0]}</span>] }    
+      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{@pins[0]}</span>] }    
       p = style(0, 0, 0, 0, 0)
     end
     return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
@@ -1113,7 +1127,7 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
-
+  get('/shell') { erb :shell, layout: false }
   get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
   post('/sw') {
     @user = U.new(params[:u])
@@ -1477,37 +1491,51 @@ ga('send', 'pageview');
       if params.has_key? :admin
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
         if params[:admin].to_sym == :boss
-          @user.attr.incr(params[:admin].to_sym)
-          pr = []
-          case @user.attr[:boss]
-          when "1"
-            pr = %[vote in contests.]
-          when "2"
-            pr = %[give badge awards.]
-          when "3"
-            pr = %[certify others badge authority.]
-          when "4"
-            pr = %[invite new users.]
-            @user.attr[:class] = 1
-          when "5"
-            pr = %[promote others' influence.]
-          when "6"
-            pr = %[promote others' level, stripes, and pin.]
-          when "7"
-            @user.attr[:class] = 2
-            pr = %[award titles to others.]
-          when "8"
-            pr = %[send messages.]
-            @user.attr[:class] = 3
-          when "9"
-            pr = %[create contests.]
-          when "10"
-            pr = %[create zones.]
-          else
-            @user.attr[:class] = 4
-            pr = %[do everything.]
+          if @by.attr[:boss].to_i >= @user.attr[:boss].to_i + 1
+            @user.attr.incr(params[:admin].to_sym)
+            pr = []
+            case @user.attr[:boss]
+            when "1"
+            when "2"
+            when "3"
+            when "4"
+            when "5"
+            when "6"
+              # user class
+              @user.attr[:class] = 1
+              pr = %[zone membership and send invites.]
+            when "7"
+            when "8"
+            when "9"
+            when "10"
+              # influencer
+              @user.attr[:class] = 2
+              pr = %[manage content, and award award titles.]
+            when "100"
+              # brand ambassador
+              @user.attr[:class] = 3
+              pr = %[send invites.]
+            when "1000"
+              # brand manager
+              @user.attr[:class] = 4
+              pr = %[administer a waypoint.]
+            when "10000"
+              # brand agent
+              @user.attr[:class] = 5
+              pr = %[administer zones.]
+            when "100000"
+              # brand operator
+              @user.attr[:class] = 6
+              pr = %[administer contests.]
+            when "1000000"
+              # brand owner
+              @user.attr[:class] = 7
+              pr = %[#{OPTS[:domain]} owner.]
+            end
+            if pr
+              @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
+            end
           end
-          @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
         elsif params[:admin].to_sym == :rank
           @user.attr.incr(:rank)
         else
