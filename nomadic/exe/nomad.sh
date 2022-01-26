@@ -16,11 +16,13 @@ defscrollback 1024
 startup_message off
 hardstatus on
 hardstatus alwayslastline
-screen -t emacs 0 emacs -nw --visit ~/index.org
-screen -t '$' 1 ./nomad.sh
-screen -t bash 2 bash
-screen -t '#' 9 redis-cli monitor
-select 0
+screen -t EMACS 0 emacs -nw --visit ~/index.org
+screen -t NOMAD 1 ./nomad.sh
+screen -t BASH 2 bash
+screen -t COMMS 3 ./nomad.sh operator
+screen -t BT 8 bluetoothctl
+screen -t MON 9 redis-cli monitor
+select 3
 END
 
 echo -e "$X INDEX"
