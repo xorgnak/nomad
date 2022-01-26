@@ -86,8 +86,8 @@ elif [[ "$1" == "update" ]]; then
     echo "##### REBOOT TO RUN #####"
 elif [[ "$1" == 'sd' ]]; then
     sudo cp /etc/wpa_supplicant/wpa_supplicant.conf /media/pi/boot/
-    sudo touch /media/pi/boot
-    sudo cp -fR ~/nomad /media/pi/rootfs/home/pi/nomad
+    sudo touch /media/pi/boot/ssh
+    sudo cp -fR ~/nomad /media/pi/rootfs/home/pi/
 elif [[ "$1" == 'operator' ]]; then
     source ~/nomad.conf
     $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:64738 -username `hostname`-$NICK;
@@ -130,8 +130,8 @@ EOF
 	python3 -m pip install -r requirements.txt
 	python3 PC_Miner.py
     fi
-#    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
-#    sudo raspi-config
+    (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
+    sudo raspi-config
     echo "##### DONE! #####"
 elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
