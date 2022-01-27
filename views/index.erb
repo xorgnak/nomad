@@ -161,6 +161,7 @@ padding: 3%;
     </datalist>
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
     <% end %>
+
     <% if @user.attr[:boss].to_i > 6 %>
     <datalist id='titles'>
       <% TITLES.members.each do |title| %>
@@ -177,8 +178,6 @@ padding: 3%;
     <% end %>
     </datalist>
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
-    <% end %>
-    </fieldset>
     <% end %>
     <fieldset><legend>skills</legend>
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
@@ -202,6 +201,7 @@ padding: 3%;
 	<% end %>
       </select>
     </h3>
+    </fieldset>
     </fieldset>
     <h3 style='width: 100%; text-align: center;'>
     <button style='background-color: green; color: white;'>send</button>
