@@ -124,7 +124,7 @@ padding: 3%;
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;'>
     <fieldset>
     <legend><input type='text' id='scan' name='scan' value='<%= @id %>' disabled></legend>
-    <ul style='background-color: white; color: black; margin: 0;'>
+    <ul style='background-color: white; color: black;'>
       <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
       
     <li><span style='padding: 2%;'>rank:</span>
@@ -152,17 +152,8 @@ padding: 3%;
     <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
- 
-    <% if @user.attr[:boss].to_i > 8 %>
-    <datalist id='contests'>
-      <% VOTES.members.each do |vote| %>
-      <option value='<%= vote %>'>
-	<% end %>
-    </datalist>
-    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
-    <% end %>
 
-    <% if @user.attr[:boss].to_i > 6 %>
+    <% if @user.attr[:class].to_i >= 2 %>
     <datalist id='titles'>
       <% TITLES.members.each do |title| %>
       <option value='<%= title %>'>
@@ -170,15 +161,25 @@ padding: 3%;
     </datalist>
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
     <% end %>
-    
-    <% if @user.attr[:boss].to_i > 9 %>
+
+    <% if @user.attr[:class].to_i >= 5 %>
     <datalist id='zones'>
       <% ZONES.members.each do |zone| %>
       <option value='<%= zone %>'>
-    <% end %>
+	<% end %>
     </datalist>
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
+        <% end %>
+    
+    <% if @user.attr[:class].to_i >= 6 %>
+    <datalist id='contests'>
+      <% VOTES.members.each do |vote| %>
+      <option value='<%= vote %>'>
+	<% end %>
+    </datalist>
+    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
     <% end %>
+    
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='give[of]' style='width: 30%; padding: 0;'>
       	<option selected disabled>give</option>
