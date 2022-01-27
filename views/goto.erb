@@ -11,7 +11,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <img src='/<%= @user.id %>.img'>
 
-
+<% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = contest(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
 
 <div id='top' style='width: 100%; text-align: center; position: fixed; top: 0;'>
 

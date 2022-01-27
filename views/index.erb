@@ -113,8 +113,8 @@ padding: 3%;
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
-    <%= @user.sash.lvl %>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
+      <%= @user.sash.lvl %>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
       <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] %></h1>
       <%= @user.sash.badges %>
@@ -137,7 +137,8 @@ padding: 3%;
     <span id='rank'></span>
     <% end %>
     </li>
-
+    
+    <% if !params.has_key?(:z) %>
     <li><span style='padding: 2%;'>boss:</span>
     <% if @user.attr[:class].to_i > 3 %>
     <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
@@ -148,12 +149,13 @@ padding: 3%;
     <span id='boss'></span>
     <% end %>
     </li>
-    
+      
     <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
+    <% end %>  
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
 
-    <% if @user.attr[:class].to_i >= 2 %>
+    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 %>
     <datalist id='titles'>
       <% TITLES.members.each do |title| %>
       <option value='<%= title %>'>
@@ -162,7 +164,7 @@ padding: 3%;
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
     <% end %>
 
-    <% if @user.attr[:class].to_i >= 5 %>
+    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 %>
     <datalist id='zones'>
       <% ZONES.members.each do |zone| %>
       <option value='<%= zone %>'>
@@ -171,7 +173,7 @@ padding: 3%;
     <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
         <% end %>
     
-    <% if @user.attr[:class].to_i >= 6 %>
+    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 6 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
       <option value='<%= vote %>'>
@@ -184,10 +186,10 @@ padding: 3%;
       <select name='give[of]' style='width: 30%; padding: 0;'>
       	<option selected disabled>give</option>
         <option value='vote'>vote</option>
-	<% if @user.attr[:boss].to_i > 2 %>
+	<% if @user.attr[:boss].to_i >= 2 %>
 	<option value='badge'>badge</option>
 	<% end %>
-	<% if @user.attr[:boss].to_i > 4 %>
+	<% if @user.attr[:boss].to_i >= 4 %>
 	<option value='award'>award</option>
 	<% end %>
         <% if @user.attr[:boss].to_i > 9 %>

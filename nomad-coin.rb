@@ -564,6 +564,24 @@ class Board
   end
 end
 
+class Contest
+  include Redis::Objects
+  sorted_set :votes
+  sorted_set :voters
+  set :pool
+  def initialize i
+    @id = i
+  end
+  def id
+    @id
+  end
+  def leader
+    x = self.votes[-1]
+    return { user: x, votes: self.votes[x] }
+  end
+end
+
+
 class Vote
   include Redis::Objects
   sorted_set :votes
@@ -1043,6 +1061,9 @@ class APP < Sinatra::Base
   set :sockets, []
   
   helpers do
+    def contest c
+      Contest.new(c)
+    end
     def notify u, h={}
       @u = U.new(u)
       @v = JSON.parse(@u.attr[:vapid])
@@ -1616,11 +1637,15 @@ end
       
       if params.has_key?(:vote) && params[:vote] != ''
         VOTES << params[:vote]
-        Vote.new(params[:vote]).pool << @user.id
+        Contest.new(params[:vote]).pool << @user.id
         @user.attr['vote'] = params[:vote]
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
       end
-      
+
+      if params.has_key?(:contest)
+        contest(params[:contest]).votes.incr(@user.id)
+        contest(params[:contest]).voters.incr(params[:z])
+      end
       
       if params.has_key?(:zone) && params[:zone] != ''
         ZONES << params[:zone]
@@ -1641,7 +1666,8 @@ end
             @user.awards.incr(params[:give][:type])
           end  
         elsif params[:give][:of] == 'vote'
-          Vote.new(params[:give][:type]).pool << @user.id
+          v = Vote.new(params[:give][:type])
+          v.votes.incr @user.id
         elsif params[:give][:of] == 'badge' && params[:give][:desc] != ''
           if @by.boss[params[:give][:type]] > 0
             @user.sash << params[:give][:type]
