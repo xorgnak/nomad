@@ -50,10 +50,12 @@ function tick() {
 		    //mine(h.u);
 		    
 		    // match nework domains...
+		    <% if DOMAINS.members.length > 1 %>
 			<% DOMAINS.members.each do |e| %>
 		} else if (dom_<%= e.gsub('.','_') %>.test(code.data)) {
 		    log("<a href='" + code.data + "' style='color: white;'><%= e %></a>");
        	  		<% end %>
+			<% end %>
 		}
 	    }
 	}
