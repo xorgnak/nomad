@@ -20,7 +20,11 @@ function tick() {
 	var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
 	var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
 	var dom = /<%= @path.gsub('://', ':\/\/') %>/g;
+	<% DOMAINS.members.each do |e| %>
+	var dom_<%= e.gsub('.', '-') %> = /<%= e.gsub('://', ':\/\/') %>/g;
+	<% end %>
 	if (code) {
+	// match local domain
 	    if (dom.test(code.data)) {
 		var h = {};
 		var o = code.data.split('?');
@@ -43,7 +47,13 @@ $('#z').text(h.x);
 		$('#display').hide();
 		$('#magic').show();
 		//mine(h.u);
-	    }
+
+// match nework domains...
+		<% DOMAINS.members.each do |e| %>
+} else if (dom_<%= e.gsub('.','-') %>.test(code.data)) {
+log("<a href='" + code.data + "'><%= e %></a>");
+       	  	<% end %>
+	    } 
 	}
     }
     requestAnimationFrame(tick);

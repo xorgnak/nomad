@@ -198,6 +198,7 @@ require 'browser'
 
 
 CRON = Rufus::Scheduler.new
+DOMAINS = Redis::Set.new("DOMAINS")
 VOTES = Redis::Set.new("VOTES")
 ZONES = Redis::Set.new("ZONES")
 TITLES = Redis::Set.new("TITLES")
@@ -1731,7 +1732,7 @@ end
 db b
 
 
-
+DOMAINS << OPTS[:domain]
 
 begin
   host = `hostname`.chomp
