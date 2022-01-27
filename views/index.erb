@@ -128,10 +128,10 @@ padding: 3%;
       <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
       
     <li><span style='padding: 2%;'>rank:</span>
-    <% if @user.attr[:class].to_i > 3 %>
+    <% if @user.attr[:class].to_i >= 3 %>
     <input type='checkbox' id='promote' name='admin' value='rank' style='width: min-content;'>
     <% end %>
-    <% if @user.attr[:class].to_i > 6 %>
+    <% if @user.attr[:class].to_i >= 6 %>
     <input id='rank' name='config[rank]' style='width: 50%;'>
     <% else %>
     <span id='rank'></span>
@@ -140,10 +140,10 @@ padding: 3%;
     
     <% if !params.has_key?(:z) %>
     <li><span style='padding: 2%;'>boss:</span>
-    <% if @user.attr[:class].to_i > 3 %>
+    <% if @user.attr[:class].to_i >= 3 %>
     <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
     <% end %>
-    <% if @user.attr[:class].to_i > 6 %>
+    <% if @user.attr[:class].to_i >= 6 %>
     <input id='boss' name='config[boss]' style='width: 50%;'>
     <% else %>
     <span id='boss'></span>

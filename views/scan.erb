@@ -38,8 +38,13 @@ function tick() {
 		    log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
 		} else {
 		    $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+		    <% if @user.attr[:class].to_i > 6 %>
 		    $('#boss').val(h.b);
 		    $('#rank').val(h.r);
+		    <% else %>
+                    $('#boss').text(h.b);
+                    $('#rank').text(h.r);
+		    <% end %>
 		    $('#xp').text(h.p);
 		    $('#class').text(h.c);
 		    $('#z').text(h.x);
