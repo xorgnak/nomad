@@ -127,27 +127,32 @@ padding: 3%;
     </h3>
     <ul style='background-color: white; color: black;'>
       <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
-    <li><span style='padding: 2%;'>rank:</span><span id='rank'></span></li>
-    <li><span style='padding: 2%;'>boss:</span><span id='boss'></span></li>
+      
+    <li><span style='padding: 2%;'>rank:</span>
+    <% if @user.attr[:class].to_i > 3 %>
+    <input type='checkbox' id='promote' name='admin' value='admin'>
+    <% end %>
+    <% if @user.attr[:class].to_i > 6 %>
+    <input id='rank' name='config[rank]'>
+    <% else %>
+    <span id='rank'></span>
+    <% end %>
+    </li>
+
+    <li><span style='padding: 2%;'>boss:</span>
+    <% if @user.attr[:class].to_i > 3 %>
+    <input type='checkbox' id='promote' name='admin' value='boss'>
+    <% end %>
+    <% if @user.attr[:class].to_i > 6 %>
+    <input id='boss' name='config[boss]'>
+    <% else %>
+    <span id='boss'></span>
+    <% end %>
+    </li>
+    
     <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
-    <h1 style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <% if @user.attr[:class].to_i >= 4 %>
-        <div style='width: 40%;'>
-	  <label for="promote" >boss</label>
-	  <input type='checkbox' id='promote' name='admin' value='boss'>
-	  <br>
-	</div>
-	<% end %>
-	<% if @user.attr[:class].to_i >= 1 %>
-	<div style='width: 40%;'>
-	  <label for="promote" >rank</label>
-	  <input type='checkbox' id='promote' name='admin' value='admin'>
-	  <br>
-	</div>
-	<% end %>
-    </h1>
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
