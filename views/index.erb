@@ -152,10 +152,7 @@ padding: 3%;
     <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
-    
-    <% if @user.attr[:boss].to_i > 6 %>
-    </fieldset>
-    <fieldset><legend>assign</legend>
+ 
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
@@ -206,7 +203,9 @@ padding: 3%;
       </select>
     </h3>
     </fieldset>
+    <h3 style='width: 100%; text-align: center;'>
     <button style='background-color: green; color: white;'>send</button>
+    </h3>
   </div>
   
   <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
