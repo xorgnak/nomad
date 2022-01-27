@@ -1576,7 +1576,7 @@ end
       @user.log << %[<span class='material-icons'>info</span> profile updated.]
       end
 
-      if params.has_key? :waypoint
+      if params.has_key?(:waypoint) && params.has_key?(:a)
         Adventure.new(params[:a]).waypoints << "#{params[:a]}:#{params[:i]}"
         Waypoint.new(params[:a] + ':' + params[:i]).contributors << params[:u]
         params[:waypoint].each_pair { |k,v|

@@ -5,7 +5,7 @@ DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools golang libopus0 libopus-de
 DEBS_FUN='games-console tintin++ slashem';
 DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
 DEBS_SHELL='shellinabox openssl'
-GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch';
+GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler twilio-ruby redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch rqrcode webpush';
 
 if [[ ! -f ~/nomad.conf ]]; then
         cat << EOF > ~/nomad.conf                                                                                                                        
@@ -79,6 +79,7 @@ server {
 }
 EOF
 elif [[ "$1" == "update" ]]; then
+    echo "##### POST UPDATE #####"
     sudo ./nomadic/exe/nomad.sh
     sudo cp -f nginx/* /etc/nginx/sites-enabled/
     sudo chown $USERNAME:$USERNAME ~/*
@@ -93,8 +94,9 @@ elif [[ "$1" == 'operator' ]]; then
     $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:64738 -username `hostname`-$NICK;
 elif [[ "$1" == "install" ]]; then
     echo "##### normalizing..."
-#    su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
+    su -c "editor /etc/apt/sources.list && /sbin/usermod -aG sudo $USER && apt update && apt upgrade && apt install sudo git"
     echo "##### normal."
+    sudo raspi-config
     debs="$DEBS $DEBS_HAM $DEBS_FUN ";
     if [[ "$GUI" == "true" ]]; then
 	debs="$debs $DEBS_GUI";
@@ -131,7 +133,12 @@ EOF
 	python3 PC_Miner.py
     fi
     (sudo crontab -l 2>/dev/null; echo "@reboot cd /home/pi/nomad && ./nomad.sh boot") | sudo crontab -
-    sudo raspi-config
+    echo "##### PRE UPDATE #####"
+    sudo ./nomadic/exe/nomad.sh
+    sudo cp -f nginx/* /etc/nginx/sites-enabled/
+    sudo chown $USERNAME:$USERNAME ~/*
+    sudo chown $USERNAME:$USERNAME ~/.*
+    echo "##### REBOOT TO RUN #####"
     echo "##### DONE! #####"
 elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
