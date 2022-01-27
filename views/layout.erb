@@ -4,31 +4,17 @@
 <% end %>
 body { margin: 0; padding: 0; }
 </style>
+<% @ts = Time.now.utc.to_i %>'
 
 <meta name="viewport" content="initial-scale=1, maximum-scale=1">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <% if params.has_key?(:u) %>
-<% if params.has_key?(:x) %>
-<link rel="manifest" href="<%= @path %>/manifest.webmanifest?u=<%= params[:u] %>&x=<%= params[:x] %>" crossorigin="use-credentials" />
-<% else %>
+  <% if params.has_key?(:x) %>
+<link rel="manifest" href="<%= @path %>/manifest.webmanifest?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&ts=<%= params[:ts] || @ts %>" crossorigin="use-credentials" />
+  <% else %>
 <link rel="manifest" href="<%= @path %>/manifest.webmanifest?u=<%= params[:u] %>" crossorigin="use-credentials" />
-<% end %>
-<link rel="apple-touch-icon" sizes="57x57" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="60x60" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="72x72" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="76x76" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="114x114" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="120x120" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="144x144" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="152x152" href="<% @path %>/favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="<% @path %>/favicon.ico">
-<link rel="icon" type="image/png" sizes="192x192"  href="<% @path %>/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="<% @path %>/favicon.ico">
-<link rel="icon" type="image/png" sizes="96x96" href="<% @path %>/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="<% @path %>/favicon.ico">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="<% @path %>/favicon.ico">
-<meta name="theme-color" content="#ffffff">
+  <% end %>
 <% end %>
 
 <script src='https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.js'></script>
@@ -43,8 +29,9 @@ body { margin: 0; padding: 0; }
 <form action='/' method='POST' enctype="multipart/form-data">
 <input type='hidden' id='u' name='u' value='<%= params[:u] || @id %>'>
 <% if params.has_key?(:x) %>
-<input type='hidden' id='x' name='x' value='<%= params[:x] %>'>
-<input type='hidden' id='ts' name='ts' value='<%= Time.now.utc.to_f %>'>
+<input type='hidden' id='z' name='z' value='<%= params[:z] || 'zzzzzz' %>'>
+<input type='hidden' id='x' name='x' value='<%= params[:x] || 'solo' %>'>
+<input type='hidden' id='ts' name='ts' value='<%= params[:ts] || @ts %>'>
 <% end %>
 <%= yield %>  
 </form>

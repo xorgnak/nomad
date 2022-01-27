@@ -1,8 +1,8 @@
 <style>
 body { margin: 0; }
 img { width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: -10; }
-a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius: 1000px; color: white;}
-#lvl { padding: 1%; text-align: center; }
+a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-radius: 5px; color: white; box-shadow: 0 0 2px white; }
+#lvl { padding: 1%; text-align: center; margin: 0;}
 .pin { padding: 1%; margin: 1%; font-size: small; }
 #badges { text-align: center; }
 #badge > h1 > * { vertical-align: middle; }
@@ -11,57 +11,69 @@ a { text-decoration: none; padding: 2%; border: thick outset grey; border-radius
 
 <img src='/<%= @user.id %>.img'>
 
-<div style='position: fixed; top: 0; width: 100%; text-align: center;'>
- <% if @user.attr.has_key? :pitch %>
-  <h3 id='pitch' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
-  <% end %>
-</div>
 
-<div id='badge' style='display: none;'>
-  <h1 style='text-align: center; width: 100%; background-color: black;'>
-  <input name='code' type='text' style='width: 70%;' placeholder='CODE'>
-  <button class='material-icons'>record_voice_over</button>
-  </h1>
-  <%= @user.sash.lvl %>
+
+<div id='top' style='width: 100%; text-align: center; position: fixed; top: 0;'>
+
+<h1 style='width: 100%; margin: 0; background-color: black;'>
+
+  <a id='tog' style='padding: 0 3% 0 3%;' class='material-icons' onclick='$("#badge").toggle(); $("#btm").toggle();'>badge</a>
+
+  <% if @user.attr.has_key?(:link) && @user.attr[:link] != '' %>
+    <a style='color: gold; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:link] %>'>lightbulb</a>
+  <% end %>
+
+  <% if @user.attr.has_key?(:vote) %>
+
+  <% if params.has_key? :v %>
+  <span class='material-icons' style='padding: 0 3% 0 3%; border: thin outset grey; border-radius: 5px; color: white; box-shadow: 0 0 2px white;'>thumb_up</span>
+  <% else %>
+  <a class='material-icons' href='/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style=''>thumb_up_off_alt</a>
+  <% end %>
+
+  <% end %>
+
+  <% if @user.attr.has_key?(:contact) && params[:contact] != 'none' %>
+    <a style=' color: green; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>call</a>
+  <% end %>
+</h1>
+
+<% if @user.attr.has_key? :vote %>
+<h4 style='width: 100%; background-color: black; color: white; margin: 0;'><%= @user.attr[:vote] %></h4>
+<% end %>
+</div>
+<div id='badge' style='display: none; position: absolute; top: 0;'>
+     <% @u = U.new("#{params[:u]}:#{params[:z]}") %>
   <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
     <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   </div>
-  <%= @user.sash.badges %>
+  <%= @u.sash.lvl %>
+  <%= @u.sash.badges %>
 </div>
 
-<div style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
 
- <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
- <h1 id='name' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
+<div id='btm' style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
+ <% if @user.attr.has_key? :pitch %>
+  <h3 id='pitch' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
  <% end %>
-
+ 
+ <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
+  <h1 id='name' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
+ <% end %>
+ <% if @user.attr.has_key? :title %>
+  <h4 id='title' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
+ <% end %>
  <% if @user.attr.has_key? :sponsor %>
  <h4 id='sponsor' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:sponsor] %></span></h2>
  <% end %>
 
- <% if @user.attr.has_key? :title %>
-  <h4 id='title' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
-   <% end %>
-<h1 style='width: 100%;'>
-
-<a id='tog' style='background-color: blue; width: 20%;' class='material-icons' onclick='$("#badge").show(); $("#pitch").hide(); $("#name").hide(); $("#title").hide(); $("#sponsor").hide(); $("#tog").hide();'>badge</a>
-
-<% if @user.attr.has_key?(:link) && @user.attr[:link] != '' %>
-    <a style='background-color: red; width: 20%;' class='material-icons' href='<%= @user.attr[:link] %>'>menu</a>
-<% end %>
-    
-<% if @user.attr.has_key?(:contact) && params[:contact] != 'none' %>
-    <a style='background-color: green; width: 20%;' class='material-icons' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>call</a>
-
-<% end %>
-</h1>
 </div>
 
-<% @ts = Time.now.utc.to_f %>
-
+<% @ts = Time.now.utc.to_i %>
+<input type='hidden' name='z' value='<%= params[:z] %>'>
 <input type='hidden' name='x' value='<%= params[:x] || "solo" %>'>
 <input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
 <script>
-$('#qrcode').qrcode('<%= @path %>/?u=<%= params[:u] %>&x=<% params[:x] || 'solo' %>ts=<%= params[:ts] || @ts %>');
+$('#qrcode').qrcode('<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&ts=<%= params[:ts] || @ts %>');
 
 </script>

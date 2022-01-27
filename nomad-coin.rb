@@ -1395,31 +1395,44 @@ ga('send', 'pageview');
     ERB.new(File.read("home/#{u}/#{params[:c]}/index.erb") + ga + ta).result(binding)
   }
   get('/:u') {
-    if token(params[:u]) == 'true';
-      @vapid = Webpush.generate_key;
-      @id = id(params[:u]);
-      @user = U.new(@id);
-      @user.attr[:pub] = @vapid.public_key
-      @user.attr[:priv] = @vapid.private_key
-      qrcode = RQRCode::QRCode.new("#{@path}/?x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}")
-      png = qrcode.as_png(
-        bit_depth: 1,
-        border_modules: 0,
-        color_mode: ChunkyPNG::COLOR_GRAYSCALE,
-        color: "black",
-        file: nil,
-        fill: "white",
-        module_px_size: 6,
-        resize_exactly_to: false,
-        resize_gte_to: false,
-        size: 200
-      )
-
-      IO.binwrite("public/#{OPTS[:domain]}/QR#{@id}.png", png.to_s)
-      pool << @id;
-      erb :index
+    if QRO.has_key? params[:u]
+      if token(params[:u]) == 'true';
+        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i
+          @vapid = Webpush.generate_key;
+          @id = id(params[:u]);
+          @user = U.new(@id);
+          @user.attr[:pub] = @vapid.public_key
+          @user.attr[:priv] = @vapid.private_key
+          qrcode = RQRCode::QRCode.new("#{@path}/?x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}")
+          png = qrcode.as_png(
+            bit_depth: 1,
+            border_modules: 0,
+            color_mode: ChunkyPNG::COLOR_GRAYSCALE,
+            color: "black",
+            file: nil,
+            fill: "white",
+            module_px_size: 6,
+            resize_exactly_to: false,
+            resize_gte_to: false,
+            size: 200
+          )
+          
+          IO.binwrite("public/#{OPTS[:domain]}/QR#{@id}.png", png.to_s)
+          pool << @id;
+          erb :index
+        else
+          # expired link
+          w = []; 16.times { w << rand().to_i(16) }
+          redirect "#{@path}/?w=#{w.join('')}"
+        end
+      else
+        # expired token
+        w = []; 16.times { w << rand().to_i(16) }
+        redirect "#{@path}/?w=#{w.join('')}"
+      end
     else
-      redirect "#{@path}/?w=#{params[:u]}"
+      # does not exist
+      redirect "#{@path}"
     end
   }
   post('/') do
@@ -1608,6 +1621,7 @@ end
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
       end
       
+      
       if params.has_key?(:zone) && params[:zone] != ''
         ZONES << params[:zone]
         Zone.new(params[:zone]).pool << @user.id
@@ -1647,10 +1661,11 @@ end
 
       if params.has_key?(:send) && params[:send][:number].length == 10
         if params[:send][:mode] == 'invite'
-          tok = []; 20.times { tok << rand(16).to_s(16) }
+          tok = []; 16.times { tok << rand(16).to_s(16) }
           phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: "invite: #{@path}/?w=#{tok.join('')}")
         else
-          r = "#{@by.attr[:name]}\n#{@by.attr[:pitch]}\n#{@path}/?u=#{QRO[@by.id]}"
+          z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('')
+          r = "#{@by.attr[:name]}\n#{@by.attr[:pitch]}\n#{@path}/?u=#{QRO[@by.id]}&z=#{@z}"
           phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: r)
         end
       end
@@ -1702,7 +1717,7 @@ end
       elsif params.has_key? :cmd
         redirect "#{@path}/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}"
+        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
       elsif params.has_key? :a
         redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else

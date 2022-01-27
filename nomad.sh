@@ -90,6 +90,7 @@ elif [[ "$1" == 'sd' ]]; then
     sudo touch /media/pi/boot/ssh
     sudo cp -fR ~/nomad /media/pi/rootfs/home/pi/
 elif [[ "$1" == 'operator' ]]; then
+    
     source ~/nomad.conf
     $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:64738 -username `hostname`-$NICK;
 elif [[ "$1" == "install" ]]; then
