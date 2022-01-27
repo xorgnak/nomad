@@ -122,15 +122,14 @@ padding: 3%;
   </div>
   
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;'>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
-    <input type='text' id='scan' name='scan' value='<%= @id %>' disabled>
-    </h3>
-    <ul style='background-color: white; color: black;'>
+    <fieldset>
+    <legend><input type='text' id='scan' name='scan' value='<%= @id %>' disabled></legend>
+    <ul style='background-color: white; color: black; margin: 0;'>
       <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
       
     <li><span style='padding: 2%;'>rank:</span>
     <% if @user.attr[:class].to_i > 3 %>
-    <input type='checkbox' id='promote' name='admin' value='admin' style='width: min-content;'>
+    <input type='checkbox' id='promote' name='admin' value='rank' style='width: min-content;'>
     <% end %>
     <% if @user.attr[:class].to_i > 6 %>
     <input id='rank' name='config[rank]' style='width: 50%;'>
@@ -153,13 +152,17 @@ padding: 3%;
     <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
     </ul>
+    
+    <% if @user.attr[:boss].to_i > 6 %>
+    </fieldset>
+    <fieldset><legend>assign</legend>
     <% if @user.attr[:boss].to_i > 8 %>
     <datalist id='contests'>
       <% VOTES.members.each do |vote| %>
       <option value='<%= vote %>'>
 	<% end %>
     </datalist>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
+    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
     <% end %>
     <% if @user.attr[:boss].to_i > 6 %>
     <datalist id='titles'>
@@ -167,7 +170,7 @@ padding: 3%;
       <option value='<%= title %>'>
 	<% end %>
     </datalist>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
+    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
     <% end %>
     
     <% if @user.attr[:boss].to_i > 9 %>
@@ -176,9 +179,11 @@ padding: 3%;
       <option value='<%= zone %>'>
     <% end %>
     </datalist>
-    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
+    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
     <% end %>
-
+    </fieldset>
+    <% end %>
+    <fieldset><legend>skills</legend>
     <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
       <select name='give[of]' style='width: 30%; padding: 0;'>
       	<option selected disabled>give</option>
@@ -200,6 +205,7 @@ padding: 3%;
 	<% end %>
       </select>
     </h3>
+    </fieldset>
     <button style='background-color: green; color: white;'>send</button>
   </div>
   
