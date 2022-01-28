@@ -196,6 +196,8 @@ require 'digest/md5'
 require 'securerandom'
 require 'browser'
 
+load "colorize.rb"
+
 
 CRON = Rufus::Scheduler.new
 DOMAINS = Redis::Set.new("DOMAINS")
