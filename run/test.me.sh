@@ -9,15 +9,15 @@ export DOMAIN_ROOT='';
 # set to false for cloud (hub) usage.
 export BOX='true';
 # pre-configure domains for hub
-export DOMAINS='test1.com test2.com';
+export DOMAINS='test.me';
 # the twilio api sid and key used for sms authentication, etc.                                                                                           
 export PHONE_SID='';                                                                                                                           
 export PHONE_KEY='';
 #export GUI="true";
-#export BONNET='true';                                                                                                                                   
+#export BONNET='true';                                                                                                                                  
 #export MINE='true';                                                                                                                                     
-#export MUSH='true';                                                                                                                                     
-#export DEVS='true';     
+export MUSH='true';                                                                                                                                     
+export DEVS='true';     
 export PORT_ROOT=8080;
 export MUMBLE_ROOT=64738;
 export MUMBLE=64738;                                                           
@@ -25,11 +25,12 @@ export MUMBLE=64738;
 #   
 # EDIT TO SUIT YOUR NEEDS.
 #
-export DOMAIN='test2.com';
-export PORT='8081';
-export MUMBLE='64740';
+export DOMAIN='test.me';
+export PORT='8080';
+export MUMBLE='64739';
 export PHONE='';
 export ADMIN='';
 ruby mumble.rb
+redis-cli hset MUMBLE $DOMAIN $MUMBLE
 umurmurd -c mumble/$DOMAIN.conf
 ruby nomad-coin.rb -p $PORT -d $DOMAIN -b $ADMIN -s $PHONE_SID -k $PHONE_KEY;

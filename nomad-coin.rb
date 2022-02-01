@@ -223,6 +223,7 @@ QRI = Redis::HashKey.new("QRI")
 QRO = Redis::HashKey.new("QRO")
 LOGINS = Redis::HashKey.new("LOGINS")
 QUICK = Redis::HashKey.new("QUICK")
+MUMBLE = Redis::HashKey.new('MUMBLE')
 
 BRAIN = Cerebrum.new
 
