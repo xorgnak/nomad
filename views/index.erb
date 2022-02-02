@@ -244,7 +244,7 @@ padding: 3%;
     <% if !params.has_key? :installed %>
     log('<span class="material-icons">info</span> Add to homescreen to install.');
     <% end %>
-    log('<span class="material-icons">outlet</span> <a style="color: white; text-decoration: none;" href="<%= @path.gsub('http', 'mumble').gsub('https','mumble') %>:<%= ENV["MUMBLE"] %>">connect</a>')
+    log('<span class="material-icons">outlet</span> <a style="color: white; text-decoration: none;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">connect</a>')
 <%= erb :scan %>
 <%= erb :sha %>
 <%# erb :coin %>
