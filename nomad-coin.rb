@@ -1440,7 +1440,7 @@ ga('send', 'pageview');
             resize_gte_to: false,
             size: 200
           )
-          
+   
           IO.binwrite("public/#{OPTS[:domain]}/QR#{@id}.png", png.to_s)
           pool << @id;
           erb :index
@@ -1714,22 +1714,24 @@ end
       end
       
       if params.has_key? :login
-        if params[:login][:username].length != ''
+        if params[:login][:username].length > 0
           if LOGINS[params[:login][:username]] == params[:login][:password]
             if !IDS.has_key? params[:login][:username]
               IDS[params[:login][:username]] = @id
               BOOK[params[:login][:username]] = @id
               LOOK[@id] = params[:login][:username]
               qrp = []; 16.times { qrp << rand(16).to_s(16) }
-              QRI[qrp.join('')] = params[:login][:username]
-              QRO[params[:login][:username]] = qrp.join('')
-              @by.password.value = params[:login][:password]
+              QRI[qrp.join('')] = IDS[params[:login][:username]]
+              QRO[IDS[params[:login][:username]]] = qrp.join('')
+              @by = U.new(IDS[params[:login][:username]])
+              @by.password.value = LOGINS[params[:login][:username]]
             end
             
             @by = U.new(IDS[params[:login][:username]])
             
-            if @by.password.value == params[:login][:password]
+            if @by.password.value.to_s == params[:login][:password].to_s
               token(@by.id, ttl: (((60 * 60) * 24) * 7))
+              redirect "#{@path}/#{@by.id}"
             end
           else
             redirect "#{@path}"
