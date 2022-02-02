@@ -138,22 +138,22 @@ elif [[ "$1" == "install" ]]; then
 	debs="$debs $DEBS_SHELL";
     fi
     echo "##### installing debs..."
-#    sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
+    sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
     #echo $debs
     echo "##### post-install..."
     sudo mv /etc/shellinabox/options-enabled/00\+Black\ on\ White.css /etc/shellinabox/options-enabled/00_Black\ on\ White.css
     sudo mv /etc/shellinabox/options-enabled/00_White\ On\ Black.css /etc/shellinabox/options-enabled/00+White\ On\ Black.css
     echo "##### installing gems..."
-#    sudo gem install $GEMS;
+    sudo gem install $GEMS;
     echo "##### installing comms";
     # mumble server
-#    cd ~
-#    git clone https://github.com/umurmur/umurmur.git
-#    cd umurmur
-#    ./autogen.sh
-#    ./configure
-#    make
-#    sudo cp src/umurmurd /usr/bin/umurmurd
+    cd ~
+    git clone https://github.com/umurmur/umurmur.git
+    cd umurmur
+    ./autogen.sh
+    ./configure
+    make
+    sudo cp src/umurmurd /usr/bin/umurmurd
     # mumble client
     cd ~
     go get -u layeh.com/barnard
