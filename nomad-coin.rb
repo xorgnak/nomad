@@ -259,10 +259,13 @@ module Cypher
   end
 end
 
+def user u
+  U.new(u)
+end
+
 class Blockchain
   attr_accessor :chain, :current_transactions
   def initialize pfx
-    @wallet = Redis::SortedSet.new('WALLET:' + pfx)
     @action = Redis::SortedSet.new('ACTION:' + pfx)
     @finger = Redis::SortedSet.new('FINGER:' + pfx)
     @chain = Redis::List.new('CHAIN:' + pfx, marshal: true)
@@ -270,30 +273,34 @@ class Blockchain
     @l = Redis::HashKey.new('L:' + pfx)
     @current_transactions = []
     new_block(1, 100)
+#    new_transaction('BANK', 'BANK', 0, ['miner'], 'boot')
   end
   
   # Creates a new Block and adds it to the chain
   def new_block(proof, previous_hash = nil)
     active = {}
     #    @current_transactions.each {|e| if e[:recipient] != '0'; active[e[:recipient]] = wallet(e[:recipient]); end; }
-    @wallet.members(with_scores: true).to_h.each_pair { |k,v| if k != '0'; active[@a[k]] = v; end }
     block = {
       index: @chain.length + 1,
       epoch: Time.now.utc.to_f,
       transactions:  @current_transactions,
       cost:          @current_transactions.length - 1,
       proof:         proof,
-      previous_hash: previous_hash || Blockchain.hash(chain.last)
+      previous_hash: previous_hash || Blockchain.hash(@chain.last)
     }
     @current_transactions = []; @chain << block; block
+  end
+  
+  def block_cost
+    @current_transactions.length + 1
   end
   
   # Adds a new transaction to the list of transactions
   def new_transaction(sender, recipient, amount, fing, act)
     @action.incr(recipient + ":" + act)
     @finger.incr(recipient + "#" + fing.join(':'))
-    @wallet.incr(recipient, amount)
-    @wallet.decr(sender, amount)
+    user(sender).coins.decrement(amount)
+    user(recipient).coins.increment(amount)
     h = {
       epoch: Time.now.utc.to_f,
       sender: sender,
@@ -306,19 +313,9 @@ class Blockchain
     last_block[:index] + 1
     return h
   end
-
-  def wallet k
-    @wallet[k]
-  end
-  def wallets
-    h = {}
-    @wallet.members(with_scores: true).to_h.each_pair {|k,v| if k == '0'; h[:balance] = v; else; h[@a[k]] = v; end }
-    return h
-  end
+  
   def acts
-    h = Hash.new {|h,k| h[k] = {} }
-    @action.members(with_scores: true).to_h.each_pair {|k,v| kk = k.split(':'); h[@a[kk[0]]][kk[1]] = v; }
-    return h
+    @action.members(with_scores: true).to_h
   end
   def fingers
     @finger.members(with_scores: true).to_h
@@ -328,7 +325,7 @@ class Blockchain
   def last_block; @chain.values.last; end
   def hash(block); Digest::MD5.hexdigest(block.sort.to_h.to_json.encode); end
   def uuid; SecureRandom.uuid.gsub("-", ""); end
-
+  
   def [] a
     if !@l.has_key? a
       u = uuid
@@ -337,17 +334,17 @@ class Blockchain
     end
     return @l[a]
   end
-
+  
   private
-
+  
   # Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
   def valid_proof?(last_proof, proof)
     Digest::MD5.hexdigest("#{last_proof}#{proof}".encode)[0..3] == "0000"
   end
 end
 
-
-
+BLOCKCHAIN = Blockchain.new(ENV['DOMAIN'] || 'localhost')
+#BLOCKCHAIN.new_transaction('BANK','BANK', 0, ['miner'], 'init')
 
 
 
@@ -639,6 +636,25 @@ module Bank
   #   to the number.  building credit allows you to qualify for brand
   #   sponsorship.
   #
+  def self.mint *c
+    if c[0]
+      cc = c[0]
+    else
+      cc = 1
+    end
+    U.new('BANK').coins.increment cc
+  end
+  def self.burn *c
+    if c[0]
+      cc = c[0]
+    else
+      cc = 1
+    end
+    U.new('BANK').coins.decrement cc
+  end
+  def self.supply
+    U.new('BANK').coins.value
+  end
   def self.wallet
     Redis::SortedSet.new("wallet")
   end
@@ -684,7 +700,6 @@ module Bank
   def self.xfer h={}
     b = U.new('BANK')
     f = U.new(h[:from] || 'BANK')
-    if f.coins.value >= h[:amt]
     f.wallet.decr(h[:type] || :gp, h[:amt]|| 0)
     f.coins.decr(h[:amt])
     t = U.new(h[:to] || 'BANK')
@@ -699,11 +714,8 @@ module Bank
     f.coins.decr(fee)
     b.coins.incr(fee)
     CRON.at(Time.now + d) do
-        t.wallet.incr(h[:type] || :gp, h[:amt] || 0)
-        t.coins.incr(h[:amt])
-      end
-    return true
-    else return false
+      t.wallet.incr(h[:type] || :gp, h[:amt] || 0)
+      t.coins.incr(h[:amt])
     end
   end
 end
@@ -1102,7 +1114,7 @@ class APP < Sinatra::Base
     end
 
     def blockchain
-      Blockchain.new(OPTS[:domain])
+      BLOCKCHAIN
     end
     
     def id *i
@@ -1159,51 +1171,43 @@ class APP < Sinatra::Base
     @user.attr[:vapid] = JSON.generate(params[:subscription])
     notify(params[:u], title: OPTS[:domain], body: 'connected')
   }
-get '/m' do
-  last_block = blockchain.last_block
-  last_proof = last_block[:proof]
-  proof = blockchain.proof_of_work(last_proof)
-  tx = blockchain.new_transaction('0', '0', 0, ['miner'], 'mine')
-  previous_hash = blockchain.hash(last_block)
-  block = blockchain.new_block(proof, previous_hash)
-  #response = { message: "New Block Forged", tx: tx, block: block }
-  status 200
-  block.to_json
-end
 
-# generate transacton to hash("campaign:rep:element") from "client"`
-get '/x/:t/:a' do
-  if params[:t] != ''
-    browser = Browser.new(request.user_agent)
-    b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
-    tx = blockchain.new_transaction('0', params[:t], 1, browser.meta, params[:a])
-    #response = { message: "New Transaction Recorded", tx: tx }
-    status 200
-    tx.to_json
+  get '/tx' do
+    @browser = Browser.new(request.user_agent)
+    @blockchain = blockchain(request.host)
+    erb :tx
   end
-end
-
-get '/tx' do
-  @browser = Browser.new(request.user_agent)
-  @blockchain = blockchain
-  erb :tx
-end
-
-get '/dx' do
-  last_block = blockchain.last_block
-  last_proof = last_block[:proof]
-  proof = blockchain.proof_of_work(last_proof)
-  tx = blockchain.new_transaction('0', '0', 0, ['miner'], 'report')
-  previous_hash = blockchain.hash(last_block)
-  block = blockchain.new_block(proof, previous_hash)
-  status 200
-  {
-    ledger: blockchain.wallets,
-    action: blockchain.acts,
-    blocks: blockchain.chain.values
-  }.to_json
-end
-
+  
+  get '/dx' do
+    last_block = BLOCKCHAIN.last_block
+    last_proof = last_block[:proof]
+    proof = BLOCKCHAIN.proof_of_work(last_proof)
+    tx = BLOCKCHAIN.new_transaction(params[:u], 'BANK', BLOCKCHAIN.block_cost, ['miner'], 'report')
+    previous_hash = BLOCKCHAIN.hash(last_block)
+    block = BLOCKCHAIN.new_block(proof, previous_hash)
+    status 200
+    
+    hf, ha = Hash.new {|h,k| h[k]=0 }, Hash.new {|h,k| h[k]=0 };
+    hr = Hash.new {|h,k| h[k]=0 }
+    BLOCKCHAIN.fingers.each_pair {|k,v|
+      kk = k.split('#');
+      if kk[0] != 'BANK';
+        hf[kk[0]] += v;
+      end;
+      if kk[1] != 'miner';
+        ha[kk[1]] += v;
+      end
+    }
+    BLOCKCHAIN.acts.each_pair {|k,v| kk = k.split(':'); if kk[1] != 'report'; hr[kk[1]] += v; end  } 
+    @chain = {
+      impressions: hf,
+      fingerprints: ha,
+      actions: hr 
+#      blocks: BLOCKCHAIN.chain.values
+    }
+    erb :dx
+  end
+  
 
 
   get('/ws') {
@@ -1403,6 +1407,9 @@ end
   }
   get('/:q/:c') {
     u = QRI[params[:q]]
+    browser = Browser.new(request.user_agent)
+    b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
+    tx = BLOCKCHAIN.new_transaction('BANK', u, 1, browser.meta, params[:c])
     @conf = JSON.parse(File.read("home/#{u}/#{params[:c]}/index.json"))
     ga = %[<!-- Google Analytics -->
 <script>
@@ -1728,7 +1735,9 @@ end
             end
             
             @by = U.new(IDS[params[:login][:username]])
-            
+            if !Dir.exist? "home/#{@by.id}"
+              Dir.mkdir("home/#{@by.id}")
+            end
             if @by.password.value.to_s == params[:login][:password].to_s
               token(@by.id, ttl: (((60 * 60) * 24) * 7))
               redirect "#{@path}/#{@by.id}"
@@ -1776,6 +1785,18 @@ def db d
 end
 
 db b
+
+def op u
+  if IDS.has_key? u
+    @u = U.new(IDS[u])
+    @u.attr[:boss] = 999999999
+    @u.attr[:class] = 7
+    @u.coins.increment 999999999
+  end
+end
+
+op ENV['admin']
+LOGINS.keys.each {|e| op e }
 
 
 DOMAINS << OPTS[:domain]
