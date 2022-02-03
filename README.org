@@ -2,8 +2,9 @@
 
 The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible. 
 
-** manual
-[the manual](https://github.com/xorgnak/nomad/wiki)
+[[https://github.com/xorgnak/nomad/wiki][the manual]]
+
+
 * PLATFORM
 ** the web app
 *** rsvp
