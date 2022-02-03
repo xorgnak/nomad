@@ -181,7 +181,7 @@ alias commit="rm -f nomadic/bin/*~ && rm -f *~ && git add . && git commit && git
 echo "commit -> push changes to the origin repo."
 function token() { git remote set-url origin https://$1:$2@github.com/$1/`pwd`.git; }
 echo "token <user> <token> -> set push token for repo."
-alias op="cd ~/nomad && screen -t '@' ./nomad.sh operator"
+alias op="cd ~/nomad && screen"
 echo "op -> enter operator mode."
 function leah() { su -c "source /root/leah.sh && \$*"; }
 ##### NOMADIC end #####
