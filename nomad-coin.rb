@@ -347,7 +347,6 @@ BLOCKCHAIN = Blockchain.new(ENV['DOMAIN'] || 'localhost')
 #BLOCKCHAIN.new_transaction('BANK','BANK', 0, ['miner'], 'init')
 
 
-
 class Broker
   
   def initialize h={}
