@@ -2,64 +2,8 @@
 
 The nomadic tool kit consists of a standard core of packages designed to get developers and infrastructure up and running as quickly as possible. 
 
-* RUN AS A NODE (connect to another cluster)
-First, flash raspberry pi os to sd card. Then Run:
-#+BEGIN_SRC 
-cd ~/ && sudo apt-get install git && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install && ./nomad.sh update
-#+END_SRC
-Set the Cluster and nick for your node when asked.  After rebooting you should be able to see your device appear on your network.  You may now use your nomad box. Ssh into your raspberry and run:
-#+BEGIN_SRC
-op
-#+END_SRC
-This will start a nomad network operator session for your local cluster.
+[[https://github.com/xorgnak/nomad/wiki][the manual]]
 
-** iot devices.
-Nomad network handles a variety of iot devices,  Each device has it's own devid, but we configure the wifi ssid and password, and admin nick based upon your local node configuration.
-#+BEGIN_SRC
-./nomad.sh iot
-#+END_SRC
-
-* RUN AS A HUB (host domains on a nomad cluster)
-When running on a cloud VM, you can host domains with nomad network services.
-1. Use certbot to generate ssl a certificate. 
-2. Edit the ~/nomad.conf file to update your DOMAIN_ROOT from the generated certificate. 
-3. set BOX to false so the instance will act as a cluster host.  
-4. Then run:
-#+BEGIN_SRC
-cd ~/nomad && ./nomad.sh config example.com
-#+END_SRC
-Repeat for each domain being hosted. Then run:
-#+BEGIN_SRC
-cd ~/nomad && ./nomad.sh update
-#+END_SRC
-This will update your nomad network instance to host your domains as a nomad network cluster.  You will be able to interract with it via ssh.  You should not attempt operator mode on these instances, rather you should use the interactive client.
-
-* WHAT IT DOES
-
-** Remote Access.
-- nomad support access via the tor network over the http, irc, and telnet protocols
-  - http: 80
-    - accessible via tor. 
-    - user accounts may be created from via ssh with the interractive client as follows.
-#+BEGIN_SRC
-LOGINS['pi'] = 'raspberry'
-#+END_SRC
-  - irc: 6667
-    - no authorization is necessary by default.
-  - telnet: 4321
-    - simple multi-user text environment.
-
-** Tor QR Link
-Network nodes are accessible via tor.  A qr code displaying the node's onion address can be hosted from the local area network's web interface.  Nomad network services will still be available if disabled.
-From within the interractive client:
-- enable
-#+BEGIN_SRC
-Redis::Value.new('ONION').value = `sudo cat /var/lib/tor/nomad/hostname`.chomp
-#+END_SRC
-- disable
-#+BEGIN_SRC
-Redis.new.del('ONION')
-#+END_SRC
 
 * PLATFORM
 ** the web app
@@ -98,25 +42,3 @@ Redis.new.del('ONION')
   - flash.
   - rear light.
     
-* node operator mode
-An operator has operator level (boss 100000+) network access.
-
-** hardware
-  - phone
-    - tethers internet connection for local devices.
-    - provides access via ssh to tethered node.
-  - raspberry pi 3b+/4
-    - runs local nomad instance.
-    - connects to mumble server.
-  - usb headset/mic
-    - allows voice communication.
-    
-** usage
-  - F1: toggle voice transmission
-  - Ctrl+L: clear chat log
-  - Tab: toggle focus between chat and user tree
-  - Page Up: scroll chat up
-  - Page Down: scroll chat down
-  - Home: scroll chat to the top
-  - End: scroll chat to the bottom
-  - F10: quit
