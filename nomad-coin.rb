@@ -612,7 +612,37 @@ class Zone
   end
 end
 
-
+module Shares
+  def self.shares
+    o, s = 0, 0
+    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
+    return {owners: o, total: s}
+  end
+  def self.cost
+    o, s = 0, 0
+    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
+    return ((2 ** o) + (2 ** "#{s.to_i}".length)) 
+  end
+  def self.by
+    Redis::SortedSet.new('shares')
+  end
+  def self.mint u, *n
+    if n[0]
+      nn = n[0].to_i
+    else
+      nn = 1
+    end
+    Redis::SortedSet.new('shares').incr(u, nn)
+  end
+  def self.burn u, *n
+    if n[0]
+      nn = n[0].to_i
+    else
+      nn = 1
+    end
+    Redis::SortedSet.new('shares').decr(u, nn)
+  end
+end
 
 module Bank
   ##              ##
@@ -628,7 +658,7 @@ module Bank
   #   credits can be used to pay for industry to industry services
   #   and other sponsored events.
   #
-  # - [credit] is the amount of credit purchased and inactivated by
+  # - [credit] is the amount of credit purchased or earned and inactivated by
   #   a user.  A user may stash their credits and attach them to
   #   an identifier by texting a dollar amount to the number.
   #   The returned id number may be redeemed by texting the id number
@@ -679,6 +709,7 @@ module Bank
       credit: Bank.wallet[h[:from]]
     }
   end
+  
   ##
   # recover stashed coins 
   def self.recover h={}
@@ -699,8 +730,8 @@ module Bank
   def self.xfer h={}
     b = U.new('BANK')
     f = U.new(h[:from] || 'BANK')
-    f.wallet.decr(h[:type] || :gp, h[:amt]|| 0)
-    f.coins.decr(h[:amt])
+    f.wallet.decr(h[:type] || :gp, h[:amt].to_i)
+    f.coins.decr(h[:amt].to_i)
     t = U.new(h[:to] || 'BANK')
     if h.has_key? :in
       d = h[:in]
@@ -709,12 +740,14 @@ module Bank
     else
       d = 0
     end
-    fee = (("#{d}".length + 1 ) * FEES[:xfer]).to_i
-    f.coins.decr(fee)
-    b.coins.incr(fee)
+    if h[:fee]
+      fee = ("#{d}".length * h[:fee].to_i).to_i
+      f.coins.decr(fee)
+      b.coins.incr(fee)
+    end
     CRON.at(Time.now + d) do
-      t.wallet.incr(h[:type] || :gp, h[:amt] || 0)
-      t.coins.incr(h[:amt])
+      t.wallet.incr(h[:type] || :gp, h[:amt].to_i)
+      t.coins.incr(h[:amt].to_i)
     end
   end
 end
@@ -1163,6 +1196,9 @@ class APP < Sinatra::Base
   get('/waypoint') { erb :waypoint }
   get('/apprtc') { erb :apprtc }
   get('/radio') { erb :radio }
+  get('/bank') { @user = U.new(params[:u]); erb :bank }
+  get('/sponsor') { @user = U.new(params[:u]); erb :sponsor }
+  get('/shares') { @user = U.new(params[:u]); erb :shares }
   get('/shell') { erb :shell, layout: false }
   get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
   post('/sw') {
@@ -1657,8 +1693,8 @@ end
       end
       
       if params.has_key?(:zone) && params[:zone] != ''
-        ZONES << params[:zone]
-        Zone.new(params[:zone]).pool << @user.id
+#        ZONES << params[:zone]
+#        Zone.new(params[:zone]).pool << @user.id
         @user.zones << params[:zone]
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
       end
@@ -1689,6 +1725,41 @@ end
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
 
+      if params.has_key? :bank
+        Redis.new.publish("OWNERSHIP.bank", "#{params}")
+        if params[:bank][:direction] == 'bank'
+          Bank.wallet.incr @by.id, params[:bank][:coins].to_i
+          @by.coins.decr(params[:bank][:coins].to_i)
+        elsif params[:bank][:direction] == 'user'
+          Bank.wallet.decr @by.id, params[:bank][:credit].to_i
+          @by.coins.incr(params[:bank][:credit].to_i)
+        end
+      end
+      if params.has_key? :sponsor
+        Redis.new.publish("OWNERSHIP.sponsor", "#{params}")
+        tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
+        pay = (2 ** params[:sponsor][:type].to_i).to_i
+        cost = ((params[:sponsor][:units].to_i * pay) * tf).to_i;
+        ZONES << params[:sponsor][:name]
+        z = Zone.new(params[:sponsor][:name])
+        z.pool << @user.id
+        z.attr[:till] = Time.now.utc.to_i + tf;
+        z.attr[:pay] = pay;
+        z.attr[:cap] = params[:sponsor][:units].to_i;
+        @user.zones << params[:sponsor][:name]
+        Bank.wallet.decr @by.id, cost
+      end
+      if params.has_key? :shares
+        Redis.new.publish("OWNERSHIP.shares", "#{params}")
+        if params[:shares][:mode] == 'sell'
+          Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost
+          Shares.burn @by.id, params[:shares][:qty].to_i
+        elsif params[:shares][:mode] == 'buy'
+          Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost
+          Shares.mint @by.id, params[:shares][:qty].to_i
+        end
+      end
+      
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
@@ -1790,7 +1861,7 @@ def op u
     @u = U.new(IDS[u])
     @u.attr[:boss] = 999999999
     @u.attr[:class] = 7
-    @u.coins.increment 999999999
+    @u.coins.value ||= 999999999
   end
 end
 

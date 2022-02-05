@@ -114,10 +114,14 @@ padding: 3%;
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
+    <% if ENV['LVLS'] != 'false' %>
       <%= @user.sash.lvl %>
+      <% end %>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
-      <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] %></h1>
+      <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] || OPTS[:domain] %></h1>
+      <% if ENV['LVLS'] != 'false' %>
       <%= @user.sash.badges %>
+      <% end %>
     </div>
   </div>
   
@@ -244,8 +248,13 @@ padding: 3%;
     <% if !params.has_key? :installed %>
     log('<span class="material-icons">info</span> Add to homescreen to install.');
     <% end %>
+    <% if @user.attr[:class].to_i > 0 %>
     log('<span class="material-icons">outlet</span> <a style="color: white; text-decoration: none;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">connect</a>');
-    log('<span class="material-icons">savings</span> <%= @user.coins.value %>');
+    <% end %>
+    
+    <% if @user.coins.value > 0 || Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
+    log('<span class="material-icons">account_balance</span> <a href="<%= @path %>/bank?u=<%= @user.id %>" style="color: white; text-decoration: none;">bank</a></span>');
+    <% end %>
 <%= erb :scan %>
 <%= erb :sha %>
 <%# erb :coin %>
