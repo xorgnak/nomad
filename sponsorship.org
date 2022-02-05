@@ -1,0 +1,128 @@
+#+TITLE: SPONSORSHIP
+#+TODO: TODO(t!/@) ACTION(a!/@) WORKING(w!/@) | ACTIVE(f!/@) DELEGATED(D!/@) DONE(X!/@)
+#+OPTIONS: stat:t html-postamble:nil H:1 num:nil toc:t \n:nil ::nil |:t ^:t f:t tex:t
+
+* termonology
+
+** player
+someone on an adventure moving between waypoints.
+
+** user :npc:class:lvl0:
+someone with an app account.
+- can vote in contests.
+
+** influencer :npc:class:lvl1:
+someone who has an influence on [[player][players]] within a zone.
+- can generate content.
+ 
+** ambassador :npc:class:lvl2:
+someone who represents a zone.
+- can invite new users and award titles.
+
+** manager :npc:class:lvl3:
+someone who manages a zone.
+
+** agent :npc:class:lvl4:
+someone who manages multiple zones.
+
+** operator :npc:class:lvl5:
+someone who moves between zones.
+- administers contests.
+
+** zone :plotpoints:
+a collection of waypoints.
+
+** waypoint :plotpoints:
+a locaton with one or more available passwords.
+
+** password :plotpoints:
+a way of instructions for next actions and rewards for prevous actions.
+
+** token :accounts:rewards:
+a reward equal to one badge scan or one content click.
+
+** credit :accounts:sponsorship:
+tokens withheld from liquidity for sponsorships.
+
+** share :accounts:ownership:
+shares of brand ownership.
+
+* overview of sponsorship relationship
+
+1. get an invite from an ambassdor, manager, agent, or operator.
+
+2. fund your account.
+
+3. sponsor your zone.
+
+4. follow [[steps to build a brand]].
+
+5. reconcile account plus services at the end of the sponsorship cycle.
+
+   1. billed in hours 
+
+      1. day = 24hrs.
+      2. week = (7 x 24hrs.)
+      3. month = (4 x (7 x 24hrs.))
+      4. year = (12 x (4 x (7 x 24hrs.)))
+
+   2. per hour rate is determined by user class. rate = (2 ** class) / 1hr.
+
+      1. user: the "players" in the game.
+      2. influencer: the "characters" of your zone.
+      3. ambassdor: the flagship "characters" of your zone.
+      4. manager: someone responsible for the coordination of your zones waypoints.
+      5. agent: someone responsible for the resources of multiple zones.
+      6. operator: someone able to move "players" between zones and waypoints.
+
+   3. other services billed per user per month, pro-rated.
+
+      1. $30 sms two factor authentication.
+      2. $30 direct dial number.
+      3. $20 app hosting.
+      4. $20 comms hosting.
+      5. $50 co-branding.
+
+   4. add-on services billed by providers at their market rate. 
+
+      1. social media profile polish.
+
+	 1. re-define image.
+	 2. update brand relationship.
+	 3. plan future enhancements.
+
+      2. content production and direction.
+
+	 1. traditional camera and lighting content generation.
+	 2. animations.
+
+      3. zone consulting.
+
+	 1. waypoint identification.
+	 2. plotline integraton.
+	 3. narrative generation.
+
+* steps to build a brand
+0. Find a motivated character.
+
+1. Send them an invite.
+
+2. Scan their QR and then...
+   1. add your zone,
+   2. set appropriate class.
+   3. give title.
+
+3. Let them work for their tokens by...
+   1. get their qr scanned.
+   2. get their media opened.
+   3. perform services for token xfers.
+
+4. Reward them in kind for their tokens with...
+   1. food and drinks.
+   2. goods and services.
+
+5. Give them a stake in the game with...
+   3. their own zones and teams.
+   4. shares of ownership in your brand.
+
+
