@@ -46,6 +46,8 @@ function tick() {
 		    <% end %>
 		    $('#xp').text(h.p);
 		    $('#class').text(h.c);
+		    $('#set_class').val(h.c)
+		    $('#role').text(roles[h.c]);
 		    $('#z').text(h.x);
 		    $('#scan').val(h.u);
 		    $('#view').hide();

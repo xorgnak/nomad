@@ -2,6 +2,8 @@
 h1 { width: 100%; }
 h1 > * { vertical-align: middle; }
 input { width: 60%; }
+#abilities > li { font-size: small; }
+.class { padding: 0 2% 0 2%; border: thin solid black; }
 </style>
 <fieldset style='text-align: center;'>
 <legend>sponsor</legend>
@@ -30,10 +32,16 @@ input { width: 60%; }
 <fieldset>
 <legend>quote</legend>
 <h5 id='desc' style='text-align: center; width: 100%; margin: 0;'></h5>
+<ul id='abilities'></ul>
 <h3 style='text-align: center; width: 100%;'>
 <span id='amt' style='background-color: black; color: white; border-radius: 50px; padding: 2%; display: none;'></span>
 </h3>
-<h1 id='name' style='width: 100%; text-align: center; display: none;'><input type='text' name='sponsor[name]' placeholder='ZONE'></h1>
+<datalist>
+<% @user.zones.members.each do |e| %>
+<option value='<%= e %>'>
+<% end %>
+</datalist>
+<h1 id='name' list='zones' style='width: 100%; text-align: center; display: none;'><input type='text' name='sponsor[name]' placeholder='ZONE'></h1>
 </fieldset>
 <h1 style='width: 100%; text-align: center;'>
 <button id='prep'>quote</button>
@@ -45,6 +53,14 @@ $(document).on('click', '#prep', function(ev) {
 ev.preventDefault();
 var desc = "sponsor " + $('#qty').val() + " class " + $('#type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#type').val()) + " for " + ($('#dur').val() * $('#tf').val()) + " hours.";
 var amt = (( $('#qty').val() * ( 2 ** $('#type').val()) ) * ( $('#dur').val() * $('#tf').val() ));
+var abilities = [ "vote in contests.", "generate content.", "send invites.", "administer waypoints.", "administer zones.", "move between zones and administer contests." ].slice(0, $('#type').val());
+var ab = "<ul id='abilities'>"
+
+abilities.forEach(function(item, index, arr) {
+  ab += "<li><span class='class'>" + index + "</span><span class='ability'>" + item + "</li>";
+});
+ab += "</ul>";
+$('#abilities').html(ab);
 $('#desc').html(desc);
 $('#amt').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
 $('#prep').text('recalculate');

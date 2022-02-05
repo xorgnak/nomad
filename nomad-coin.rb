@@ -1435,6 +1435,10 @@ class APP < Sinatra::Base
     @id = id(params[:u]);
     if params.has_key?(:u);
       @user = U.new(QRI[@id]);
+      Bank.mint
+      browser = Browser.new(request.user_agent)
+      b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
+      tx = BLOCKCHAIN.new_transaction('BANK', @user.id, 1, browser.meta, params[:c])
       erb :goto;
     else
       erb :landing;
@@ -1442,6 +1446,7 @@ class APP < Sinatra::Base
   }
   get('/:q/:c') {
     u = QRI[params[:q]]
+    Bank.mint
     browser = Browser.new(request.user_agent)
     b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
     tx = BLOCKCHAIN.new_transaction('BANK', u, 1, browser.meta, params[:c])
@@ -1583,14 +1588,14 @@ ga('send', 'pageview');
             when "6"
               # user class
               @user.attr[:class] = 1
-              pr = %[zone membership and send invites.]
+              pr = %[vote in contests.]
             when "7"
             when "8"
             when "9"
             when "10"
               # influencer
               @user.attr[:class] = 2
-              pr = %[manage content, and award award titles.]
+              pr = %[manage content.]
             when "100"
               # brand ambassador
               @user.attr[:class] = 3

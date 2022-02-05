@@ -153,10 +153,19 @@ padding: 3%;
     <span id='boss'></span>
     <% end %>
     </li>
-      
-    <li><span style='padding: 2%;'>class:</span><span id='class'></span></li>
+    
+    <li><span style='padding: 2%;'>class:</span>
+    <% if @user.attr[:class].to_i > 2 %>
+    <span id='class'></span>
+    <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
+    <% else %>
+    <span id='class'></span>
+    <%  %>
+    </li>
+    <% end %>
     <% end %>  
     <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
+    <li><span style='padding: 2%;'>role:</span><span id='role'></span></li>
     </ul>
 
     <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 %>
@@ -170,7 +179,7 @@ padding: 3%;
 
     <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 %>
     <datalist id='zones'>
-      <% ZONES.members.each do |zone| %>
+      <% @user.zones.members.each do |zone| %>
       <option value='<%= zone %>'>
 	<% end %>
     </datalist>
@@ -234,6 +243,7 @@ padding: 3%;
 		      
   </div>
   <script>
+  var roles = ['user', 'influencer', 'ambassdor', 'manager', 'agent', 'operator', 'owner', 'developer']
   <%= erb :sw %>
   <% z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('') %>
   var id = '<%= QRO[@id] %>';
@@ -260,4 +270,8 @@ padding: 3%;
 <%# erb :coin %>
 <%= erb :mqtt %>
 <%# erb :websocket %>
+$(document).on('change', '#set_class', function() {
+  $('#class').text($(this).val());
+  $('#role').text(roles[$(this).val()]);
+});
 </script>
