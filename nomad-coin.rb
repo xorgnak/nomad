@@ -297,8 +297,9 @@ class Blockchain
   
   # Adds a new transaction to the list of transactions
   def new_transaction(sender, recipient, amount, fing, act)
-    @action.incr(recipient + ":" + act)
-    @finger.incr(recipient + "#" + fing.join(':'))
+    Redis.new.publish('Blockchain.new_transaction', "#{sender} #{recipient} #{amount} #{fing} #{act}")
+    @action.incr("#{recipient}:#{act}")
+    @finger.incr("#{recipient}##{fing.join(':')}")
     user(sender).coins.decrement(amount)
     user(recipient).coins.increment(amount)
     h = {
@@ -1438,7 +1439,7 @@ class APP < Sinatra::Base
       Bank.mint
       browser = Browser.new(request.user_agent)
       b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
-      tx = BLOCKCHAIN.new_transaction('BANK', @user.id, 1, browser.meta, params[:c])
+      tx = BLOCKCHAIN.new_transaction('BANK', @user.id, 1, browser.meta, 'rsvp')
       erb :goto;
     else
       erb :landing;
