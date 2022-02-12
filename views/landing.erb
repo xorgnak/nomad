@@ -53,7 +53,7 @@ textarea { font-size: x-large; width: 100%; }
       <% end %>
       <button style='width: 80%; background-color: green; color: white;'>ASK</button></div>
   <% end %>
-  <% if OPTS[:domain] == 'localhost' && !params.has_key?(:quick) %>
+  <% if @domain.id == 'localhost' && !params.has_key?(:quick) %>
       <h1><input type='text' name='login[username]' maxlength='20' placeholder='username' style='text-align: center;'></h1>
       <h1><input type='text' name='login[password]' maxlength='20' placeholder='password' style='text-align: center;'></h1>
       <h1><button>login</button></h1>

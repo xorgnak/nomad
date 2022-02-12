@@ -17,6 +17,8 @@ padding: 3%;
 .pip { padding: 1%; margin: 1%; font-size: large; }
 #badges { text-align: center; }
 .badge { font-size: xx-large; padding: 2%; margin 3%; }
+.open { border: thin solid white; padding: 0 2% 0 2%; font-size: small; }
+.tog { border: thin solid white; padding: 0 2% 0 2%; font-size: small; }
 </style>
 
 <% @a = @user.attr.all %>
@@ -92,24 +94,14 @@ padding: 3%;
     </fieldset>  
     <% end %>
 
-    <% if @user.attr[:class].to_i >= 5 %>
+    <% if @user.attr[:class].to_i >= 5 && @user.attr.has_key?(:zone) %>
     <fieldset id='urls'>
     <legend>urls</legend>
       <input name='waypoint[urls][new]' placeholder='https://'>
-      <% Zone.new(@user.attr[:zone] || OPTS[:domain]).urls.each do |e| %>
+      <% Zone.new(@user.attr[:zone]).urls.each do |e| %>
       <% end %>
     </fieldset>
     <% end %>
-
-    <h1 style='text-align: center;'>
-      <button style='color: green; vertical-align: middle; font-weight: bold; padding: 1%;'>save</button>
-      <% if @user.attr[:class].to_i >= 5 %>
-        <a href='<%= @path %>/term?u=<%= @user.id %>' style='padding: 1%; font-size: x-large; vertical-align: middle; text-decoration: none; color: blue; border: thick solid white;'>mgmt</a>
-      <% end %>
-      <% if @user.attr[:class].to_i >= 6 %>
-        <a href='<%= @path %>/adventures?u=<%= @user.id %>' style='padding: 1%; font-size: x-large; vertical-align: middle; text-decoration: none; color: red; border: thick solid white;'>oper</a>
-      <% end %>
-    </h1>
   </div>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
@@ -224,7 +216,7 @@ padding: 3%;
   </div>
   
   <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
-    <h1 style='width: 100%; text-align: center; margin: 0;'>
+    <h1 id='sender' class='displays' style='width: 100%; text-align: center; margin: 0; display: none;'>
     <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
     	    <option value='callback' selected>callback</option>
 	    <% if @user.attr[:class].to_i >= 3 %>
@@ -234,11 +226,28 @@ padding: 3%;
     <input type='tel' name='send[number]' placeholder='PHONE' style='width: 55%; vertical-align: middle;' pattern='[0-9]{10}'>
     <button class='material-icons' style='vertical-align: middle; border: none;'>send</button>
     </h1>
-    <div id='log' style='width: 100%; height: 100%; color: white; overflow-y: scroll; margin: 0;'>
+    <div id='log' class='displays' style='width: 100%; height: 100%; color: white; overflow-y: scroll; margin: 0;'>
       <% @user.log.values.to_a.reverse.each do |e| %>
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
     </div>
+    <%= erb :bank %>
+    <%= erb :sponsor %>
+    <%= erb :shares %>
+    <p style='width: 100%; font-size: small; text-align: center;'>
+    <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
+    <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>
+    <button class='open material-icons' id='open_bank' value='bank'>savings</button>
+    <button class='open material-icons' id='open_sponsorship' value='sponsorship'>cabin</button>
+    <button class='open material-icons' id='open_shares' value='shares'>confirmation_number</button>
+    <% if @user.attr[:class].to_i >= 5 %>
+    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white;'>terminal</a>
+    <% end %>
+    <% if @user.attr[:class].to_i >= 6 %>
+    <a href='<%= @path %>/adventures?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white;'>account_tree</a>
+    <% end %>
+    <a class='tog material-icons' style="color: white; text-decoration: none; color: white" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">headset_mic</a>
+    </p>
     <% @user.log.clear() %>
 		      
   </div>
@@ -247,6 +256,7 @@ padding: 3%;
   <%= erb :sw %>
   <% z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('') %>
   var id = '<%= QRO[@id] %>';
+  var sender = true;
   $('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss].to_i %>&p=<%= @user.attr[:xp].to_i %>&r=<%= @user.attr[:rank].to_i %>&c=<%= @user.attr[:class].to_i %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id + '&z=<%= @z %>');
   var inv = false;
     $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
@@ -254,16 +264,9 @@ padding: 3%;
     $('#title').val('<%= @user.attr[:title] || 'title' %>');
     function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
     $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a> <%= `git log --format="%H" -n 1`[0..7] %> <%= OPTS[:domain] %>');
+    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a>#<%= `git log --format="%H" -n 1`[0..3] %> <%= @domain.id %>');
     <% if !params.has_key? :installed %>
     log('<span class="material-icons">info</span> Add to homescreen to install.');
-    <% end %>
-    <% if @user.attr[:class].to_i > 0 %>
-    log('<span class="material-icons">outlet</span> <a style="color: white; text-decoration: none;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">connect</a>');
-    <% end %>
-    
-    <% if @user.coins.value > 0 || Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
-    log('<span class="material-icons">account_balance</span> <a href="<%= @path %>/bank?u=<%= @user.id %>" style="color: white; text-decoration: none;">bank</a></span>');
     <% end %>
 <%= erb :scan %>
 <%= erb :sha %>
@@ -273,5 +276,18 @@ padding: 3%;
 $(document).on('change', '#set_class', function() {
   $('#class').text($(this).val());
   $('#role').text(roles[$(this).val()]);
+});
+$(document).on('click', '#tog_sender', function(ev) {
+ev.preventDefault();
+sender = !sender;
+if (sender == true) { $('#tog_sender').css('color', 'green'); } else { $('#tog_sender').css('color', 'red'); }
+$('#sender').toggle();
+});
+$(document).on('click', '.open', function(ev) {
+ev.preventDefault();
+$('.displays').hide();
+$('.open').css('border-color', 'white');
+$('#open_' + $(this).val() ).css('border-color', 'orange');
+$('#' + $(this).val()).show();
 });
 </script>

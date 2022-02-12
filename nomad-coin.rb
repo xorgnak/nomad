@@ -273,13 +273,10 @@ class Blockchain
     @l = Redis::HashKey.new('L:' + pfx)
     @current_transactions = []
     new_block(1, 100)
-#    new_transaction('BANK', 'BANK', 0, ['miner'], 'boot')
   end
   
   # Creates a new Block and adds it to the chain
   def new_block(proof, previous_hash = nil)
-    active = {}
-    #    @current_transactions.each {|e| if e[:recipient] != '0'; active[e[:recipient]] = wallet(e[:recipient]); end; }
     block = {
       index: @chain.length + 1,
       epoch: Time.now.utc.to_f,
@@ -344,9 +341,7 @@ class Blockchain
   end
 end
 
-BLOCKCHAIN = Blockchain.new(ENV['DOMAIN'] || 'localhost')
-#BLOCKCHAIN.new_transaction('BANK','BANK', 0, ['miner'], 'init')
-
+BLOCKCHAIN = Blockchain.new('/')
 
 class Broker
   
@@ -461,7 +456,7 @@ class Adventure
   sorted_set :players
   def initialize i
     ADVENTURES << i
-    @url = "https://#{OPTS[:domain]}/adventure?a=#{i}"
+    @url = "https://#{self.attr[:domain]}/adventure?a=#{i}"
     @id = i
   end
   def id
@@ -493,12 +488,12 @@ class Waypoint
   set :contributors
   hash_key :passwords
   def initialize i
-    if OPTS[:domain] == 'localhost'
+    if self.attr[:domain] == 'localhost'
       h = 'http'
     else
       h = 'https'
     end
-    @url = "#{h}://#{OPTS[:domain]}/waypoint?i=#{@id}"
+    @url = "#{h}://#{self.attr[:domain]}/waypoint?i=#{@id}"
     @id = i
   end
   def id
@@ -520,24 +515,6 @@ class Waypoint
   end
 end
 
-class AppRTC
-  include Redis::Objects
-  hash_key :attr
-  hash_key :opts
-  def initialize i
-    @id = i
-  end
-  def id
-    @id
-  end
-  def link
-    a = []; self.opts.all.each_pair {|k,v| a << %[#{k}=#{v}] }
-    return %[https://appr.tc/r/#{@id}?hd=true&tt=#{self.attr[:ttl] || 1}&#{a.join('&')}]
-  end
-  def embeded
-    return %[<iframe id='iframe' allow="camera *;microphone *" src='#{link}'></iframe>]
-  end
-end
 
 class Board
   include Redis::Objects
@@ -756,7 +733,7 @@ end
 class CallCenter
   def initialize phone
     tree = {
-      message: "#{OPTS[:domain]}",
+      message: "OK",
       file: nil,
       mode: 'callcenter',
       boss: ENV['ADMIN'],
@@ -784,7 +761,6 @@ class CallCenter
     TREE[@phone] = JSON.generate(@tree)
   end
 end
-
 
 class Sash
   def initialize u, *b
@@ -903,22 +879,26 @@ class U
 end
 
 
+class Domain
+  include Redis::Objects
+  hash_key :attr
+  hash_key :stat
+  set :zones
+  sorted_set :users
+  
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+end
+
 
 @man = Slop::Options.new
-@man.symbol '-d', '--domain', "the domain we're running", default: 'localhost'
-@man.symbol '-b', '--boss', "the admin phone number", default: ''
 @man.symbol '-s', '--sid', "the twilio sid", default: ''
 @man.symbol '-k', '--key', "the twilio key", default: ''
-@man.int '-p', '--port', "the port we're running on", default: 4567
-@man.float '-f', '--frequency', "the radio frequency we're operating on.", default: 462.700
 @man.bool '-i', '--interactive', 'run interactively', default: false
 @man.bool '-I', '--indirect', 'run indirectly', default: false
-
-@man.on '--help' do
-  puts "[HELP][#{Time.now.utc.to_f}]"
-  puts @man
-  exit
-end
+['-h', '-u', '--help', '--usage', 'help', 'usage'].each { |e| @man.on(e) { puts @man; exit; }}
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
 
@@ -1004,7 +984,7 @@ class K
     if !File.exist?("#{self.dir.value}/index.json")
       h = { goal: '', ga: '', fb: '' }
       File.open("#{self.dir.value}/index.json", "w") { |f| f.write("#{JSON.generate(h)}"); }
-      File.open("#{self.dir.value}/index.erb", "w") { |f| f.write("<h1>Hello, World!</h1><>This plan was made at:</h3><p><% Time.now.utc %></p>"); }
+      File.open("#{self.dir.value}/index.erb", "w") { |f| f.write("<h1>Hello, World!</h1>created: </h3><p><% Time.now.utc %></p>"); }
       File.open("#{self.dir.value}/index.markdown", "w") { |f| f.write("# Hello, World!\n\n## markdown is a simple way to organize text to be rendered as html.\n- it supports lists.\n- and tables,\n- etc.\n- google it."); }
     end
   end
@@ -1101,11 +1081,9 @@ class K
 end
 
 class APP < Sinatra::Base
-  
-  set :port, OPTS[:port]
   set :bind, '0.0.0.0'
   set :server, 'thin'
-  set :public_folder, "public/#{OPTS[:domain]}"
+  set :public_folder, "public/"
   set :sockets, []
   
   helpers do
@@ -1122,7 +1100,7 @@ class APP < Sinatra::Base
         p256dh: @v['keys']['p256dh'],
         auth: @v['keys']['auth'],
         vapid: {
-          subject: "mailto:#{u}@#{OPTS[:domain]}",
+          subject: "mailto:#{u}@#{h[:domain]}",
           public_key: @u.attr[:pub],
           private_key: @u.attr[:priv]
         }
@@ -1139,11 +1117,7 @@ class APP < Sinatra::Base
     def banner
       hostname = `hostname`.chomp
       hh = hostname.split('-')
-      if OPTS[:domain] == 'localhost'
-        return hh[0]
-      else
-        return OPTS[:domain]
-      end
+      return hh[0]
     end
 
     def blockchain
@@ -1181,7 +1155,16 @@ class APP < Sinatra::Base
     # boss: border color. network responsibility.
     # stripes: border. network privledge.
   end
-  before { if request.host == 'localhost'; s = 'http'; else; s = 'https'; end; @path = %[#{s}://#{request.host}]; @term = K.new(params[:u]); Redis.new.publish("BEFORE", "#{@path}")
+  before {
+    if request.host == 'localhost';
+      s = 'http';
+    else;
+      s = 'https';
+    end;
+    @domain = Domain.new(request.host)
+    @path = %[#{s}://#{request.host}];
+    @term = K.new(params[:u]);
+    Redis.new.publish("BEFORE", "#{@path} #{@domain}")
   }
   
   get('/favicon.ico') { return '' }
@@ -1205,7 +1188,7 @@ class APP < Sinatra::Base
   post('/sw') {
     @user = U.new(params[:u])
     @user.attr[:vapid] = JSON.generate(params[:subscription])
-    notify(params[:u], title: OPTS[:domain], body: 'connected')
+    notify(params[:u], title: @domain.id, body: 'connected')
   }
 
   get '/tx' do
@@ -1296,9 +1279,9 @@ class APP < Sinatra::Base
             g.dial(record: true, number: @tree[:dispatcher])
           when 'callcenter'
             if File.exists? "public/#{@tree[:file]}"
-              g.play(url: "https://#{OPTS[:domain]}/answer?x=#{@tree[:file]}")
+              g.play(url: "https://#{@domain.id}/answer?x=#{@tree[:file]}")
             else
-              g.say(message: @tree[:message] || ENV['DOMAIN'])
+              g.say(message: @tree[:message] || @domain.id)
             end
           end
         end
@@ -1343,7 +1326,7 @@ class APP < Sinatra::Base
         elsif params['Digits'] == '0*'
           @u = U.new(IDS[params['From'].gsub('+1', '')])
           o = [%[welcome, #{@u.attr[:name]}.]]
-          o << %[you have #{@u.coins.value} credits.]
+          o << %[you have #{@u.coins.value} tokens.]
           o << %[your boss level is #{@u.attr[:boss]}.]
           o << %[you have earned #{@u.badges.members.length} badges.]
           o << %[you are in #{@u.zones.members.length} zones.]
@@ -1511,7 +1494,7 @@ ga('send', 'pageview');
     Redis.new.publish 'POST', "#{params}"
     if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
-      File.open("public/#{OPTS[:domain]}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
+      File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
     end
     if params.has_key? :editor
       if !Dir.exists? "home/#{params[:u]}" 
@@ -1629,9 +1612,9 @@ ga('send', 'pageview');
         end
       end
                        
-                       if params.has_key?(:landing) && LOCKED[OPTS[:domain]] != 'true'
-  LANDING[OPTS[:domain]] = params[:landing]
-end          
+      if params.has_key?(:landing) && LOCKED[@domain.id] != 'true'
+        LANDING[@domain.id] = params[:landing]
+      end          
       
       if params.has_key? :code
         if c = code(params[:code])
@@ -1843,24 +1826,20 @@ end
   end
 end
 
-b = OPTS[:port].to_s[3].to_i
-DB[OPTS[:domain]] = b
-
 def cam n, u
-  CAMS[n] = u
-end
-
-def update!
-  `sudo ./nomadic/exe/nomad.sh && rm -f nomad.lock && sudo reboot`
+CAMS[n] = u
 end
 
 
 
-def db d 
+                       
+     
+
+DB['localhost'] = 7
+def change_db d 
   Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d].to_i )
 end
-
-db b
+change_db 'localhost'
 
 def op u
   if IDS.has_key? u
@@ -1870,17 +1849,13 @@ def op u
     @u.coins.value ||= 999999999
   end
 end
-
 op ENV['admin']
 LOGINS.keys.each {|e| op e }
-
-
-DOMAINS << OPTS[:domain]
 
 begin
   host = `hostname`.chomp
   if OPTS[:interactive]
-    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
+    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); exit 0 }
     Process.detach( fork { APP.run! } )                                    
     Pry.config.prompt_name = :nomad
     Pry.start(host)

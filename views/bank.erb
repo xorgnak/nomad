@@ -1,20 +1,9 @@
 <style>
-h1 { width: 100%; }
-h1 > * { vertical-align: middle; }
-#shares > span > * { vertical-align: middle; }
-a { text-decoration: none; border: thick solid black; color: black; }
-input { width: 60%; }
+#bank > h1 { width: 100%; margin: 0; }
+#bank > h1 > * { vertical-align: middle; }
+#bank > h1 > input { width: 60%; }
 </style>
-<div style='text-align: center;'>
-
-<% if Shares.by[@user.id] > 0 %>
-<h3 id='shares' style='width: 100%; text-align: center; background-color: black; color: white;'>
-<span class='material-icons'>confirmation_number</span>
-<span><%= Shares.by[@user.id] %></span>
-</h3>
-<% end %>
-
-<fieldset><legend>ledger</legend>
+<div id='bank' class='displays' style='text-align: center; display: none;'>
 
 <% if @user.coins.value > 0 %>
 <h1>
@@ -44,16 +33,4 @@ input { width: 60%; }
 </h1>
 <% end %>
 
-</fieldset>
-<h3>
-
-<% if Bank.wallet[@user.id].to_i > 0 %>
-<a href='<%= @path %>/sponsor?u=<%= params[:u] %>'>sponsor</a>
-<% end %>
-
-<% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
-<a href='<%= @path %>/shares?u=<%= params[:u] %>'>shares</a>
-<% end %>
-
-</h3>
 </div>

@@ -171,8 +171,10 @@ fi)'
 
 END
 
-echo -e "$X BASH"
-cat << 'END' >> $DIR/.bashrc
+
+
+echo -e "$X NOMAD"
+cat << 'END' >> $DIR/.nomad
 ##### NOMADIC begin #####
 echo "`cat /etc/logo`"
 echo "[`hostname`] `uname -a`"
@@ -291,11 +293,25 @@ http {
         error_log /var/log/nginx/error.log;
         gzip on;
 	client_max_body_size 8M;
+
+server {                                                                                                     
+  listen 443 ssl;                                                                                            
+  listen [::]:443;                                                                                           
+  server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;                              
+  location / {                                                                                               
+    proxy_pass http://localhost:4567;                                                                        
+    proxy_set_header Host \$host;                                                                            
+    proxy_redirect http://localhost:4567 https://\$host;                                                    
+  }                                                                                                          
+  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot                     
+}
+
 server {
     listen 80 default_server;
     server_name _;
     return 301 https://$host$request_uri;
 }
+
 server {
 listen 80;
 listen [::]:80;
@@ -305,6 +321,8 @@ server_name localhost `hostname`.local `sudo cat /var/lib/tor/nomad/hostname`;
 ### devices
 `echo -e $CAMS`
 ###
+
+
 
 location / {
     proxy_pass_header  Set-Cookie;
