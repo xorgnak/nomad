@@ -1472,7 +1472,7 @@ ga('send', 'pageview');
             size: 200
           )
    
-          IO.binwrite("public/#{OPTS[:domain]}/QR#{@id}.png", png.to_s)
+          IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
           pool << @id;
           erb :index
         else
