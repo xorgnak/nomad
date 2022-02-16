@@ -272,7 +272,7 @@ else
 	    export DOMAIN='localhost'
 	    ruby mumble.rb
 	    umurmurd -c mumble/localhost.conf
-	    ruby nomad-coin.rb -i
+	    ruby nomad-coin.rb -i -s $PHONE_SID -k $PHONE_KEY
 	    PIDS="$PIDS $!";
 	else
 	    redis-cli del ONION
