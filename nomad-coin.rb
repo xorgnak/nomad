@@ -1156,8 +1156,13 @@ class APP < Sinatra::Base
     # stripes: border. network privledge.
   end
   before {
+    if request.host != 'localhost'
+      s = 'https'
+    else
+      s = 'http'
+    end
     @domain = Domain.new(request.host)
-    @path = %[#{request.scheme}://#{request.host}];
+    @path = %[#{s}://#{request.host}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
   }
