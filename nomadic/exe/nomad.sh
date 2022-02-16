@@ -264,10 +264,30 @@ END
 chmod +x /usr/bin/leah
 
 CAMS="";
+SSL="";
 for c in `redis-cli hkeys CAMS`
 do
     CAMS+="location /$c { proxy_pass http://`redis-cli hget CAMS $c`; }\n"
 done
+sss=cat << EOF
+server {                                                                                                       
+  listen 443 ssl;                                                                                              
+  listen [::]:443;                                                                                             
+  server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;                                
+  location / {                                                                                                 
+    proxy_pass http://localhost:4567;                                                                          
+    proxy_set_header Host \$host;                                                                              
+    proxy_redirect http://localhost:4567 https://\$host;                                                      
+  }                                                                                                            
+  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot                       
+}
+EOF
+if [[ "" == "" ]]; then
+    SSL="";
+else
+    SSL=$ssl;
+fi
+
 cat << END > /etc/nginx/nginx.conf
 user www-data;
 worker_processes auto;
@@ -294,17 +314,7 @@ http {
         gzip on;
 	client_max_body_size 8M;
 
-server {                                                                                                     
-  listen 443 ssl;                                                                                            
-  listen [::]:443;                                                                                           
-  server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;                              
-  location / {                                                                                               
-    proxy_pass http://localhost:4567;                                                                        
-    proxy_set_header Host \$host;                                                                            
-    proxy_redirect http://localhost:4567 https://\$host;                                                    
-  }                                                                                                          
-  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot                     
-}
+$SSL
 
 server {
     listen 80 default_server;
@@ -313,10 +323,25 @@ server {
 }
 
 server {
+    listen 80;
+    listen [::]:80;
+    server_name localhost;
+    location / {                                                                                               
+          proxy_pass_header  Set-Cookie;                
+    	  proxy_set_header   Host               \$host;
+	  proxy_set_header   X-Real-IP          \$remote_addr;
+    	  proxy_set_header   X-Forwarded-Proto  \$scheme;
+    	  proxy_set_header   X-Forwarded-For    \$proxy_add_x_forwarded_for;
+    	  proxy_pass http://127.0.0.1:4567/;
+    	  proxy_buffering off;
+    } 
+}
+
+server {
 listen 80;
 listen [::]:80;
 listen unix:/var/run/nginx.sock;
-server_name localhost `hostname`.local `sudo cat /var/lib/tor/nomad/hostname`;
+server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname`;
 
 ### devices
 `echo -e $CAMS`

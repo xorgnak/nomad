@@ -1,13 +1,13 @@
 <style>
-#sponsor > h1 { width: 100%; }
-#sponsor > h1 > * { vertical-align: middle; }
-#abilities > li { font-size: small; }
-#sponsor > .class { padding: 0 2% 0 2%; border: thin solid black; }
+#q_sponsor > h1 { width: 100%; }
+#q_sponsor > h1 > * { vertical-align: middle; }
+#q_abilities > li { font-size: small; }
+#q_sponsor > .class { padding: 0 2% 0 2%; border: thin solid black; }
 </style>
 <div id='sponsorship' class='displays' style='display: none;'>
 <h4 style='margin: 0; width: 100%; text-align: center;'>
-<input type='number' id='qty' name='sponsor[units]' min='1' placeholder='1' value='1' style='width: 10%;'>
-<select id='type' name='sponsor[type]' style='width: 25%;'>
+<input type='number' id='q_qty' name='sponsor[units]' min='1' placeholder='1' value='1' style='width: 10%;'>
+<select id='q_type' name='sponsor[type]' style='width: 25%;'>
 <option value='1' selected>users</option>
 <option value='2'>influencers</option>
 <option value='3'>ambasadors</option>
@@ -15,8 +15,8 @@
 <option value='5'>agents</option>
 <option value='6'>operators</option>
 </select>
-<input type='number' id='dur' name='sponsor[duration]' placeholder='1' value='1'  style='width: 10%;'>
-<select id='tf' name='sponsor[timeframe]' style='width: 25%;'>
+<input type='number' id='q_dur' name='sponsor[duration]' placeholder='1' value='1'  style='width: 10%;'>
+<select id='q_tf' name='sponsor[timeframe]' style='width: 25%;'>
 <option value='1' selected>hours</option>
 <option value='24'>days</option>
 <option value='<%= 24 * 7 %>'>weeks</option>
@@ -26,18 +26,18 @@
 </h4>
 <fieldset>
 <legend>quote</legend>
-<h5 id='desc' style='text-align: center; width: 100%; margin: 0;'></h5>
-<ul id='abilities'></ul>
+<h5 id='q_desc' style='text-align: center; width: 100%; margin: 0;'></h5>
+<ul id='q_abilities'></ul>
 <h3 style='text-align: center; width: 100%;'>
-<span id='amt' style='background-color: black; color: white; border-radius: 50px; padding: 2%; display: none;'></span>
+<span id='q_amt' style='background-color: black; color: white; border-radius: 50px; padding: 2%; display: none;'></span>
 </h3>
 <datalist>
 <% @user.zones.members.each do |e| %>
 <option value='<%= e %>'>
 <% end %>
 </datalist>
-<h1 id='name' list='zones' style='width: 100%; text-align: center; display: none;'><input type='text' name='sponsor[name]' placeholder='ZONE' style='width: 70%;'>
-<button id='ready' class='material-icons' style='display: none;'>send</button>
+<h1 id='q_name' list='zones' style='width: 100%; text-align: center; display: none;'><input type='text' name='sponsor[name]' placeholder='ZONE' style='width: 70%;'>
+<button id='rdy' class='ready material-icons' style='display: none;' name='act' value='sponsor'>send</button>
 </h1>
 
 </fieldset>
@@ -45,21 +45,21 @@
 <script>
 $(document).on('change', 'form', function(ev) {
 ev.preventDefault();
-var desc = "sponsor " + $('#qty').val() + " class " + $('#type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#type').val()) + " for " + ($('#dur').val() * $('#tf').val()) + " hours.";
-var amt = (( $('#qty').val() * ( 2 ** $('#type').val()) ) * ( $('#dur').val() * $('#tf').val() ));
-var abilities = [ "vote in contests.", "generate content.", "send invites.", "administer waypoints.", "administer zones.", "move between zones and administer contests." ].slice(0, $('#type').val());
+var desc = "sponsor " + $('#q_qty').val() + " class " + $('#q_type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#q_type').val()) + " for " + ($('#q_dur').val() * $('#q_tf').val()) + " hours who can...";
+var amt = (( $('#q_qty').val() * ( 2 ** $('#q_type').val()) ) * ( $('#q_dur').val() * $('#q_tf').val() ));
+var abilities = [ "vote in contests.", "generate content.", "send invites.", "administer waypoints.", "administer zones.", "move between zones and administer contests." ].slice(0, $('#q_type').val());
 var ab = "<ul id='abilities'>"
 
 abilities.forEach(function(item, index, arr) {
-  ab += "<li><span class='class'>" + index + "</span><span class='ability'>" + item + "</li>";
+  ab += "<li><span class='ability'>" + item + "</li>";
 });
 ab += "</ul>";
-$('#abilities').html(ab);
-$('#desc').html(desc);
-$('#amt').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
-$('#prep').text('recalculate');
-$('#amt').show();
-$('#name').show();
-$('#ready').show();
+$('#q_abilities').html(ab);
+$('#q_desc').html(desc);
+$('#q_amt').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
+$('#q_prep').text('recalculate');
+$('#q_amt').show();
+$('#q_name').show();
+$('#rdy').show();
 });
 </script>

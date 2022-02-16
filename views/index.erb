@@ -17,8 +17,8 @@ padding: 3%;
 .pip { padding: 1%; margin: 1%; font-size: large; }
 #badges { text-align: center; }
 .badge { font-size: xx-large; padding: 2%; margin 3%; }
-.open { border: thin solid white; padding: 0 2% 0 2%; font-size: small; }
-.tog { border: thin solid white; padding: 0 2% 0 2%; font-size: small; }
+.open { border: thin solid white; padding: 0 3% 0 3%; font-size: small; }
+.tog { border: thin solid white; padding: 0 3% 0 3%; font-size: small; }
 </style>
 
 <% @a = @user.attr.all %>
@@ -232,39 +232,50 @@ padding: 3%;
       <% end %>
     </div>
     <%= erb :bank %>
+    <% if Bank.wallet[@user.id].to_i > 0 %>
     <%= erb :sponsor %>
+    <% end %>
+    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
     <%= erb :shares %>
-    <p style='width: 100%; font-size: small; text-align: center;'>
-    <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
+    <% end %>
+    <nav id='menu' style='width: 100%; font-size: small; text-align: center;'>
     <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>
+    <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
     <button class='open material-icons' id='open_bank' value='bank'>savings</button>
+    <% if Bank.wallet[@user.id].to_i > 0 %>
     <button class='open material-icons' id='open_sponsorship' value='sponsorship'>cabin</button>
+    <% end %>
+    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
     <button class='open material-icons' id='open_shares' value='shares'>confirmation_number</button>
+    <% end %>
     <% if @user.attr[:class].to_i >= 5 %>
-    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white;'>terminal</a>
+    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: blue;'>terminal</a>
     <% end %>
     <% if @user.attr[:class].to_i >= 6 %>
-    <a href='<%= @path %>/adventures?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white;'>account_tree</a>
+    <a href='<%= @path %>/adventures?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: blue;'>account_tree</a>
     <% end %>
-    <a class='tog material-icons' style="color: white; text-decoration: none; color: white" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">headset_mic</a>
-    </p>
+    <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble') %>:<%= ENV["MUMBLE"] %>">headset_mic</a>
+    </nav>
     <% @user.log.clear() %>
 		      
   </div>
   <script>
   var roles = ['user', 'influencer', 'ambassdor', 'manager', 'agent', 'operator', 'owner', 'developer']
+  <% if request.scheme == 'https' %>
   <%= erb :sw %>
+  <% end %>
   <% z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('') %>
-  var id = '<%= QRO[@id] %>';
-  var sender = true;
-  $('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss].to_i %>&p=<%= @user.attr[:xp].to_i %>&r=<%= @user.attr[:rank].to_i %>&c=<%= @user.attr[:class].to_i %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id + '&z=<%= @z %>');
-  var inv = false;
-    $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
-    $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
-    $('#title').val('<%= @user.attr[:title] || 'title' %>');
-    function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
-    $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
-    log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a>#<%= `git log --format="%H" -n 1`[0..3] %> <%= @domain.id %>');
+    var id = '<%= QRO[@id] %>';
+var sender = true;
+$('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss].to_i %>&p=<%= @user.attr[:xp].to_i %>&r=<%= @user.attr[:rank].to_i %>&c=<%= @user.attr[:class].to_i %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id + '&z=<%= @z %>');
+var inv = false;
+var mnu = false;
+$('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
+$('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
+$('#title').val('<%= @user.attr[:title] || 'title' %>');
+function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
+$(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
+log('<span class="material-icons">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a>#<%= `git log --format="%H" -n 1`[0..3] %> <%= @domain.id %>');
     <% if !params.has_key? :installed %>
     log('<span class="material-icons">info</span> Add to homescreen to install.');
     <% end %>
@@ -273,21 +284,37 @@ padding: 3%;
 <%# erb :coin %>
 <%= erb :mqtt %>
 <%# erb :websocket %>
+
 $(document).on('change', '#set_class', function() {
-  $('#class').text($(this).val());
-  $('#role').text(roles[$(this).val()]);
+    $('#class').text($(this).val());
+    $('#role').text(roles[$(this).val()]);
 });
-$(document).on('click', '#tog_sender', function(ev) {
-ev.preventDefault();
-sender = !sender;
-if (sender == true) { $('#tog_sender').css('color', 'green'); } else { $('#tog_sender').css('color', 'red'); }
-$('#sender').toggle();
+
+$(document).on('click', '.ready', function(ev) {
+    $('#form').submit();
 });
+
 $(document).on('click', '.open', function(ev) {
-ev.preventDefault();
-$('.displays').hide();
-$('.open').css('border-color', 'white');
-$('#open_' + $(this).val() ).css('border-color', 'orange');
-$('#' + $(this).val()).show();
+    ev.preventDefault();
+    $('.displays').hide();
+    $('.open').css('border-color', 'white');
+    $('#open_' + $(this).val() ).css('border-color', 'orange');
+    $('#' + $(this).val()).show();
 });
+
+$(document).on('change', '#s_qty', function(ev) {
+    ev.preventDefault();
+    var desc = $('#s_qty').val() + " shares for ";
+    var amt =  ($('#s_qty').val() * <%= Shares.cost %>);
+    $('#s_desc').text(desc);
+    $('#s_tot').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
+    if ( $('#s_qty').val() > 0 ) {
+	$('#s_ready').show();
+    } else {
+	$('#s_ready').hide();
+    }
+});
+
+
 </script>
+    

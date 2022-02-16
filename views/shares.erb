@@ -4,29 +4,40 @@ h1 > * { vertical-align: middle; }
 input { width: 60%; }
 </style>
 <div id='shares' class='displays' style='display: none;'>
-<h3 id='amt' style='text-align: center; width: 100%; margin: 0;'>
+
+<% @tot = Shares.shares %>
+<ul>
+<li>
+<span>you own:</span>
+<span><%= Shares.by[@user.id].to_i || 0 %></span>
+</li>
+<% @tot.each_pair do |k,v| %>
+<li>
+<span><%= k %>:</span>
+<span><%= v %></span>
+</li>
+<% end %>
+</ul>
+<h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
 <span class='material-icons'>savings</span><%= Shares.cost %></span>
 <select name='shares[mode]'>
 <% if Bank.wallet[@user.id] > Shares.cost %>
 <option value='buy'>buy</option>
 <% end %>
-<% if Shares.by[@user.id] >= 1 %>
+<% if Shares.by[@user.id] > 0 %>
 <option value='sell'>sell</option>
 <% end %>
 </select>
-<input type='number' id='qty' name='shares[qty]' step='1' min='1' max='<%= (Bank.wallet[@user.id].to_i / Shares.cost).to_i %>' value='<%= Shares.by[@user.id].to_i %>' style='width: 20%;'>
-<button type='submit' class='ready material-icons'>confirmation_number</button>
+<% @max = (Bank.wallet[@user.id].to_i || 1 / Shares.cost).to_i || 1 %>
+<% if Shares.by[@user.id].to_i > 0 %>
+<input type='number' id='s_qty' name='shares[qty]' step='1' min='0' max='<%= Shares.by[@user.id] %>' value='0' style='width: 20%;'>
+<% else %>
+<input type='number' id='s_qty' name='shares[qty]' step='1' min='0' max='<%= @max %>' value='0' style='width: 20%;'>
+<% end %>
+</h3>
+<h3 style='text-align: center; width: 100%; margin: 0;'>
+<span id='s_desc'></span>
+<span id='s_tot'></span>
+<button type='submit' id='s_ready' class='material-icons' style='display: none;' name='act' value='shares'>confirmation_number</button>
 </h3>
 </div>
-<script>
-$(document).on('change', '#qty', function(ev) {
-ev.preventDefault();
-var desc = $('#qty').val() + " shares.";
-var amt =  ($('#qty').val() * <%= Shares.cost %>);
-$('#desc').html(desc);
-$('#amt').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
-});
-$(document).on('click', '.ready', function() {
-$('form').submit();
-});
-</script>

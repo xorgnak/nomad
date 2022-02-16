@@ -592,9 +592,9 @@ end
 
 module Shares
   def self.shares
-    o, s = 0, 0
-    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
-    return {owners: o, total: s}
+    o, s, r = 0, 0, ENV['SHARES'] || 1000000
+    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v; r -= v; }
+    return {owners: o, held: s, max: ENV['SHARES'] || 1000000, remaining: r}
   end
   def self.cost
     o, s = 0, 0
@@ -1156,13 +1156,8 @@ class APP < Sinatra::Base
     # stripes: border. network privledge.
   end
   before {
-    if request.host == 'localhost';
-      s = 'http';
-    else;
-      s = 'https';
-    end;
     @domain = Domain.new(request.host)
-    @path = %[#{s}://#{request.host}];
+    @path = %[#{request.scheme}://#{request.host}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
   }
@@ -1477,12 +1472,12 @@ ga('send', 'pageview');
           erb :index
         else
           # expired link
-          w = []; 16.times { w << rand().to_i(16) }
+          w = []; 16.times { w << rand(16).to_s(16) }
           redirect "#{@path}/?w=#{w.join('')}"
         end
       else
         # expired token
-        w = []; 16.times { w << rand().to_i(16) }
+        w = []; 16.times { w << rand(16).to_s(16) }
         redirect "#{@path}/?w=#{w.join('')}"
       end
     else
@@ -1713,18 +1708,12 @@ ga('send', 'pageview');
         end
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
-
-      if params.has_key? :bank
+      if params.has_key? :act
+      if params[:act] == 'bank'
         Redis.new.publish("OWNERSHIP.bank", "#{params}")
-        if params[:bank][:direction] == 'bank'
-          Bank.wallet.incr @by.id, params[:bank][:coins].to_i
-          @by.coins.decr(params[:bank][:coins].to_i)
-        elsif params[:bank][:direction] == 'user'
-          Bank.wallet.decr @by.id, params[:bank][:credit].to_i
-          @by.coins.incr(params[:bank][:credit].to_i)
-        end
-      end
-      if params.has_key? :sponsor
+        Bank.wallet[@by.id] = params[:bank][:credit].to_i
+        @by.coins.value = params[:bank][:coins].to_i
+      elsif params[:act] == 'sponsor'
         Redis.new.publish("OWNERSHIP.sponsor", "#{params}")
         tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
         pay = (2 ** params[:sponsor][:type].to_i).to_i
@@ -1737,8 +1726,7 @@ ga('send', 'pageview');
         z.attr[:cap] = params[:sponsor][:units].to_i;
         @user.zones << params[:sponsor][:name]
         Bank.wallet.decr @by.id, cost
-      end
-      if params.has_key? :shares
+        elsif params[:act] == 'shares'
         Redis.new.publish("OWNERSHIP.shares", "#{params}")
         if params[:shares][:mode] == 'sell'
           Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost
@@ -1748,7 +1736,7 @@ ga('send', 'pageview');
           Shares.mint @by.id, params[:shares][:qty].to_i
         end
       end
-      
+                       end
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
@@ -1835,11 +1823,8 @@ end
                        
      
 
-DB['localhost'] = 7
-def change_db d 
-  Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => DB[d].to_i )
-end
-change_db 'localhost'
+
+Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => 0 )
 
 def op u
   if IDS.has_key? u

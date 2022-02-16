@@ -35,6 +35,7 @@ umurmurd -c mumble/\$DOMAIN.conf
 ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -s \$PHONE_SID -k \$PHONE_KEY;
 EOF
     chmod +x run/$1.sh;
+    if [[ "$1" != 'localhost' ]]; then
     cat << EOF > nginx/$1.conf
 server {
   listen 443 ssl;
@@ -49,11 +50,11 @@ server {
   ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_ROOT/privkey.pem; # managed by Certbot
 }
 EOF
+    fi
 }
 
 
 if [[ ! -f ~/nomad.conf ]]; then
-    sudo raspi-config
     if [[ "$DOMAINS" == "" ]]; then
 	export BOX='true';
     else
