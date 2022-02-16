@@ -174,7 +174,7 @@ END
 
 
 echo -e "$X NOMAD"
-cat << 'END' >> $DIR/.nomad
+cat << 'END' > $DIR/.nomad
 ##### NOMADIC begin #####
 echo "`cat /etc/logo`"
 echo "[`hostname`] `uname -a`"
@@ -270,19 +270,19 @@ do
     CAMS+="location /$c { proxy_pass http://`redis-cli hget CAMS $c`; }\n"
 done
 sss=cat << EOF
-server {                                                                                                       
-  listen 443 ssl;                                                                                              
-  listen [::]:443;                                                                                             
-  server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;                                
-  location / {                                                                                                 
-    proxy_pass http://localhost:4567;                                                                          
-    proxy_set_header Host \$host;                                                                              
-    proxy_redirect http://localhost:4567 https://\$host;                                                      
-  }                                                                                                            
-  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot                       
+server {
+  listen 443 ssl;
+  listen [::]:443;
+  server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;
+  location / {
+    proxy_pass http://localhost:4567;                                                                        
+    proxy_set_header Host \$host;
+    proxy_redirect http://localhost:4567 https://\$host;
+  }
+  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot
 }
 EOF
-if [[ "" == "" ]]; then
+if [[ "$BOX" == "true" ]]; then
     SSL="";
 else
     SSL=$ssl;
