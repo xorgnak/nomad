@@ -269,8 +269,7 @@ for c in `redis-cli hkeys CAMS`
 do
     CAMS+="location /$c { proxy_pass http://`redis-cli hget CAMS $c`; }\n"
 done
-sss=cat << EOF
-server {
+sss="server {
   listen 443 ssl;
   listen [::]:443;
   server_name `hostname`.local `sudo cat /var/lib/tor/nomad/hostname` $DOMAINS;
@@ -280,8 +279,7 @@ server {
     proxy_redirect http://localhost:4567 https://\$host;
   }
   ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot
-}
-EOF
+}";
 if [[ "$BOX" == "true" ]]; then
     SSL="";
 else
