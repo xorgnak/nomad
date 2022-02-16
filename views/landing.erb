@@ -4,7 +4,7 @@ form { }
 textarea { font-size: x-large; width: 100%; }
 </style>
 
-<% if Redis.new.get('ONION') != nil %>
+<% if Redis.new.get('ONION') != nil && ENV['BOX'] == 'true' %>
 <button type='button' onclick='$("#onion").toggle()' class='material-icons'>my_location</button>
 <div id='onion' style='display: none;'>
   <div id='qrcode' style='background-color: white; padding: 2%; text-align: center;'></div>
@@ -14,7 +14,7 @@ textarea { font-size: x-large; width: 100%; }
 <% end %>
 
 <h1 id='bar' style='width: 100%; text-align: center; background-color: white; margin-top: 10%;'>
-<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= banner %></span></h1>
+<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= request.host %></span></h1>
 
 <div style='width: 100%; text-align:center;'>
 
@@ -53,11 +53,11 @@ textarea { font-size: x-large; width: 100%; }
       <% end %>
       <button style='width: 80%; background-color: green; color: white;'>ASK</button></div>
   <% end %>
-  <% if !params.has_key?(:quick) && request.scheme == 'http' %>
+  <% if !params.has_key?(:quick) && ENV['BOX'] == 'true' %>
       <h1><input type='text' name='login[username]' maxlength='20' placeholder='username' style='text-align: center;'></h1>
       <h1><input type='text' name='login[password]' maxlength='20' placeholder='password' style='text-align: center;'></h1>
       <h1><button>login</button></h1>
   <% end %>
 <% end %>
-    <%= erb LANDING[OPTS[:domain]] || '' %>
+    <%= erb LANDING[request.host] || '' %>
 </div>
