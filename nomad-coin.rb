@@ -1787,28 +1787,28 @@ ga('send', 'pageview');
             end
             if @by.password.value.to_s == params[:login][:password].to_s
               token(@by.id, ttl: (((60 * 60) * 24) * 7))
-              redirect "#{@path}/#{@by.id}"
+              redirect "/#{@by.id}"
             end
           else
-            redirect "#{@path}"
+            redirect "/"
           end
         else
-          redirect "#{@path}"
+          redirect "/"
         end
       end
       
       if params.has_key? :landing
-        redirect "#{@path}"
+        redirect "/"
       elsif params.has_key? :quick
-        redirect "#{@path}"
+        redirect "/"
       elsif params.has_key? :cmd
-        redirect "#{@path}/term?u=#{params[:u]}"
+        redirect "/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
+        redirect "/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
       elsif params.has_key? :a
-        redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
+        redirect "/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
-        redirect "#{@path}/#{@by.id}"
+        redirect "/#{@by.id}"
       end
     end
   end
