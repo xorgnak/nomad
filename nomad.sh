@@ -276,7 +276,7 @@ else
 	    PIDS="$PIDS $!";
 	else
 	    redis-cli del ONION
-	    ruby nomad-coin.rb -i -s $PHONE_SID -k $PHONE_KEY
+	    ruby nomad-coin.rb -s $PHONE_SID -k $PHONE_KEY
 	fi
     fi
     cleanup() {
