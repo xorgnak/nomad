@@ -250,10 +250,7 @@ padding: 3%;
     <button class='open material-icons' id='open_shares' value='shares'>confirmation_number</button>
     <% end %>
     <% if @user.attr[:class].to_i >= 5 %>
-    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: blue;'>terminal</a>
-    <% end %>
-    <% if @user.attr[:class].to_i >= 6 %>
-    <a href='<%= @path %>/adventures?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: blue;'>account_tree</a>
+    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: red;'>terminal</a>
     <% end %>
     <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble').gsub('://', "://#{@user.attr[:name] || 'nomad'}@") %>:<%= MUMBLE[request.host] %>/?version=1.2.0">headset_mic</a>
     </nav>
