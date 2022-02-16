@@ -106,6 +106,7 @@ if [[ "$1" == "-h" || "$1" == "-u" || "$1" == "--help" || "$1" == "help" ]]; the
     echo "op: begin operator mode."
 elif [[ "$1" == "update" ]]; then
     echo "##### POST UPDATE #####"
+    source ../nomad.conf
     sudo cp -f nginx/* /etc/nginx/sites-enabled/
     if [[ "$DOMAINS" != "" ]]; then
 	ruby certbot.rb $DOMAINS
