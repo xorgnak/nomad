@@ -32,7 +32,6 @@ EOF
 ruby mumble.rb
 redis-cli hset MUMBLE \$DOMAIN \$MUMBLE
 umurmurd -c mumble/\$DOMAIN.conf
-ruby nomad-coin.rb -p \$PORT -d \$DOMAIN -b \$ADMIN -s \$PHONE_SID -k \$PHONE_KEY;
 EOF
     chmod +x run/$1.sh;
     if [[ "$1" != 'localhost' ]]; then
@@ -183,7 +182,7 @@ EOF
     echo "##### DOMAINS #####"
     cd ~/nomad
     if [[ "$DOMAINS" != "" ]]; then
-	ruby certbot.rb $DOMAINS
+#	ruby certbot.rb $DOMAINS
 	d=($DOMAINS)
 	for ((i = 0; i < ${#d[@]}; ++i)); do
 	    export PORT=$(( $i + $PORT_ROOT ));
@@ -192,8 +191,8 @@ EOF
 	done
     fi
     echo "##### PRE UPDATE #####"
-    sudo ./nomadic/exe/nomad.sh
-    sudo cp -f nginx/* /etc/nginx/sites-enabled/
+#    sudo ./nomadic/exe/nomad.sh
+#    sudo cp -f nginx/* /etc/nginx/sites-enabled/
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
     echo "##### REBOOT TO RUN #####"
@@ -277,6 +276,7 @@ else
 	    PIDS="$PIDS $!";
 	else
 	    redis-cli del ONION
+	    ruby nomad-coin.rb -i
 	fi
     fi
     cleanup() {
