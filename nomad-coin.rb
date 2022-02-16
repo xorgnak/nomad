@@ -398,7 +398,7 @@ end
 class Phone
   def twilio
     if OPTS[:sid] != ''
-      Twilio::REST::Client.new(ENV['TWILIO_SID'], ENV['TWILIO_KEY'])
+      Twilio::REST::Client.new(ENV['PHONE_SID'], ENV['PHONE_KEY'])
     end
   end
   def send_sms h={}
