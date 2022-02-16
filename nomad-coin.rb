@@ -1458,8 +1458,8 @@ ga('send', 'pageview');
           @user = U.new(@id);
           @user.attr[:pub] = @vapid.public_key
           @user.attr[:priv] = @vapid.private_key
-          qrcode = RQRCode::QRCode.new("#{@path}/?x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}")
-          png = qrcode.as_png(
+#          qrcode = RQRCode::QRCode.new("#{@path}/?x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}")
+#          png = qrcode.as_png(
             bit_depth: 1,
             border_modules: 0,
             color_mode: ChunkyPNG::COLOR_GRAYSCALE,
@@ -1474,7 +1474,7 @@ ga('send', 'pageview');
           if !Dir.exist? "public/#{@domain.id}"
             Dir.mkdir("public/#{@domain.id}")
           end
-          IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
+#          IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
           pool << @id;
           erb :index
         else
