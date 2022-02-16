@@ -1471,7 +1471,9 @@ ga('send', 'pageview');
             resize_gte_to: false,
             size: 200
           )
-   
+          if !Dir.exist? "public/#{@domain.id}"
+            Dir.mkdir("public/#{@domain.id}")
+          end
           IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
           pool << @id;
           erb :index
