@@ -267,7 +267,7 @@ else
 	    PIDS="$PIDS $!";
 	done
 	touch nomad.lock
-	if [[ "BOX" != 'false' ]]; then
+	if [[ "$BOX" != 'false' ]]; then
 	    redis-cli set ONION `cat /var/lib/tor/nomad/hostname`
 	    export DOMAIN='localhost'
 	    ruby mumble.rb
