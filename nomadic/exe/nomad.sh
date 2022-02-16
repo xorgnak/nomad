@@ -285,7 +285,7 @@ EOF
 if [[ "$BOX" == "true" ]]; then
     SSL="";
 else
-    SSL=$ssl;
+    SSL=$sss;
 fi
 
 cat << END > /etc/nginx/nginx.conf
