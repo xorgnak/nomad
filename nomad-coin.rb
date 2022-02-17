@@ -1119,10 +1119,6 @@ class APP < Sinatra::Base
       hh = hostname.split('-')
       return hh[0]
     end
-
-    def blockchain
-      BLOCKCHAIN
-    end
     
     def id *i
       if i[0]
@@ -1156,7 +1152,7 @@ class APP < Sinatra::Base
     # stripes: border. network privledge.
   end
   before {
-    if request.host != 'localhost'
+    if request.url.split(':')[0] == 'https'
       s = 'https'
     else
       s = 'http'
@@ -1190,25 +1186,19 @@ class APP < Sinatra::Base
     @user.attr[:vapid] = JSON.generate(params[:subscription])
     notify(params[:u], title: @domain.id, body: 'connected')
   }
-
-  get '/tx' do
-    @browser = Browser.new(request.user_agent)
-    @blockchain = blockchain(request.host)
-    erb :tx
-  end
   
   get '/dx' do
-    last_block = BLOCKCHAIN.last_block
+    last_block = Blockchain.new(request.host).last_block
     last_proof = last_block[:proof]
-    proof = BLOCKCHAIN.proof_of_work(last_proof)
-    tx = BLOCKCHAIN.new_transaction(params[:u], 'BANK', BLOCKCHAIN.block_cost, ['miner'], 'report')
-    previous_hash = BLOCKCHAIN.hash(last_block)
-    block = BLOCKCHAIN.new_block(proof, previous_hash)
+    proof = Blockchain.new(request.new).proof_of_work(last_proof)
+    tx = Blockchain.new(request.host).new_transaction(params[:u], 'BANK', Blockchain.new(request.host).block_cost, ['miner'], 'report')
+    previous_hash = Blockchain.new(request.host).hash(last_block)
+    block = Blockchain.new(request.host).new_block(proof, previous_hash)
     status 200
     
     hf, ha = Hash.new {|h,k| h[k]=0 }, Hash.new {|h,k| h[k]=0 };
     hr = Hash.new {|h,k| h[k]=0 }
-    BLOCKCHAIN.fingers.each_pair {|k,v|
+    Blockchain.new(request.host).fingers.each_pair {|k,v|
       kk = k.split('#');
       if kk[0] != 'BANK';
         hf[kk[0]] += v;
@@ -1217,7 +1207,7 @@ class APP < Sinatra::Base
         ha[kk[1]] += v;
       end
     }
-    BLOCKCHAIN.acts.each_pair {|k,v| kk = k.split(':'); if kk[1] != 'report'; hr[kk[1]] += v; end  } 
+    Blockchain.new(request.host).acts.each_pair {|k,v| kk = k.split(':'); if kk[1] != 'report'; hr[kk[1]] += v; end  } 
     @chain = {
       impressions: hf,
       fingerprints: ha,
@@ -1422,7 +1412,7 @@ class APP < Sinatra::Base
       Bank.mint
       browser = Browser.new(request.user_agent)
       b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
-      tx = BLOCKCHAIN.new_transaction('BANK', @user.id, 1, browser.meta, 'rsvp')
+      tx = Blockchain.new(request.host).new_transaction('BANK', @user.id, 1, browser.meta, 'rsvp')
       erb :goto;
     else
       erb :landing;
@@ -1433,7 +1423,7 @@ class APP < Sinatra::Base
     Bank.mint
     browser = Browser.new(request.user_agent)
     b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
-    tx = BLOCKCHAIN.new_transaction('BANK', u, 1, browser.meta, params[:c])
+    tx = Blockchain.new(request.host).new_transaction('BANK', u, 1, browser.meta, params[:c])
     @conf = JSON.parse(File.read("home/#{u}/#{params[:c]}/index.json"))
     ga = %[<!-- Google Analytics -->
 <script>
@@ -1476,7 +1466,11 @@ ga('send', 'pageview');
           end
 #          IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
           pool << @id;
-          erb :index
+          if /.onion/.match(request.host)
+            erb :onion
+          else
+            erb :index
+          end
         else
           # expired link
           w = []; 16.times { w << rand(16).to_s(16) }

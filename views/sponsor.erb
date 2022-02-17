@@ -1,4 +1,5 @@
 <style>
+#sponsorship { background-color: white; color: black; }
 #q_sponsor > h1 { width: 100%; }
 #q_sponsor > h1 > * { vertical-align: middle; }
 #q_abilities > li { font-size: small; }
@@ -62,4 +63,8 @@ $('#q_amt').show();
 $('#q_name').show();
 $('#rdy').show();
 });
+<% if params.has_key? :bare %>
+$('#sponsorship').show();
+<% end %>
+
 </script>

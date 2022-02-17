@@ -14,8 +14,12 @@ textarea { font-size: x-large; width: 100%; }
 <% end %>
 
 <h1 id='bar' style='width: 100%; text-align: center; background-color: white; margin-top: 10%;'>
-<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= request.host %></span></h1>
-
+<% if !/.onion/.match(request.host) %>
+<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= request.host %></span>
+<% else %>
+<span id='title' style='background-color: white; font-size: x-large; color: black; padding: 2%;'><%= `hostname` %></span>
+<% end %>
+</h1>
 <div style='width: 100%; text-align:center;'>
 
 <% if Redis.new.get('LOCKED') == nil && params.has_key?(:edit) %>

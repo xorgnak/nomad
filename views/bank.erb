@@ -1,5 +1,5 @@
 <style>
-#bank > h1 { width: 100%; margin: 0; }
+#bank > h1 { width: 100%; margin: 0; background-color: black; color: white; }
 #bank > h1 > * { vertical-align: middle; }
 #bank > h1 > input { width: 60%; }
 </style>
@@ -14,6 +14,9 @@
 </h3>
 </div>
 <script>
+<% if params.has_key? :bare %>
+$('#bank').show();
+<% end %>
 var b_tot = <%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>;
 
 $(document).on('change','#b_coins',function(){
