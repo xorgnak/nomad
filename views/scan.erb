@@ -54,9 +54,9 @@ function tick() {
       var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
       var onion = /.onion/g;
       var dom = /<%= @path.gsub('://', ':\/\/') %>/g; 
-	<% DOMAINS.members.each do |e| %>
-	var dom_<%= e.gsub('.', '_') %> = /<%= e.gsub('://', ':\/\/') %>/g;
-	  <% end %>
+      <% DOMAINS.members.each do |e| %>
+      var dom_<%= e.gsub('.', '_') %> = /<%= e.gsub('://', ':\/\/') %>/g;
+      <% end %>
 	  if (code) {
 	      var valid = false
 	      if (onion.test(code.data)) {
@@ -75,7 +75,7 @@ function tick() {
 		  <% end %>
 		  
 	      if (valid == true) {
-		  handle(code.data);
+		  handler(code.data);
 	      } else {
 		  log("<a href='" + code.data + "'>" + code.data + "</a>");
 	      }
