@@ -140,10 +140,13 @@ padding: 3%;
       <% end %>
     </div>
     <h1 id='menu' style='width: 100%; text-align: center;'>
+    
     <a href='<%= @path %>/bank?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_bank' value='bank' style='text-decoration: none; color: white;'>savings</a>
+    <% if Bank.wallet[@user.id].to_i > 0 %>
     <a href='<%= @path %>/sponsor?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_sponsorship' value='sponsorship' style='text-decoration: none; color: white;'>cabin</a>
     <a href='<%= @path %>/shares?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_shares' value='shares' style='text-decoration: none; color: white;'>confirmation_number</a>
-    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: red;'>terminal</a>
+    <% end %>
+    <a href='https://<%= request.host %>:4200' class='tog material-icons' style='text-decoration: none; color: white; border-color: green;'>terminal</a>
     <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble').gsub('://', "://#{@user.attr[:name] || 'nomad'}@") %>:<%= MUMBLE[request.host] %>/?version=1.2.0">headset_mic</a>
     </h1>
     <% @user.log.clear() %>

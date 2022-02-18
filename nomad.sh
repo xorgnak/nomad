@@ -139,14 +139,14 @@ elif [[ "$1" == "install" ]]; then
     if [[ "$BOX" == 'true' ]]; then
 	debs="$debs $DEBS_SHELL";
     fi
+    if [[ "$1" == "install" && "$2" != 'bare' ]]; then
     echo "##### installing debs..."
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
-    #echo $debs
+    sudo gem install $GEMS;
+    fi
     echo "##### post-install..."
     sudo mv /etc/shellinabox/options-enabled/00\+Black\ on\ White.css /etc/shellinabox/options-enabled/00_Black\ on\ White.css
     sudo mv /etc/shellinabox/options-enabled/00_White\ On\ Black.css /etc/shellinabox/options-enabled/00+White\ On\ Black.css
-    echo "##### installing gems..."
-    sudo gem install $GEMS;
     echo "##### installing comms";
     # mumble server
     cd ~
@@ -196,8 +196,9 @@ EOF
 #    sudo cp -f nginx/* /etc/nginx/sites-enabled/
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
-    echo "##### REBOOT TO RUN #####"
-    echo "##### DONE! #####"
+    echo "##### REBOOT TO RUN #####";
+    echo "##### DONE! #####";
+#    exit 0
 elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
