@@ -1,4 +1,38 @@
 
+
+function handler(scn) {
+    var h = {};
+    var o = scn.split('?');
+    var kv = o[1].split('&');
+    var u;
+    kv.forEach(function(v, i, obj) {
+	var oo = v.split('=');
+	h[oo[0]] = oo[1]
+    });
+    if (h.ts) {
+	log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
+    } else {
+	$('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+	    <% if @user.attr[:class].to_i > 6 %>
+	    $('#boss').val(h.b);
+	$('#rank').val(h.r);
+	    <% else %>
+            $('#boss').text(h.b);
+	$('#rank').text(h.r);
+	    <% end %>
+	    $('#xp').text(h.p);
+	$('#class').text(h.c);
+	$('#set_class').val(h.c)
+	$('#role').text(roles[h.c]);
+	$('#z').text(h.x);
+	$('#scan').val(h.u);
+	$('#view').hide();
+	$('#display').hide();
+	$('#magic').show();
+	//mine(h.u);
+    }
+}
+
 var video = document.createElement("video");
 var canvasElement = document.getElementById("canvas");
 var canvas = canvasElement.getContext("2d");
@@ -12,59 +46,40 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).th
     requestAnimationFrame(tick);
 });
 function tick() {
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-	canvasElement.height = video.videoHeight;
-	canvasElement.width = video.videoWidth;
-	canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-	var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-	var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-	var dom = /<%= @path.gsub('://', ':\/\/') %>/g;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvasElement.height = video.videoHeight;
+      canvasElement.width = video.videoWidth;
+      canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+      var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+      var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      var onion = /.onion/g;
+      var dom = /<%= @path.gsub('://', ':\/\/') %>/g; 
 	<% DOMAINS.members.each do |e| %>
 	var dom_<%= e.gsub('.', '_') %> = /<%= e.gsub('://', ':\/\/') %>/g;
-	<% end %>
-	if (code) {
-	    // match local domain
-	    if (dom.test(code.data)) {
-		var h = {};
-		var o = code.data.split('?');
-		var kv = o[1].split('&');
-		var u;
-		kv.forEach(function(v, i, obj) {
-		    var oo = v.split('=');
-		    h[oo[0]] = oo[1]
-		});
-		if (h.ts) { 
-		    log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
-		} else {
-		    $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
-		    <% if @user.attr[:class].to_i > 6 %>
-		    $('#boss').val(h.b);
-		    $('#rank').val(h.r);
-		    <% else %>
-                    $('#boss').text(h.b);
-                    $('#rank').text(h.r);
-		    <% end %>
-		    $('#xp').text(h.p);
-		    $('#class').text(h.c);
-		    $('#set_class').val(h.c)
-		    $('#role').text(roles[h.c]);
-		    $('#z').text(h.x);
-		    $('#scan').val(h.u);
-		    $('#view').hide();
-		    $('#display').hide();
-		    $('#magic').show();
-		    //mine(h.u);
-		}
-	    } else {	
-		<% if DOMAINS.members.length > 1 %>
-		    <% DOMAINS.members.each do |e| %>
-		    if (dom_<%= e.gsub('.','_') %>.test(code.data)) {
-			log("<a href='" + code.data + "' style='color: white;'><%= e %></a>");
-		    }
-       	  	    <% end %>
-		<% end %>
-	    }
-	}
-    }
+	  <% end %>
+	  if (code) {
+	      var valid = false
+	      if (onion.test(code.data)) {
+		  valid = true;
+	      }
+	      // match local domain
+	      if (dom.test(code.data)) {
+		  valid = true;
+	      }
+		  <% if DOMAINS.members.length > 1 %>
+		  <% DOMAINS.members.each do |e| %>
+		  if (dom_<%= e.gsub('.','_') %>.test(code.data)) {
+		      valid = true;
+		  }
+       		  <% end %>
+		  <% end %>
+		  
+	      if (valid == true) {
+		  handle(code.data);
+	      } else {
+		  log("<a href='" + code.data + "'>" + code.data + "</a>");
+	      }
+	  }
+  }
     requestAnimationFrame(tick);
 } 

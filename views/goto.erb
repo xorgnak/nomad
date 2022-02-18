@@ -33,26 +33,43 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
   <% end %>
 
-  <% if @user.attr.has_key?(:contact) && params[:contact] != 'none' %>
+  <% if @user.attr.has_key?(:contact) && params[:contact] != 'none' && !/.onion/.match(request.host) %>
     <a style=' color: green; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>call</a>
   <% end %>
 </h1>
 
+<% if @user.attr.has_key?(:contact) && params[:contact] != 'none' && /.onion/.match(request.host) %>
+<h1 style='width: 100%; margin: 0; background-color: black;'>
+    <span class='material-icons' style='color: green'>call</span>
+    <span style='color: white;'><%= @user.attr[:phone] %></span>
+</h1>
+<% end %>
+
+
 <% if @user.attr.has_key? :vote %>
 <h4 style='width: 100%; background-color: black; color: white; margin: 0;'><%= @user.attr[:vote] %></h4>
 <% end %>
+
 </div>
+
 <div id='badge' style='display: none; position: absolute; top: 0;'>
-     <% @u = U.new("#{params[:u]}:#{params[:z]}") %>
+  <% @u = U.new("#{params[:u]}:#{params[:z]}") %>
   <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
     <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   </div>
+
+  <% if ENV['LVLS'] != 'false' %>
   <%= @u.sash.lvl %>
+  <% end %>
+  
+  <% if ENV['BADGES'] != 'false' %>
   <%= @u.sash.badges %>
+  <% end %>
 </div>
 
 
 <div id='btm' style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
+
  <% if @user.attr.has_key? :pitch %>
   <h3 id='pitch' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:pitch] %></span></h3>
  <% end %>
@@ -60,9 +77,11 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
   <h1 id='name' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:name] %></span></h1>
  <% end %>
+
  <% if @user.attr.has_key? :title %>
   <h4 id='title' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:title] %></span></h4>
  <% end %>
+
  <% if @user.attr.has_key? :sponsor %>
  <h4 id='sponsor' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:sponsor] %></span></h2>
  <% end %>
@@ -74,6 +93,6 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <input type='hidden' name='x' value='<%= params[:x] || "solo" %>'>
 <input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
 <script>
-$('#qrcode').qrcode('<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&ts=<%= params[:ts] || @ts %>');
+$('#qrcode').qrcode('<%= @path %>/?u=<%= params[:u] %>:<%= params[:z] %>&x=<%= params[:x] || 'solo' %>&ts=<%= params[:ts] || @ts %>');
 
 </script>

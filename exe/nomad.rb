@@ -1083,7 +1083,8 @@ end
 class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   set :server, 'thin'
-  set :public_folder, "public/"
+  set :public_folder, "/home/pi/nomad/public/"
+  set :views, "/home/pi/nomad/views/"
   set :sockets, []
   
   helpers do
