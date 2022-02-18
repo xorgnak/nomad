@@ -249,7 +249,7 @@ EOF
     echo "#####     DONE!     #####";
     
 else
-    source ~/nomad.conf
+    source /home/pi/nomad.conf
     if [[ -f nomad.lock ]]; then
 	ruby exe/nomad.rb -I
     else
