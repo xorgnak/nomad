@@ -1158,7 +1158,7 @@ class APP < Sinatra::Base
       Dir.mkdir("/home/pi/nomad/public/#{@domain.id}")
     end
     
-    if request.url.split(':')[0] == 'https' || /https/.match(request.url)
+    if "#{ENV['DOMAINS']}".split(' ').include? request.host
       s = 'https'
     else
       s = 'http'
@@ -1523,7 +1523,7 @@ ga('send', 'pageview');
       params.delete(:cha)
       params.delete(:pin)
       Redis.new.publish("AUTHORIZE", "#{@path}")
-      erb :index
+      redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       qrp = []; 16.times { qrp << rand(16).to_s(16) }
