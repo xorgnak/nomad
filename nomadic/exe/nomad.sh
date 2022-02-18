@@ -375,6 +375,7 @@ HiddenServiceDir /var/lib/tor/nomad/
 HiddenServicePort 80 unix:/var/run/nginx.sock
 HiddenServicePort 6667 127.0.0.1:6667
 HiddenServicePort 4321 127.0.0.1:4321
+HiddenServicePort 64738 127.0.0.1:64738
 END
 sudo service tor restart
 

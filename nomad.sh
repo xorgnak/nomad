@@ -1,9 +1,10 @@
 #!/bin/bash
 
-DEBS='git screen ruby-full redis-server redis-tools build-essential certbot nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk golang alsa-base alsa-tools alsa-utils python-certbot-nginx imagemagick';
+DEBS='git screen ruby-full redis-server redis-tools build-essential nginx ngircd tor emacs-nox mosquitto python3 python3-pip git python3-pil python3-pil.imagetk golang alsa-base alsa-tools alsa-utils imagemagick';
 DEBS_HAM='soundmodem multimon-ng ax25-apps ax25-tools golang libopus0 libopus-dev libopenal-dev libconfig-dev libprotobuf-c-dev libpolarssl-dev cmake autotools-dev autoconf libtool';
 DEBS_FUN='games-console tintin++ slashem';
 DEBS_GUI='xinit xwayland terminator chromium dwm mumble vlc mednafen mednaffe';
+DEBS_SSL='python-nginx-certbot certbot';
 DEBS_SHELL='shellinabox openssl'
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch rqrcode webpush twilio-ruby rmagick binance';
 
@@ -138,14 +139,14 @@ elif [[ "$1" == "install" ]]; then
     if [[ "$BOX" == 'true' ]]; then
 	debs="$debs $DEBS_SHELL";
     fi
+    if [[ "$1" == "install" && "$2" != 'bare' ]]; then
     echo "##### installing debs..."
     sudo apt update && sudo apt upgrade -y && sudo apt install -y $debs;
-    #echo $debs
+    sudo gem install $GEMS;
+    fi
     echo "##### post-install..."
     sudo mv /etc/shellinabox/options-enabled/00\+Black\ on\ White.css /etc/shellinabox/options-enabled/00_Black\ on\ White.css
     sudo mv /etc/shellinabox/options-enabled/00_White\ On\ Black.css /etc/shellinabox/options-enabled/00+White\ On\ Black.css
-    echo "##### installing gems..."
-    sudo gem install $GEMS;
     echo "##### installing comms";
     # mumble server
     cd ~
@@ -195,8 +196,9 @@ EOF
 #    sudo cp -f nginx/* /etc/nginx/sites-enabled/
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
-    echo "##### REBOOT TO RUN #####"
-    echo "##### DONE! #####"
+    echo "##### REBOOT TO RUN #####";
+    echo "##### DONE! #####";
+#    exit 0
 elif [[ "$1" == "iot" ]]; then
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
     sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
