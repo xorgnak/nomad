@@ -1523,7 +1523,7 @@ ga('send', 'pageview');
       params.delete(:cha)
       params.delete(:pin)
       Redis.new.publish("AUTHORIZE", "#{@path}")
-      redirect "#{@path}/#{params[:u]}"
+      erb :index
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       qrp = []; 16.times { qrp << rand(16).to_s(16) }
