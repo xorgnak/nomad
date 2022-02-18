@@ -1522,7 +1522,7 @@ ga('send', 'pageview');
       @id = id(params[:u]);
       params.delete(:cha)
       params.delete(:pin)
-      redirect "#{request.url}/#{params[:u]}"
+      redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       qrp = []; 16.times { qrp << rand(16).to_s(16) }
