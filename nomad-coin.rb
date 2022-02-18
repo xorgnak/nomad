@@ -1187,7 +1187,7 @@ class APP < Sinatra::Base
   get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
   post('/sw') {
     @user = U.new(params[:u])
-    @user.attr[:vapid] = JSON.generate(params[:subscription])
+    @user.attr[:vapid] ||= JSON.generate(params[:subscription])
     notify(params[:u], title: @domain.id, body: 'connected')
   }
 

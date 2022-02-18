@@ -17,8 +17,8 @@ self.addEventListener('push', function(event) {
     console.log(event);
     const j = event.data ? JSON.parse(event.data.text()) : {};
     event.waitUntil(
-	self.registration.showNotification( j.title || '<%= OPTS[:domain] %>', {
-	    tag: 'nomad.' + '<%= OPTS[:domain] %>',
+	self.registration.showNotification( j.title || '<%= request.host %>', {
+	    tag: 'nomad.' + '<%= request.host %>',
 	    body: j.body || 'ping',
 	    icon: j.icon || 'favicon.ico',
 	    timestamp: j.timestamp,
@@ -50,13 +50,6 @@ self.addEventListener('notificationclick', function(event) {
     )
 });
 
-
-//serviceWorkerRegistration.pushManager.getSubscription()
-//    .then((subscription) => {
-//	vapid = subscription;
-//	$.post("/sw?u=<%= params[:u] %>", { subscription: subscription.toJSON() });
-//    });
-
 self.registration.showNotification( '<%= OPTS[:domain] %>', {
     tag: 'nomad.' + '<%= OPTS[:domain] %>',
     body: 'runing!',
@@ -66,3 +59,4 @@ self.registration.showNotification( '<%= OPTS[:domain] %>', {
     vibrate: [500,100,500],
     timestamp: '<%= Time.now.utc.to_i %>'
 });
+

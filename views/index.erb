@@ -313,6 +313,7 @@ $(document).on('change', '#s_qty', function(ev) {
     }
 });
 
+$.post("/sw?u=<%= @user.id %>", { subscription: subscription.toJSON(), message: 'connected.' });
 
 </script>
     
