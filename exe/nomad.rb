@@ -1153,6 +1153,10 @@ class APP < Sinatra::Base
     # stripes: border. network privledge.
   end
   before {
+    if !Dir.exist? "/home/pi/nomad/public/#{@domain.id}"
+      Dir.mkdir("/home/pi/nomad/public/#{@domain.id}")
+    end
+    
     if request.url.split(':')[0] == 'https'
       s = 'https'
     else
@@ -1462,9 +1466,6 @@ ga('send', 'pageview');
 #            resize_gte_to: false,
 #            size: 200
 #          )
-          if !Dir.exist? "public/#{@domain.id}"
-            Dir.mkdir("public/#{@domain.id}")
-          end
 #          IO.binwrite("public/#{@domain.id}/QR#{@id}.png", png.to_s)
           pool << @id;
           if /.onion/.match(request.host)
