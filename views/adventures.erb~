@@ -1,3 +1,0 @@
-<% ADVENTURES.each do |a| %>
-<%= Adventure.new(a).html %>
-<% end %>

@@ -1,1 +1,0 @@
-<%= AppRTC.new(params[:u]).embed %>

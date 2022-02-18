@@ -1,5 +1,0 @@
-<% @a = Adventure.new(params[:a]) %>
-<% @a.points.each do |a| %>
-<h3><%= a %></h3>
-<% end %>
-<a href='https://<%= OPTS[:domain] %>/waypoint?a=<%= params[:a] %>&i=<%= @a.points.length %>' class='material-icons'>plus</a>
