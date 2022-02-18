@@ -1153,6 +1153,7 @@ class APP < Sinatra::Base
     # stripes: border. network privledge.
   end
   before {
+    @domain = Domain.new(request.host)
     if !Dir.exist? "/home/pi/nomad/public/#{@domain.id}"
       Dir.mkdir("/home/pi/nomad/public/#{@domain.id}")
     end
@@ -1162,7 +1163,6 @@ class APP < Sinatra::Base
     else
       s = 'http'
     end
-    @domain = Domain.new(request.host)
     @path = %[#{s}://#{request.host}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
