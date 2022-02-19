@@ -19,9 +19,13 @@ export DOMAIN='$1';
 export PHONE='$PHONE';
 export ADMIN='$ADMIN';
 export MUMBLE='$MUMBLE';
+export OWNERSHIP='sponsor';                                                                                  
+export EXCHANGE='1';
 redis-cli hset PHONES $1 \$PHONE; 
 redis-cli hset MUMBLE $1 \$MUMBLE;
 redis-cli hset ADMINS $1 \$ADMIN;
+redis-cli hset OWNERSHIP $1 \$OWNERSHIP;
+redis-cli hset EXCHANGE $1 \$EXCHANGE; 
 ruby mumble.rb $1
 umurmurd -c mumble/\$DOMAIN.conf
 EOF

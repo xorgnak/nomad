@@ -224,6 +224,10 @@ QRO = Redis::HashKey.new("QRO")
 LOGINS = Redis::HashKey.new("LOGINS")
 QUICK = Redis::HashKey.new("QUICK")
 MUMBLE = Redis::HashKey.new('MUMBLE')
+PHONES = Redis::HashKey.new("PHONES")
+ADMINS = Redis::HashKey.new("ADMINS")
+OWNERSHIP = Redis::HashKey.new("OWNERSHIP")
+EXCHANGE = Redis::HashKey.new("EXCHANGE")
 
 BRAIN = Cerebrum.new
 
@@ -676,13 +680,14 @@ module Bank
   ##
   # save coins for later
   def self.stash h={}
-    U.new(h[:from]).coins.decr(h[:amt])
-    U.new('BANK').wallet.incr('VAULT', h[:amt])
-    Bank.wallet.incr(h[:from], h[:amt])
+    cns = (EXCHANGE[h[:host]].to_i || 1 * h[:amt]).to_i
+    U.new(h[:from]).coins.decr(cns)
+    U.new('BANK').wallet.incr('VAULT', cns)
+    Bank.wallet.incr(h[:from], cns)
     U.new(h[:from]).log << %[STASH #{Time.now.utc} #{JSON.generate(h)}]
     return {
-      id: Bank.vault(h[:amt].to_i), 
-      amt: h[:amt],
+      id: Bank.vault(cns), 
+      amt: cns,
       balance: U.new(h[:from]).coins.value,
       credit: Bank.wallet[h[:from]]
     }
@@ -1391,7 +1396,7 @@ class APP < Sinatra::Base
   get('/sms') {
     Redis.new.publish('SMS', "#{params}")
     if /^\$\d+/.match(params['Body'])
-      s =  Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''))
+      s =  Bank.stash(from: BOOK[params['From']], amt: params['Body'].gsub('$', ''), host: request.host)
       b = [%[-#{params['Body']}],
            %[balance: #{s[:balance]}],
            %[credit: #{s[:credit]}],
