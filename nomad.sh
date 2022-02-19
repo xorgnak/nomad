@@ -26,22 +26,6 @@ ruby mumble.rb $1
 umurmurd -c mumble/\$DOMAIN.conf
 EOF
     chmod +x run/$1.sh;
-    if [[ "$1" != 'localhost' ]]; then
-    cat << EOF > nginx/$1.conf
-server {
-  listen 443 ssl;
-  listen [::]:443;
-  server_name $1;
-  location / {
-    proxy_pass http://localhost:$PORT;
-    proxy_set_header Host \$host;
-    proxy_redirect http://localhost:$PORT https://$1;
-  }
-  ssl_certificate /etc/letsencrypt/live/$DOMAIN_ROOT/fullchain.pem; # managed by Certbot
-  ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_ROOT/privkey.pem; # managed by Certbot
-}
-EOF
-    fi
 }
 
 

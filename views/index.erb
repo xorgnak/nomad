@@ -234,10 +234,17 @@ padding: 3%;
     </div>
     <%= erb :bank %>
     <% if Bank.wallet[@user.id].to_i > 0 %>
+    <% if ENV['OWNERSHIP'] == 'franchise' %>
+    <%= erb :franchisee %>
+    <% else %>
     <%= erb :sponsor %>
     <% end %>
     <% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
+    <% if ENV['OWNERSHIP'] == 'franchise' %>
+    <%= erb :franchise %>
+    <% else %>
     <%= erb :shares %>
+    <% end %>
     <% end %>
     <nav id='menu' style='width: 100%; font-size: small; text-align: center;'>
     <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>

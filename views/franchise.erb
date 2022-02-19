@@ -1,0 +1,36 @@
+<style>
+#shares { background-color: white; color: black; }
+h1 { width: 100%; }
+h1 > * { vertical-align: middle; }
+input { width: 60%; }
+</style>
+<div id='shares' class='displays' style='display: none;'>
+
+<% @tot = Shares.shares %>
+<ul>
+<li>
+<span>you own:</span>
+<span><%= Shares.by[@user.id].to_i || 0 %></span>
+</li>
+<% @tot.each_pair do |k,v| %>
+<li>
+<span><%= k %>:</span>
+<span><%= v %></span>
+</li>
+<% end %>
+</ul>
+<h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
+<span class='material-icons'>savings</span><%= Shares.cost %></span>
+<input type='hidden' name='shares[mode]' value='buy'>
+<input type='number' id='s_qty' name='shares[qty]' value='1'>
+<h3 style='text-align: center; width: 100%; margin: 0;'>
+<span id='s_desc'></span>
+<span id='s_tot'></span>
+<button type='submit' id='s_ready' class='material-icons' name='act' value='shares'>confirmation_number</button>
+</h3>
+</div>
+<script>
+<% if params.has_key? :bare %>
+$('#shares').show();
+<% end %>
+</script>
