@@ -239,6 +239,7 @@ padding: 3%;
     <% else %>
     <%= erb :sponsor %>
     <% end %>
+    <% end %>
     <% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
     <% if OWNERSHIP[request.host] == 'franchise' %>
     <%= erb :franchise %>
