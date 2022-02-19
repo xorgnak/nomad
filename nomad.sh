@@ -118,7 +118,7 @@ elif [[ "$1" == "update" ]]; then
     echo "##### UPDATE DONE #####"
 elif [[ "$1" == 'sd' ]]; then
     echo "##### SD INIT #####"
-    sudo cp -v /etc/wpa_supplicant/wpa_supplicant.conf /media/pi/boot/
+    sudo cp -fvv /etc/wpa_supplicant/wpa_supplicant.conf /media/pi/boot/
     sudo touch /media/pi/boot/ssh
 #    sudo cp -fRv ~/nomad /media/pi/rootfs/home/pi/
     echo "##### SD DONE #####"
@@ -162,12 +162,12 @@ elif [[ "$1" == "install" ]]; then
     ./autogen.sh
     ./configure
     make
-    sudo cp src/umurmurd /usr/bin/umurmurd
+    sudo cp -fvv src/umurmurd /usr/bin/umurmurd
     # mumble client
     cd ~
     go get -u layeh.com/barnard
     sudo mkdir -p /usr/share/alsa/
-    sudo cp -f ~/nomad/alsa.conf /usr/share/alsa/alsa.conf
+    sudo cp -fvv ~/nomad/alsa.conf /usr/share/alsa/alsa.conf
     cat << EOF > ~/asound.conf
 pcm.!default {
  type hw
@@ -178,7 +178,7 @@ ctl.!default {
  card 1
 }
 EOF
-    sudo cp -f ~/asound.conf /etc/asound.conf
+    sudo cp -fvv ~/asound.conf /etc/asound.conf
     fi
     
     if [[ "$MINE" == 'true' ]]; then
@@ -192,7 +192,7 @@ EOF
     if [[ "$IOT" == "true" ]]; then
 	cd ~
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-    sudo cp bin/arduino-cli /usr/local/bin/arduino-cli
+    sudo cp -fvv bin/arduino-cli /usr/local/bin/arduino-cli
     rm -fR bin
     /usr/local/bin/arduino-cli config init
     cat <<EOF > ~/.arduino15/arduino-cli.yaml
