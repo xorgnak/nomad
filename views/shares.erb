@@ -7,6 +7,7 @@ input { width: 60%; }
 <div id='shares' class='displays' style='display: none;'>
 
 <% @tot = Shares.shares(request.host) %>
+<fieldset><legend>ownership</legend>
 <ul>
 <li>
 <span>you own:</span>
@@ -19,6 +20,8 @@ input { width: 60%; }
 </li>
 <% end %>
 </ul>
+</fieldset>
+<fieldset><legend>shares</legend>
 <h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
 <span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
 <select name='shares[mode]'>
@@ -41,6 +44,7 @@ input { width: 60%; }
 <span id='s_tot'></span>
 <button type='submit' id='s_ready' class='material-icons' style='display: none;' name='act' value='shares'>confirmation_number</button>
 </h3>
+</fieldset>
 </div>
 <script>
 <% if params.has_key? :bare %>
