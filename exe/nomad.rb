@@ -1739,10 +1739,10 @@ ga('send', 'pageview');
         elsif params[:act] == 'shares'
         Redis.new.publish("OWNERSHIP.shares", "#{params}")
         if params[:shares][:mode] == 'sell'
-          Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost
+          Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
           Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
         elsif params[:shares][:mode] == 'buy'
-          Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost
+          Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
           Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
         end
       end
