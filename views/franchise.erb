@@ -2,7 +2,6 @@
 #shares { background-color: white; color: black; }
 h1 { width: 100%; }
 h1 > * { vertical-align: middle; }
-input { width: 60%; }
 </style>
 <div id='shares' class='displays' style='display: none;'>
 
@@ -29,12 +28,12 @@ input { width: 60%; }
 <input type='hidden' name='shares[mode]' value='buy'>
 <input type='hidden' id='s_qty' name='shares[qty]' value='1'>
 
-<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%;' disabled><%= TOS[request.host] || "don't do anything stupid." %>\n<%= FRANCHISE[request.host] || 'share and enjoy.' %></textarea>
+<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%;' disabled><%= TOS[request.host] || "don't do anything stupid." %> <%= FRANCHISE[request.host] || 'share and enjoy.' %></textarea>
 
 <h3><input type='checkbox' name='franchise[tos][agreed]' value='<%= Time.now.utc %>'><span>do you agree to our terms?</span></h3>
 
 <h3 style='text-align: center; width: 100%; margin: 0;'>
-<button type='submit' id='s_ready' class='material-icons' name='act' value='shares'></button>
+<button type='submit' id='s_ready' class='material-icons' name='act' value='shares' style=''>BUY</button>
 </h3>
 </fieldset>
 </div>
