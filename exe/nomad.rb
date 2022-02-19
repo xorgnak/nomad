@@ -228,6 +228,7 @@ PHONES = Redis::HashKey.new("PHONES")
 ADMINS = Redis::HashKey.new("ADMINS")
 OWNERSHIP = Redis::HashKey.new("OWNERSHIP")
 EXCHANGE = Redis::HashKey.new("EXCHANGE")
+SHARES = Redis::HashKey.new("SHARES")
 
 BRAIN = Cerebrum.new
 
