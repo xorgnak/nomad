@@ -10,7 +10,7 @@ input { width: 60%; }
 <ul>
 <li>
 <span>you own:</span>
-<span><%= Shares.by[@user.id].to_i || 0 %></span>
+<span><%= Shares.by(request.host)[@user.id].to_i || 0 %></span>
 </li>
 <% @tot.each_pair do |k,v| %>
 <li>
