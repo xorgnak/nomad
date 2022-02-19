@@ -3,6 +3,7 @@
 function handler(scn) {
     var h = {};
     var o = scn.split('?');
+    var ho = o[0];
     var kv = o[1].split('&');
     var u;
     kv.forEach(function(v, i, obj) {
@@ -13,6 +14,7 @@ function handler(scn) {
 	log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
     } else {
 	$('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+	$('form').append("<input type='hidden' name='box' value='" + ho + "'>");
 	    <% if @user.attr[:class].to_i > 6 %>
 	    $('#boss').val(h.b);
 	$('#rank').val(h.r);
