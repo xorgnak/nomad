@@ -46,7 +46,7 @@
 <script>
 $(document).on('change', 'form', function(ev) {
 ev.preventDefault();
-var desc = "with " + $('#q_qty').val() + " class " + $('#q_type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#q_type').val()) + " for " + ($('#q_dur').val() * $('#q_tf').val()) + " hours who can...";
+var desc = "location with " + $('#q_qty').val() + " class " + $('#q_type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#q_type').val()) + " for " + ($('#q_dur').val() * $('#q_tf').val()) + " hours who can...";
 var amt = (( $('#q_qty').val() * ( 2 ** $('#q_type').val()) ) * ( $('#q_dur').val() * $('#q_tf').val() ));
 var abilities = [ "vote in contests.", "generate content.", "send invites.", "administer waypoints.", "administer zones.", "move between zones and administer contests." ].slice(0, $('#q_type').val());
 var ab = "<ul id='abilities'>"

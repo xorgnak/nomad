@@ -6,7 +6,7 @@ input { width: 60%; }
 </style>
 <div id='shares' class='displays' style='display: none;'>
 
-<% @tot = Shares.shares %>
+<% @tot = Shares.shares(request.host) %>
 <ul>
 <li>
 <span>you own:</span>
@@ -20,7 +20,7 @@ input { width: 60%; }
 <% end %>
 </ul>
 <h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
-<span class='material-icons'>savings</span><%= Shares.cost %></span>
+<span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
 <input type='hidden' name='shares[mode]' value='buy'>
 <input type='number' id='s_qty' name='shares[qty]' value='1'>
 <h3 style='text-align: center; width: 100%; margin: 0;'>

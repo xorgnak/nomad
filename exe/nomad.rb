@@ -595,34 +595,34 @@ class Zone
 end
 
 module Shares
-  def self.shares
-    o, s, r = 0, 0, ENV['SHARES'] || 1000000
-    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v; r -= v; }
-    return {owners: o, held: s, max: ENV['SHARES'] || 1000000, remaining: r}
+  def self.shares k
+    o, s, r = 0, 0, SHARES[k].to_i || 100
+    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v; r -= v; }
+    return {owners: o, held: s, max: SHARES[k].to_i, remaining: r}
   end
-  def self.cost
+  def self.cost k
     o, s = 0, 0
-    Redis::SortedSet.new('shares').members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
+    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
     return ((2 ** o) + (2 ** "#{s.to_i}".length)) 
   end
-  def self.by
-    Redis::SortedSet.new('shares')
+  def self.by(k)
+    Redis::SortedSet.new("shares:#{k}")
   end
-  def self.mint u, *n
+  def self.mint k, u, *n
     if n[0]
       nn = n[0].to_i
     else
       nn = 1
     end
-    Redis::SortedSet.new('shares').incr(u, nn)
+    Redis::SortedSet.new("shares:#{k}").incr(u, nn)
   end
-  def self.burn u, *n
+  def self.burn k, u, *n
     if n[0]
       nn = n[0].to_i
     else
       nn = 1
     end
-    Redis::SortedSet.new('shares').decr(u, nn)
+    Redis::SortedSet.new("shares:#{k}").decr(u, nn)
   end
 end
 
@@ -1739,13 +1739,13 @@ ga('send', 'pageview');
         Redis.new.publish("OWNERSHIP.shares", "#{params}")
         if params[:shares][:mode] == 'sell'
           Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost
-          Shares.burn @by.id, params[:shares][:qty].to_i
+          Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
         elsif params[:shares][:mode] == 'buy'
           Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost
-          Shares.mint @by.id, params[:shares][:qty].to_i
+          Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
         end
       end
-                       end
+      end
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
