@@ -175,14 +175,6 @@ ctl.!default {
 }
 EOF
     sudo cp -fvv ~/asound.conf /etc/asound.conf
-    if [[ "$DOMAINS" != "" ]]; then
-	d=($DOMAINS);
-	for ((i = 0; i < ${#d[@]}; ++i)); do
-	    export MUMBLE=$(( $i + $MUMBLE + 1 ));
-	    domain ${d[$i]};
-	done
-    fi
-    domain 'localhost'
     fi
     
     if [[ "$MINE" == 'true' ]]; then
@@ -241,6 +233,14 @@ EOF
     fi
     echo "##### FINISHING #####";
     cd $here;
+    if [[ "$DOMAINS" != "" ]]; then
+	d=($DOMAINS);
+	for ((i = 0; i < ${#d[@]}; ++i)); do
+	    export MUMBLE=$(( $i + $MUMBLE + 1 ));
+	    domain ${d[$i]};
+	done
+    fi
+    domain 'localhost'
     sudo chown $USERNAME:$USERNAME ~/*;
     sudo chown $USERNAME:$USERNAME ~/.*;
     if [[ "$INIT" != 'false' ]]; then
