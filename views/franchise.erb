@@ -28,7 +28,17 @@ h1 > * { vertical-align: middle; }
 <input type='hidden' name='shares[mode]' value='buy'>
 <input type='hidden' id='s_qty' name='shares[qty]' value='1'>
 
-<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%;' disabled><%= TOS[request.host] || "don't do anything stupid." %> <%= FRANCHISE[request.host] || 'share and enjoy.' %></textarea>
+<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%; font-size: x-small;' disabled>
+terms of service for <%= request.host %> drafted on <%= Time.now.utc %>
+
+<%= TOS[request.host] || "don't do anything stupid." %>
+
+Your interest for each job under the this franchise agreement:
+procurement: <%= PROCUREMENT[request.host] %>
+fulfillment: <%= FULFILLMENT[request.host] %>
+
+<%= FRANCHISE[request.host] || 'share and enjoy.' %>
+</textarea>
 
 <h3><input type='checkbox' name='franchise[tos][agreed]' value='<%= Time.now.utc %>'><span>do you agree to our terms?</span></h3>
 

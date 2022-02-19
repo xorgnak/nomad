@@ -231,6 +231,8 @@ EXCHANGE = Redis::HashKey.new("EXCHANGE")
 SHARES = Redis::HashKey.new("SHARES")
 TOS = Redis::HashKey.new('TOS')
 FRANCHISE = Redis::HashKey.new("FRANCHISE")
+PROCUREMENT = Redis::HashKey.new('PROCUREMENT')
+FULFILLMENT = Redis::HashKey.new('FULFILLMENT')
 
 BRAIN = Cerebrum.new
 
