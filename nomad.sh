@@ -8,6 +8,8 @@ DEBS_SSL='python-nginx-certbot certbot';
 DEBS_SHELL=''
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch rqrcode webpush twilio-ruby rmagick binance';
 
+mkdir -p mumble run home
+
 function domain() {
     mkdir -p public/$1
     cat ~/nomad.conf > run/$1.sh
@@ -28,12 +30,11 @@ redis-cli hset ADMINS $1 \$ADMIN;
 redis-cli hset OWNERSHIP $1 \$OWNERSHIP;
 redis-cli hset EXCHANGE $1 \$EXCHANGE; 
 redis-cli hset SHARES $1 \$SHARES;
-ruby mumble.rb $1
+ruby bin/mumble.rb $1
 umurmurd -c mumble/\$DOMAIN.conf
 EOF
     chmod +x run/$1.sh;
 }
-
 
 if [[ ! -f ~/nomad.conf ]]; then
     if [[ "$DOMAINS" == "" ]]; then
@@ -79,9 +80,14 @@ EOF
 	    domain ${d[$i]};
 	done
     fi
+    domain 'localhost'
 fi
 
+
+
 source ~/nomad.conf
+
+domain 'localhost'
 
 if [[ "$1" == 'boot' ]]; then
     sudo pkill ruby
@@ -169,6 +175,14 @@ ctl.!default {
 }
 EOF
     sudo cp -fvv ~/asound.conf /etc/asound.conf
+    if [[ "$DOMAINS" != "" ]]; then
+	d=($DOMAINS);
+	for ((i = 0; i < ${#d[@]}; ++i)); do
+	    export MUMBLE=$(( $i + $MUMBLE + 1 ));
+	    domain ${d[$i]};
+	done
+    fi
+    domain 'localhost'
     fi
     
     if [[ "$MINE" == 'true' ]]; then
@@ -262,6 +276,7 @@ else
 	if (( ${#files} )); then
 	for f in run/*.sh;
 	do
+	    chmod +x $f
 	    ./$f &
 	    PIDS="$PIDS $!";
 	done
@@ -269,9 +284,6 @@ else
 	touch nomad.lock
 	if [[ "$BOX" != 'false' ]]; then
 	    redis-cli set ONION `cat /var/lib/tor/nomad/hostname`
-	    export DOMAIN='localhost'
-	    ruby bin/mumble.rb
-	    umurmurd -c mumble/localhost.conf
 	    ruby exe/nomad.rb -i -s $PHONE_SID -k $PHONE_KEY
 	    PIDS="$PIDS $!";
 	else

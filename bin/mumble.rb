@@ -116,8 +116,8 @@ class Tree
   end
 end
 
-if ARGF.argv[0]
-  @tree = Tree.new(ARGF.argv[0])
+if ARGF.argv[0] == '-i'
+  @tree = Tree.new(ARGF.argv[1])
   o,h = [], Hash.new {|h,k| h[k] = [] }
   puts "[".yellow + "TREE".blue + "]".yellow + "#{@tree.id}"
   puts "[map]".yellow
@@ -146,7 +146,7 @@ if ARGF.argv[0]
   puts "## REBOOT TO LOAD CHANGES".red
   Pry.start
 else
-  @t = Tree.new(ENV['DOMAIN'])
+  @t = Tree.new(ARGF.argv[0])
   @m = Mum.new(pw: @t.attr[:pw] || ENV['MUMBLE_PW'] || '',
                ch:  @t.attr[:lobby] || ENV['MUMBLE_LOBBY'] || 'PUBLIC',
                port: ENV['MUMBLE'],
