@@ -33,9 +33,9 @@ terms of service for <%= request.host %> drafted on <%= Time.now.utc %>
 
 <%= TOS[request.host] || "don't do anything stupid." %>
 
-Your interest for each job under the this franchise agreement:
-procurement: <%= PROCUREMENT[request.host] %>
-fulfillment: <%= FULFILLMENT[request.host] %>
+For each job:
+if we procure the job and you do it you get <%= 100 - PROCUREMENT[request.host].to_i %>.
+if we procure the job and fulfill it you get <%= 100 - FULFILLMENT[request.host].to_i %>.
 
 <%= FRANCHISE[request.host] || 'share and enjoy.' %>
 </textarea>
