@@ -313,7 +313,7 @@ $(document).on('click', '.open', function(ev) {
 $(document).on('change', '#s_qty', function(ev) {
     ev.preventDefault();
     var desc = $('#s_qty').val() + " shares for ";
-    var amt =  ($('#s_qty').val() * <%= Shares.cost %>);
+    var amt =  ($('#s_qty').val() * <%= Shares.cost(request.host) %>);
     $('#s_desc').text(desc);
     $('#s_tot').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");
     if ( $('#s_qty').val() > 0 ) {
