@@ -229,6 +229,8 @@ ADMINS = Redis::HashKey.new("ADMINS")
 OWNERSHIP = Redis::HashKey.new("OWNERSHIP")
 EXCHANGE = Redis::HashKey.new("EXCHANGE")
 SHARES = Redis::HashKey.new("SHARES")
+TOS = Redis::HashKey.new('TOS')
+FRANCHISE = Redis::HashKey.new("FRANCHISE")
 
 BRAIN = Cerebrum.new
 
