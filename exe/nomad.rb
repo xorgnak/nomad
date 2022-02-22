@@ -229,6 +229,10 @@ ADMINS = Redis::HashKey.new("ADMINS")
 OWNERSHIP = Redis::HashKey.new("OWNERSHIP")
 EXCHANGE = Redis::HashKey.new("EXCHANGE")
 SHARES = Redis::HashKey.new("SHARES")
+TOS = Redis::HashKey.new('TOS')
+FRANCHISE = Redis::HashKey.new("FRANCHISE")
+PROCUREMENT = Redis::HashKey.new('PROCUREMENT')
+FULFILLMENT = Redis::HashKey.new('FULFILLMENT')
 
 BRAIN = Cerebrum.new
 
@@ -1719,34 +1723,39 @@ ga('send', 'pageview');
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
       if params.has_key? :act
-      if params[:act] == 'bank'
-        Redis.new.publish("OWNERSHIP.bank", "#{params}")
-        Bank.wallet[@by.id] = params[:bank][:credit].to_i
-        @by.coins.value = params[:bank][:coins].to_i
-      elsif params[:act] == 'sponsor'
-        Redis.new.publish("OWNERSHIP.sponsor", "#{params}")
-        tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
-        pay = (2 ** params[:sponsor][:type].to_i).to_i
-        cost = ((params[:sponsor][:units].to_i * pay) * tf).to_i;
-        ZONES << params[:sponsor][:name]
-        z = Zone.new(params[:sponsor][:name])
-        z.pool << @user.id
-        z.attr[:till] = Time.now.utc.to_i + tf;
-        z.attr[:pay] = pay;
-        z.attr[:cap] = params[:sponsor][:units].to_i;
-        @user.zones << params[:sponsor][:name]
-        Bank.wallet.decr @by.id, cost
+        if params[:act] == 'bank'
+          Redis.new.publish("OWNERSHIP.bank", "#{params}")
+          Bank.wallet[@by.id] = params[:bank][:credit].to_i
+          @by.coins.value = params[:bank][:coins].to_i
+        elsif params[:act] == 'sponsor'
+          Redis.new.publish("OWNERSHIP.sponsor", "#{params}")
+          tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
+          pay = (2 ** params[:sponsor][:type].to_i).to_i
+          cost = ((params[:sponsor][:units].to_i * pay) * tf).to_i;
+          ZONES << params[:sponsor][:name]
+          z = Zone.new(params[:sponsor][:name])
+          z.pool << @user.id
+          z.attr[:till] = Time.now.utc.to_i + tf;
+          z.attr[:pay] = pay;
+          z.attr[:cap] = params[:sponsor][:units].to_i;
+          @user.zones << params[:sponsor][:name]
+          Bank.wallet.decr @by.id, cost
         elsif params[:act] == 'shares'
-        Redis.new.publish("OWNERSHIP.shares", "#{params}")
-        if params[:shares][:mode] == 'sell'
-          Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost
-          Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
-        elsif params[:shares][:mode] == 'buy'
-          Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost
-          Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
+          Redis.new.publish("OWNERSHIP.shares", "#{params}")
+          if ENV['OWNERSHIP'] == 'franchise'
+            @user.attr[:tos] = params[:tos][:terms]
+            @user.attr[:agreed] = params[:tos][:agreed]
+          end
+          if params[:shares][:mode] == 'sell'
+            Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
+            Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
+          elsif params[:shares][:mode] == 'buy'
+            Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
+            Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
+          end
         end
       end
-      end
+      
       if params.has_key?(:message) && params[:message] != ''
         p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
         @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]

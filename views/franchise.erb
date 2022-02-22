@@ -2,11 +2,12 @@
 #shares { background-color: white; color: black; }
 h1 { width: 100%; }
 h1 > * { vertical-align: middle; }
-input { width: 60%; }
 </style>
 <div id='shares' class='displays' style='display: none;'>
 
 <% @tot = Shares.shares(request.host) %>
+<fieldset>
+<legend>ownership</legend>
 <ul>
 <li>
 <span>you own:</span>
@@ -19,15 +20,32 @@ input { width: 60%; }
 </li>
 <% end %>
 </ul>
-<h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
-<span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
-<input type='hidden' name='shares[mode]' value='buy'>
-<input type='number' id='s_qty' name='shares[qty]' value='1'>
+</fieldset>
+<fieldset><legend>franchise</legend>
 <h3 style='text-align: center; width: 100%; margin: 0;'>
-<span id='s_desc'></span>
-<span id='s_tot'></span>
-<button type='submit' id='s_ready' class='material-icons' name='act' value='shares'>confirmation_number</button>
+<span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
 </h3>
+<input type='hidden' name='shares[mode]' value='buy'>
+<input type='hidden' id='s_qty' name='shares[qty]' value='1'>
+
+<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%; font-size: x-small;' disabled>
+terms of service for <%= request.host %> drafted on <%= Time.now.utc %>
+
+<%= TOS[request.host] || "don't do anything stupid." %>
+
+For each job:
+if we procure the job and you do it you get <%= 100 - PROCUREMENT[request.host].to_i %>.
+if we procure the job and fulfill it you get <%= 100 - FULFILLMENT[request.host].to_i %>.
+
+<%= FRANCHISE[request.host] || 'share and enjoy.' %>
+</textarea>
+
+<h3><input type='checkbox' name='franchise[tos][agreed]' value='<%= Time.now.utc %>'><span>do you agree to our terms?</span></h3>
+
+<h3 style='text-align: center; width: 100%; margin: 0;'>
+<button type='submit' id='s_ready' class='material-icons' name='act' value='shares' style=''>BUY</button>
+</h3>
+</fieldset>
 </div>
 <script>
 <% if params.has_key? :bare %>
