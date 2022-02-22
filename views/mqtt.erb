@@ -9,13 +9,12 @@ client.onMessageArrived = onMessageArrived;
 
 function connectMqtt() {
 // connect the client
-client.connect({ onSuccess: onConnect,
+client.connect({
+onSuccess: onConnect,
 userName: '<%= @id %>',
 password: 'password',
 cleanSession: true,
-<%# if /^https/.match(request.url) %>
 useSSL: true
-<%# end %>
 });
 }
 
