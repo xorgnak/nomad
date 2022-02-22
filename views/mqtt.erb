@@ -1,5 +1,5 @@
 <%# if /^https/.match(request.url) %>
-var client = new Paho.Client('<%= request.host %>', 8083, "<%= @id %>");
+var client = new Paho.Client('<%= request.host %>', 8883, "<%= @id %>");
 <%# else %>
 //var client = new Paho.Client('<%= request.host %>', 8083, "<%= @id %>");
 <%# end %>
