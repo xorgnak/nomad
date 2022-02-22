@@ -8,7 +8,7 @@ DEBS_SSL='python-nginx-certbot certbot';
 DEBS_SHELL=''
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch rqrcode webpush twilio-ruby rmagick binance';
 
-mkdir -p mumble run home
+mkdir -p mumble run home public
 
 function domain() {
     mkdir -p public/$1
@@ -24,16 +24,12 @@ export MUMBLE='$MUMBLE';
 export OWNERSHIP='sponsor';                                                                                  
 export EXCHANGE='1';
 export SHARES='100';
-export PROCUREMENT='5';
-export FULFILLMENT='30';
 redis-cli hset PHONES $1 \$PHONE; 
 redis-cli hset MUMBLE $1 \$MUMBLE;
 redis-cli hset ADMINS $1 \$ADMIN;
 redis-cli hset OWNERSHIP $1 \$OWNERSHIP;
 redis-cli hset EXCHANGE $1 \$EXCHANGE; 
 redis-cli hset SHARES $1 \$SHARES;
-redis-cli hset PROCUREMENT $1 \$PROCUREMENT
-redis-cli hset FULFILLMENT $1 \$FULFILLMENT
 ruby bin/mumble.rb $1
 umurmurd -c mumble/\$DOMAIN.conf
 EOF
