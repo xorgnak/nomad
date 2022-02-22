@@ -9,8 +9,12 @@ DEBS_SHELL=''
 GEMS='sinatra thin eventmachine slop redis-objects pry rufus-scheduler redcarpet paho-mqtt cerebrum cryptology ruby-mud faker sinatra-websocket browser securerandom sentimental mqtt bundler cinch rqrcode webpush twilio-ruby rmagick binance';
 
 mkdir -p mumble run home public
-
+function debug() {
+    echo "[$1] $2";
+    redis-cli publish "DEBUG.nomad.sh.$1" "$2" > /dev/null;
+}
 function domain() {
+    debug "domain" $1
     mkdir -p public/$1
     cat ~/nomad.conf > run/$1.sh
     cat << EOF >> run/$1.sh
@@ -24,13 +28,13 @@ export MUMBLE='$MUMBLE';
 export OWNERSHIP='sponsor';                                                                                  
 export EXCHANGE='1';
 export SHARES='100';
-redis-cli hset PHONES $1 \$PHONE; 
-redis-cli hset MUMBLE $1 \$MUMBLE;
-redis-cli hset ADMINS $1 \$ADMIN;
-redis-cli hset OWNERSHIP $1 \$OWNERSHIP;
-redis-cli hset EXCHANGE $1 \$EXCHANGE; 
-redis-cli hset SHARES $1 \$SHARES;
-ruby bin/mumble.rb $1
+redis-cli hset PHONES $1 \$PHONE > /dev/null; 
+redis-cli hset MUMBLE $1 \$MUMBLE > /dev/null;
+redis-cli hset ADMINS $1 \$ADMIN > /dev/null;
+redis-cli hset OWNERSHIP $1 \$OWNERSHIP > /dev/null;
+redis-cli hset EXCHANGE $1 \$EXCHANGE > /dev/null; 
+redis-cli hset SHARES $1 \$SHARES > /dev/null;
+ruby bin/mumble.rb $1;
 umurmurd -c mumble/\$DOMAIN.conf
 EOF
     chmod +x run/$1.sh;
@@ -42,6 +46,7 @@ if [[ ! -f ~/nomad.conf ]]; then
     else
 	export BOX='false';
     fi
+    debug box $BOX
     cat << EOF > ~/nomad.conf
 # network wide configuration.
 # this is te server we connect to for telemetry and communications.
@@ -89,12 +94,15 @@ source ~/nomad.conf
 
 domain 'localhost'
 
+debug 'init' "0"
+
 if [[ "$1" == 'boot' ]]; then
     sudo pkill ruby
     sudo pkill umurmurd
     rm -f nomad.lock
 fi
 
+debug 'init' "1"
 
 if [[ "$1" == "-h" || "$1" == "-u" || "$1" == "--help" || "$1" == "help" ]]; then
     echo "usage: ./nomad.sh [install|update|iot|sd|op]"
@@ -109,6 +117,14 @@ elif [[ "$1" == "update" ]]; then
     echo "##### UPDATE INIT #####"
     source ~/nomad.conf
     sudo ./scripts/nomad.sh
+    if [[ "$DOMAINS" != "" ]]; then
+	d=($DOMAINS);
+	for ((i = 0; i < ${#d[@]}; ++i)); do
+	    export MUMBLE=$(( $i + $MUMBLE + 1 ));
+	    domain ${d[$i]};
+	done
+    fi
+    domain 'localhost'
     sudo chown $USERNAME:$USERNAME ~/*
     sudo chown $USERNAME:$USERNAME ~/.*
     echo "##### UPDATE DONE #####"
@@ -118,10 +134,20 @@ elif [[ "$1" == 'sd' ]]; then
     sudo touch /media/pi/boot/ssh
 #    sudo cp -fRv ~/nomad /media/pi/rootfs/home/pi/
     echo "##### SD DONE #####"
-elif [[ "$1" == 'operator' ]]; then
+elif [[ "$1" == 'op' ]]; then
     echo "##### OP INIT #####"
     source ~/nomad.conf
-    $(go env GOPATH)/bin/barnard -insecure -server $CLUSTER:$MUMBLE -username `hostname`-$NICK;
+    srv='';
+    nck='';
+    if [[ "$2" != "" ]]; then
+	srv+=$2;
+	nck=$NICK;
+    else
+	srv=$CLUSTER:$MUMBLE;
+	nck=`hostname`-$NICK;
+    fi
+     "connecting to $srv as $nck";
+    $(go env GOPATH)/bin/barnard -insecure -server $srv -username $nck;
     echo "##### OP DONE #####"
 elif [[ "$1" == "install" ]]; then
     echo "##### INSTALL INIT #####"
@@ -253,10 +279,12 @@ EOF
     echo "#####     DONE!     #####";
     
 else
+    debug 'init' "2"
     source /home/pi/nomad.conf
     if [[ -f nomad.lock ]]; then
 	ruby exe/nomad.rb -I
     else
+	debug 'init' "3"
 	if [[ "$BOT" == 'true' ]]; then
 	    ruby bin/cluster.rb &
 	fi
@@ -272,6 +300,7 @@ else
 	if [[ "$DEVS" == 'true' ]]; then
 	    ruby bin/proxy_sub.rb &
 	fi
+	debug 'init' "4"
 	files=$(shopt -s nullglob dotglob; echo run/*)
 	if (( ${#files} )); then
 	for f in run/*.sh;
@@ -282,18 +311,17 @@ else
 	done
 	fi
 	touch nomad.lock
+	debug 'init' "5"
 	if [[ "$BOX" != 'false' ]]; then
-	    redis-cli set ONION `cat /var/lib/tor/nomad/hostname`
-	    ruby exe/nomad.rb -i -s $PHONE_SID -k $PHONE_KEY
+	    if [[ "`cat /var/lib/tor/nomad/hostname`" != "" ]]; then
+		redis-cli set ONION "`cat /var/lib/tor/nomad/hostname`" > /dev/null;
+	    fi
+	    ruby exe/nomad.rb -i -s $PHONE_SID -k $PHONE_KEY;
 	    PIDS="$PIDS $!";
 	else
-	    redis-cli del ONION
-	    ruby exe/nomad.rb -i -s $PHONE_SID -k $PHONE_KEY
+	    redis-cli del ONION > /dev/null;
+	    ruby exe/nomad.rb -i -s $PHONE_SID -k $PHONE_KEY;
 	fi
     fi
-    cleanup() {
-	rm nomad.lock
-        exit 0
-    }
-    trap cleanup INT TERM 
+    exit 0;
 fi
