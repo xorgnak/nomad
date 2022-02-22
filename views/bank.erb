@@ -4,6 +4,9 @@
 #bank > h1 > input { width: 60%; }
 </style>
 <div id='bank' class='displays' style='text-align: center; display: none;'>
+<h3 style='width: 100%;'>
+<input type='range' id='b_slider' step='1' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value).to_i %>' value='<%= @user.coins.value %>' style='width: 100%;'>
+</h3>
 <h3>
 <span class='material-icons'>toll</span>
 <input id='b_coins' class='b' type='number' name='bank[coins]' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>' value='<%= @user.coins.value %>' style='width: 25%;'>
@@ -18,6 +21,11 @@
 $('#bank').show();
 <% end %>
 var b_tot = <%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>;
+
+$(document).on('change', '#b_slider', function() {
+$('#b_coins').val($('#b_slider').val());
+$('#b_credit').val(b_tot - $('#b_slider').val());
+});
 
 $(document).on('change','#b_coins',function(){
 $('#b_credit').val(b_tot - $(this).val());
