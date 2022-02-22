@@ -22,13 +22,13 @@ function domain() {
 # EDIT TO SUIT YOUR NEEDS.
 #
 export DOMAIN='$1';
-export PHONE='$PHONE';
-export ADMIN='$ADMIN';
+export PHONE='`redis-cli hget PHONES $1 || $PHONE`';
+export ADMIN='`redis-cli hget ADMINS $1 || $ADMIN`';
 export MUMBLE='$MUMBLE';
-export OWNERSHIP='sponsor';                                                                                  
-export EXCHANGE='1';
-export SHARES='100';
-export XFER='true';
+export OWNERSHIP='`redis-cli hget OWNERSHIP $1 || "franchise"`';
+export EXCHANGE='`redis-cli hget EXCHANGE $1 || "1"`';
+export SHARES='`redis-cli hget SHARES $1 || 100`';
+export XFER='`redis-cli hget XFER $1 || "true"`';
 redis-cli hset PHONES $1 \$PHONE > /dev/null; 
 redis-cli hset MUMBLE $1 \$MUMBLE > /dev/null;
 redis-cli hset ADMINS $1 \$ADMIN > /dev/null;

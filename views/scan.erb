@@ -39,6 +39,7 @@ var video = document.createElement("video");
 var canvasElement = document.getElementById("canvas");
 var canvas = canvasElement.getContext("2d");
 // Use facingMode: environment to attemt to get the front camera on phones
+if (navigator.getUserMedia) {
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
     video.srcObject = stream;
     video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
@@ -47,6 +48,7 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).th
     // log("<span class='material-icons'>settings</span> customize.");
     requestAnimationFrame(tick);
 });
+}
 function tick() {
   if (video.readyState === video.HAVE_ENOUGH_DATA) {
       canvasElement.height = video.videoHeight;
@@ -68,7 +70,7 @@ function tick() {
 	      if (dom.test(code.data)) {
 		  valid = true;
 	      }
-		  <% if DOMAINS.members.length > 1 %>
+		  <% if DOMAINS.members.length > 0 %>
 		  <% DOMAINS.members.each do |e| %>
 		  if (dom_<%= e.gsub('.','_') %>.test(code.data)) {
 		      valid = true;

@@ -889,6 +889,16 @@ class U
   end
 end
 
+class Tree
+  include Redis::Objects
+  hash_key :attr
+  hash_key :chan
+  hash_key :link
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+end
 
 class Domain
   include Redis::Objects
@@ -901,6 +911,9 @@ class Domain
     @id = i
   end
   def id; @id; end
+  def tree
+    Tree.new(@id)
+  end
 end
 
 
@@ -938,11 +951,9 @@ class K
     %[<style>#help li code { border: thin solid black; padding: 1%; }</style>],
     %[<ul id='help'>],
     %[<li><code>cd :name</code><span>focus on a campaign.</span></li>],
-    %[<li><code>conf :name</code><span>create or edit campaign configuration.</span></li>],
-    %[<li><code>app :name</code><span>create or edit an html template to be used for a campaign.</span></li>],
-    %[<li><code>pin :name</code><span>pin a block of content to be rendered as html from within an app.</span></li>],
     %[</ul>],
     %[<ul>],
+    %[<li><button disabled>FS</button> edit the campaign files.</li>],
     %[<li>the campaign index files are the main focus of the campaign.</li>],
     %[<li>adding other files adds pins, app elements, and sub-campaign configuratons.</li>],
     %[</ul>]
@@ -971,11 +982,18 @@ class K
   def ls
     o = []
     "#{`ls -lha #{self.dir.value}`}".split("\n").each {|e|
+      skip = false
       f = e.split(' ')[-1]
       if /^d/.match(e)
-        b = %[<button class='material-icons' name='cmd' value='cd("#{f}")'>folder</button>]
+        if /\.$/.match(e) || /\.\.$/.match(e)
+          b = %[]
+          skip = true
+        else
+          b = %[<button class='material-icons' name='cmd' value='cd("#{f}")'>folder</button>]
+        end
       elsif /^total/.match(e)
         b = %[]
+        skip = true
       else
         if /.markdown/.match(e)
           b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>post_add</button>]
@@ -985,19 +1003,24 @@ class K
           b = %[<button class='material-icons' name='cmd' value='edit("#{f}")'>list</button>]
         end
       end
-      o << %[<p>#{b} #{e}</p>]
+      if skip == false
+        o << %[<p>#{b} #{e}</p>]
+      end
     }
     return "<div>" + o.join('') + "</div>"
   end
   def cd *d
     self.dir.value = %[#{home}/#{d[0]}]
-    Dir.mkdir(self.dir.value)
-    if !File.exist?("#{self.dir.value}/index.json")
-      h = { goal: '', ga: '', fb: '' }
+    if !Dir.exist? self.dir.value
+      Dir.mkdir(self.dir.value)
+    end
+    if !File.exist?("#{self.dir.value}/index.json") && d.length > 0
+      h = { goal: '', ga: '', fb: '', zone: U.new(@id).attr[:zone] }
       File.open("#{self.dir.value}/index.json", "w") { |f| f.write("#{JSON.generate(h)}"); }
       File.open("#{self.dir.value}/index.erb", "w") { |f| f.write("<h1>Hello, World!</h1>created: </h3><p><% Time.now.utc %></p>"); }
       File.open("#{self.dir.value}/index.markdown", "w") { |f| f.write("# Hello, World!\n\n## markdown is a simple way to organize text to be rendered as html.\n- it supports lists.\n- and tables,\n- etc.\n- google it."); }
     end
+    return "#{self.dir.value.gsub(home, '')}"
   end
   def pwd
     if self.dir.value == nil
@@ -1182,9 +1205,9 @@ class APP < Sinatra::Base
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
 
-  get('/term') { erb @term.term }
+  get('/term') { if params.has_key?(:reset); @term.attr.delete(:file); end; erb @term.term }
   
-  get('/man') { erb :man }
+#  get('/man') { erb :man }
   get('/a') { erb :a }
   get('/board') { erb :board }
   get('/adventures') { erb :adventures }
@@ -1441,6 +1464,9 @@ class APP < Sinatra::Base
     b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
     tx = Blockchain.new(request.host).new_transaction('BANK', u, 1, browser.meta, params[:c])
     @conf = JSON.parse(File.read("home/#{u}/#{params[:c]}/index.json"))
+    @here = @domain.attr.all
+    @user = U.new(u).attr.all
+    @zone = Zone.new(@conf['zone'] || @user[:zone]).attr.all
     ga = %[<!-- Google Analytics -->
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -1533,6 +1559,7 @@ ga('send', 'pageview');
       @id = id(params[:u]);
       params.delete(:cha)
       params.delete(:pin)
+      @domain.users.incr(@id)
       Redis.new.publish("AUTHORIZE", "#{@path}")
       redirect "#{@path}/#{params[:u]}"
     elsif params.has_key?(:usr)
@@ -1814,6 +1841,7 @@ ga('send', 'pageview');
             end
             if @by.password.value.to_s == params[:login][:password].to_s
               token(@by.id, ttl: (((60 * 60) * 24) * 7))
+              @domain.users.incr(@by.id)
               redirect "#{@path}/#{@by.id}"
             end
           else
@@ -1845,10 +1873,18 @@ def cam n, u
 CAMS[n] = u
 end
 
+module Box
+  def self.user u
+    U.new(u)
+  end
+  def self.[] k
+      U.new(IDS[k])
+  end
+  def self.domain d
+    Domain.new(d)
+  end
+end
 
-
-                       
-     
 
 
 Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => 0 )
