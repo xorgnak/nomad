@@ -247,13 +247,9 @@ padding: 3%;
     <%= erb :bank %>
     <% if Bank.wallet[@user.id].to_i > 0 %>
     <% if OWNERSHIP[request.host] == 'franchise' %>
-    <% if @user.attr[:class].to_i >= 5 %>
     <%= erb :franchisee %>
-    <% end %>
     <% else %>
-    <% if @user.attr[:class].to_i >= 3 %>
     <%= erb :sponsor %>
-    <% end %>
     <% end %>
     <% end %>
     <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
