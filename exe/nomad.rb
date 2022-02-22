@@ -233,6 +233,7 @@ TOS = Redis::HashKey.new('TOS')
 FRANCHISE = Redis::HashKey.new("FRANCHISE")
 PROCUREMENT = Redis::HashKey.new('PROCUREMENT')
 FULFILLMENT = Redis::HashKey.new('FULFILLMENT')
+XFER = Redis::HashKey.new("XFER")
 
 BRAIN = Cerebrum.new
 
@@ -1566,53 +1567,51 @@ ga('send', 'pageview');
       @by.attr.incr(:xp)
       Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
       
-      if params.has_key? :admin
+      if params.has_key? :admin && @user.id != @by.id
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
         if params[:admin].to_sym == :boss
-          if @by.attr[:boss].to_i >= @user.attr[:boss].to_i + 1
-            @user.attr.incr(params[:admin].to_sym)
-            pr = []
-            case @user.attr[:boss]
-            when "1"
-            when "2"
-            when "3"
-            when "4"
-            when "5"
-            when "6"
-              # user class
-              @user.attr[:class] = 1
-              pr = %[vote in contests.]
-            when "7"
-            when "8"
-            when "9"
-            when "10"
-              # influencer
-              @user.attr[:class] = 2
-              pr = %[manage content.]
-            when "100"
-              # brand ambassador
-              @user.attr[:class] = 3
-              pr = %[send invites.]
-            when "1000"
-              # brand manager
-              @user.attr[:class] = 4
-              pr = %[administer a waypoint.]
-            when "10000"
-              # brand agent
-              @user.attr[:class] = 5
-              pr = %[administer zones.]
-            when "100000"
-              # brand operator
-              @user.attr[:class] = 6
-              pr = %[administer contests.]
-            when "1000000"
-              # brand owner
-              @user.attr[:class] = 7
-              pr = %[#{OPTS[:domain]} owner.]
-            end
-            if pr
-              @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
-            end
+          @user.attr.incr(params[:admin].to_sym)
+          pr = []
+          case @user.attr[:boss]
+          when "1"
+          when "2"
+          when "3"
+          when "4"
+          when "5"
+          when "6"
+            # user class
+            @user.attr[:class] = 1
+            pr = %[vote in contests.]
+          when "7"
+          when "8"
+          when "9"
+          when "10"
+            # influencer
+            @user.attr[:class] = 2
+            pr = %[manage content.]
+          when "100"
+            # brand ambassador
+            @user.attr[:class] = 3
+            pr = %[send invites.]
+          when "1000"
+            # brand manager
+            @user.attr[:class] = 4
+            pr = %[administer a waypoint.]
+          when "10000"
+            # brand agent
+            @user.attr[:class] = 5
+            pr = %[administer zones.]
+          when "100000"
+            # brand operator
+            @user.attr[:class] = 6
+            pr = %[administer contests.]
+          when "1000000"
+            # brand owner
+            @user.attr[:class] = 7
+            pr = %[#{OPTS[:domain]} owner.]
+          end
+          if pr
+            @user.log << %[boss level: #{@user.attr[:boss]}<br>you can now #{pr}]
           end
         elsif params[:admin].to_sym == :rank
           @user.attr.incr(:rank)
@@ -1644,14 +1643,17 @@ ga('send', 'pageview');
         @term.eval(params[:cmd]);
       end
       
-      if params.has_key? :config
+      if params.has_key? :config 
+        l = []
         params[:config].each_pair { |k,v|
-          if k.to_sym == :boss
-            @by.log << %[]
-          end
+          if v != '' && v != @by.attr[k] && k != 'boss' && k != 'class' 
           @by.attr[k] = v
+          l << %[#{k} #{v}]
+          end
         }
-      @user.log << %[<span class='material-icons'>info</span> profile updated.]
+        l.each {|e|
+          @user.log << %[<span class='material-icons'>info</span> #{e}]
+        }
       end
 
       if params.has_key?(:waypoint) && params.has_key?(:a)
@@ -1754,6 +1756,12 @@ ga('send', 'pageview');
             Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
           end
         end
+      end
+
+      if params.has_key? :xfer && params[:xfer] != ''
+        Bank.xfer from: @by.id, to: @user.id, amt: params[:xfer]
+        @by.log << %[<span class='material-icons'>toll</span> #{params[:xfer]} <-- #{@by.coins.value}]
+        @user.log << %[<span class='material-icons'>toll</span> #{params[:xfer]} --> #{@user.coins.value}]
       end
       
       if params.has_key?(:message) && params[:message] != ''

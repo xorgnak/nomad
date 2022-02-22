@@ -28,12 +28,14 @@ export MUMBLE='$MUMBLE';
 export OWNERSHIP='sponsor';                                                                                  
 export EXCHANGE='1';
 export SHARES='100';
+export XFER='true';
 redis-cli hset PHONES $1 \$PHONE > /dev/null; 
 redis-cli hset MUMBLE $1 \$MUMBLE > /dev/null;
 redis-cli hset ADMINS $1 \$ADMIN > /dev/null;
 redis-cli hset OWNERSHIP $1 \$OWNERSHIP > /dev/null;
 redis-cli hset EXCHANGE $1 \$EXCHANGE > /dev/null; 
 redis-cli hset SHARES $1 \$SHARES > /dev/null;
+redis-cli hset XFER $1 \$XFER > /dev/null;
 ruby bin/mumble.rb $1;
 umurmurd -c mumble/\$DOMAIN.conf
 EOF
