@@ -254,7 +254,7 @@ padding: 3%;
     <% if Bank.wallet[@user.id].to_i > 0 %>
     <button class='open material-icons' id='open_sponsorship' value='sponsorship'>cabin</button>
     <% end %>
-    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by[@user.id].to_i > 0 %>
+    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
     <button class='open material-icons' id='open_shares' value='shares'>confirmation_number</button>
     <% end %>
     <% if @user.attr[:class].to_i >= 5 %>
