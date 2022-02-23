@@ -9,7 +9,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 .badge { font-size: x-large; padding: 1%; margin 1%; }
 </style>
 
-<img src='/<%= @user.id %>.img'>
+<img src='/<%= @domain.id %>/<%= @user.id %>.img'>
 
 <% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = contest(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
 
