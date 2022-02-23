@@ -589,6 +589,7 @@ class Zone
   include Redis::Objects
   set :pool
   hash_key :attr
+  counter :coins
   set :waypoints
   set :adventures
   set :urls
@@ -869,6 +870,9 @@ class U
   sorted_set :badges
   sorted_set :stat
   sorted_set :boss
+  sorted_set :zap
+  sorted_set :zapper
+  sorted_set :zapped
   set :votes
   set :zones
   set :jobs
@@ -1114,6 +1118,77 @@ class K
   end
 end
 
+class Chance
+  include Redis::Objects
+
+  list :cards, marshal: true
+
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+  def deal *n
+    self.cards.shift(n[0] || 1)
+  end
+  def deck h={}
+    p = []
+    self.cards.clear
+    h[:decks] || 1.times {|d|
+      [h[:suits]].flatten.each { |s|
+        [:faces, :numbers].each { |k|
+          if h.has_key? k
+            [h[k]].flatten.each {|e| p << { deck: d, suit: s, card: e } }
+          end
+        }
+      }
+    }
+    p.shuffle!
+    p.each {|e| self.cards << e }
+  end
+  def coin
+    if rand(2) == 0
+      return :heads
+    else
+      return :tails
+    end
+  end
+  def roll i, &b
+    b.call(die(i))
+  end
+  def die i
+    r, tot = [], 0
+    ii = i.split('d')
+    ii[0].to_i.times { x = rand(ii[1].to_i) + 1; tot += x; r << x }
+    return { total: tot, dice: r }
+  end
+  def zap u
+    me = U.new(@id)
+    a = "#{me.attr[:xp]}".length + 1
+    you = U.new(u)
+    d = "#{you.attr[:xp]}".length + 1
+    z = die("#{d}d#{you.attr[:rank].to_i + you.attr[:class].to_i}")
+    roll("#{a}d#{me.attr[:rank].to_i + me.attr[:class].to_i}") {|h|
+      if h[:total] > z[:total]
+        r = true
+        me.zapper.incr(you.id)
+        me.zap.incr(you.id)
+        you.zap.incr(me.id)
+        you.zapped.incr(me.id)
+        me.attr.incr(:xp)
+        me.log << %[you zapped #{you.attr[:name] || 'another player'}.]
+        you.log << %[you got zapped by #{me.attr[:name] || 'another player'}.]
+      else
+        r = false
+        me.zap.incr(you.id)
+        you.zap.incr(me.id)
+        me.log << %[you missed #{you.attr[:name] || 'another player'}.]
+        you.log << %[#{me.attr[:name] || 'another player'} missed you.]
+      end
+      { me: h, you: z, result: r }
+    }
+  end
+end
+
 class APP < Sinatra::Base
   set :bind, '0.0.0.0'
   set :server, 'thin'
@@ -1200,6 +1275,7 @@ class APP < Sinatra::Base
     @path = %[#{s}://#{@domain.id}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
+    @tree = Tree.new(@domain.id)
   }
   
   get('/favicon.ico') { return '' }
@@ -1210,6 +1286,7 @@ class APP < Sinatra::Base
 #  get('/man') { erb :man }
   get('/a') { erb :a }
   get('/board') { erb :board }
+  get('/chance') { erb :chance }
   get('/adventures') { erb :adventures }
   get('/adventure') { erb :adventure }
   get('/waypoint') { erb :waypoint }
@@ -1330,6 +1407,7 @@ class APP < Sinatra::Base
               if U.new(IDS[params['From'].gsub('+1', '')]).attr[:boss].to_i > 3
                 if IDS.has_key? i[1]
                   Zone.new(i[0]).pool << i[1]
+                  @tree.chan[i[0]] = @tree.attr[:lobby]
                   ZONES << i[0]
                   U.new(IDS[i[1]]).zones << i[0]
                   response.say(message: 'added "' + i[1].split('').join(' ') + '" to "' + i[0].split('').join(' ') + '"')
@@ -1731,6 +1809,10 @@ ga('send', 'pageview');
         @user.titles << params[:title]
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} gave you the title "#{params[:title]}".]
       end
+
+      if params.has_key? :zap && params[:zap] == true
+        Chance.new(@by.id).zap(@user.id)
+      end
       
       if params.has_key?(:give) && params[:give][:type] != nil
         if params[:give][:of] == 'award'
@@ -1761,12 +1843,18 @@ ga('send', 'pageview');
           tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
           pay = (2 ** params[:sponsor][:type].to_i).to_i
           cost = ((params[:sponsor][:units].to_i * pay) * tf).to_i;
+          @tree.chan[params[:sponsor][:name]] = @by.attr[:zone] || @tree.attr[:lobby] || request.host
+          @tree.link[params[:sponsor][:name]] = @by.attr[:zone] || @tree.attr[:lobby] || request.host
           ZONES << params[:sponsor][:name]
           z = Zone.new(params[:sponsor][:name])
+          z.attr[:owner] = @user.id
+          z.attr[:admin] = @user.id
           z.pool << @user.id
           z.attr[:till] = Time.now.utc.to_i + tf;
           z.attr[:pay] = pay;
           z.attr[:cap] = params[:sponsor][:units].to_i;
+          z.attr[:budget] = cost
+          z.coins.value = cost
           @user.zones << params[:sponsor][:name]
           Bank.wallet.decr @by.id, cost
         elsif params[:act] == 'shares'

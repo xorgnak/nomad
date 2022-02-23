@@ -118,123 +118,134 @@ padding: 3%;
     </div>
   </div>
   
-  <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;'>
+  <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; overflow-y: scroll;'>
     <fieldset>
-    <legend style='padding: 0 3% 0 3%;'><input type='text' id='scan' name='scan' value='<%= @id %>' style='width: min-content;' disabled></legend>
-    <ul style='background-color: white; color: black;'>
-      <li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
-      
-    <li><span style='padding: 2%;'>rank:</span>
-    <% if @user.attr[:class].to_i >= 3 %>
-    <input type='checkbox' id='promote' name='admin' value='rank' style='width: min-content;'>
-    <% end %>
-    <% if @user.attr[:class].to_i >= 6 %>
-    <input id='rank' name='config[rank]' style='width: 50%;'>
+      <legend style='padding: 0 3% 0 3%;'><input type='text' id='scan' name='scan' value='<%= @id %>' style='width: min-content;' disabled></legend>
+      <ul style='background-color: white; color: black;'>
+	<li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
+	
+	<li><span style='padding: 2%;'>rank:</span>
+	  <% if @user.attr[:class].to_i >= 3 %>
+	  <input type='checkbox' id='promote' name='admin' value='rank' style='width: min-content;'>
+	  <% end %>
+	  <% if @user.attr[:class].to_i >= 6 %>
+	  <input id='rank' name='config[rank]' style='width: 50%;'>
+	  <% else %>
+	  <span id='rank'></span>
+	  <% end %>
+	</li>
+	
+	<% if !params.has_key?(:z) %>
+	<li><span style='padding: 2%;'>boss:</span>
+	  <% if @user.attr[:class].to_i >= 3 %>
+	  <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
+	  <% end %>
+	  <% if @user.attr[:class].to_i >= 6 %>
+	  <input id='boss' name='config[boss]' style='width: 50%;'>
+	  <% else %>
+	  <span id='boss'></span>
+	  <% end %>
+	</li>
+	
+	<li><span style='padding: 2%;'>class:</span>
+	  <% if @user.attr[:class].to_i > 2 %>
+	  <span id='class'></span>
+	  <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
     <% else %>
-    <span id='rank'></span>
-    <% end %>
-    </li>
-    
-    <% if !params.has_key?(:z) %>
-    <li><span style='padding: 2%;'>boss:</span>
-    <% if @user.attr[:class].to_i >= 3 %>
-    <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
-    <% end %>
-    <% if @user.attr[:class].to_i >= 6 %>
-    <input id='boss' name='config[boss]' style='width: 50%;'>
-    <% else %>
-    <span id='boss'></span>
-    <% end %>
-    </li>
-    
-    <li><span style='padding: 2%;'>class:</span>
-    <% if @user.attr[:class].to_i > 2 %>
     <span id='class'></span>
-    <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
-    <% else %>
-    <span id='class'></span>
-    <%  %>
-    </li>
-    <% end %>
-    <% end %>  
-    <li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
-    <li><span style='padding: 2%;'>role:</span><span id='role'></span></li>
-    </ul>
-
-    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 %>
-    <datalist id='titles'>
-      <% TITLES.members.each do |title| %>
-      <option value='<%= title %>'>
+	</li>
 	<% end %>
-    </datalist>
-    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
-    <% end %>
-
-    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 %>
-    <datalist id='zones'>
-      <% @user.zones.members.each do |zone| %>
-      <option value='<%= zone %>'>
-	<% end %>
-    </datalist>
-    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='zone' list='zones' placeholder='zone'></h3>
-        <% end %>
-    
-    <% if !params.has_key?(:z) && @user.attr[:class].to_i >= 6 %>
-    <datalist id='contests'>
-      <% VOTES.members.each do |vote| %>
-      <option value='<%= vote %>'>
-	<% end %>
-    </datalist>
-    <h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
-    <% end %>
-    
-    <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <span class='material-icons' style='border: thick solid black; border-radius: 1000px;'>military_tech</span>
-      <select name='give[of]' style='width: 30%; padding: 0;'>
-      	<option selected disabled>give</option>
-        <option value='vote'>vote</option>
-	<% if @user.attr[:boss].to_i >= 2 %>
-	<option value='badge'>badge</option>
-	<% end %>
-	<% if @user.attr[:boss].to_i >= 4 %>
-	<option value='award'>award</option>
-	<% end %>
-        <% if @user.attr[:boss].to_i > 9 %>
-        <option value='boss'>boss</option>
-        <% end %>
-      </select>
-      <select name='give[type]' style='width: 30%; padding: 0;'>
-	<option selected disabled>category</option>
-	<% BADGES.each_pair do |name, badge| %>
-	<option value='<%= name %>'><%= name %></option>
-	<% end %>
-      </select>
-      </h1>
-    <% if XFER[request.host] == 'true' || XFER['localhost'] == 'true' %>
-    <h1 style='background-color: white; color: black; text-align: center;'>
-    <span class='material-icons'>toll</span>
-    <span>
-    <% if @user.attr[:class].to_i > 3 %>
-    <input type='number' name='xfer' min='-100' max='<%= @user.coins.value %>' style='width: 25%;' placeholder='give'>
-    <% else %>
-    <input type='number' name='xfer' min='0' max='<%= @user.coins.value %>' style='width: 25%;' placeholder='take'></span>
-    <% end %>
-    </h1>
-    <% end %>
-    </h3>
-    </fieldset>
-    <h3 style='width: 100%; text-align: center;'>
-    <button style='background-color: green; color: white;'>send</button>
-    </h3>
-  </div>
-  
-  <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
-    <h1 id='sender' class='displays' style='width: 100%; text-align: center; margin: 0; display: none;'>
-    <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
-    	    <option value='callback' selected>callback</option>
-	    <% if @user.attr[:class].to_i >= 3 %>
-    	    <option value='invite'>invite</option>
+	<% end %>  
+	<li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
+	<li><span style='padding: 2%;'>role:</span><span id='role'></span></li>
+      </ul>
+      <div style='background-color: white;'>
+	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 && @user.zones.members.length > 0 %>
+	<datalist id='titles'>
+	  <% TITLES.members.each do |title| %>
+	  <option value='<%= title %>'>
 	    <% end %>
+	</datalist>
+	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
+	<% end %>
+
+	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 && @user.zones.members.length > 0 %>
+	<h3 style='width: 100%; text-align: center; margin: 0;'>
+	  <select name='zone'>
+	    <% @user.zones.members.each do |zone| %>
+	    <% if zone != '' %>
+	    <option value='<%= zone %>'><%= zone %></option>
+	    <% end %>
+	    <% end %>
+	  </select>
+	</h3>
+	<% end %>
+	
+	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 6 %>
+	<datalist id='contests'>
+	  <% VOTES.members.each do |vote| %>
+	  <option value='<%= vote %>'>
+	<% end %>
+	</datalist>
+	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
+	<% end %>
+      </div>
+      
+      <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
+	<span class='material-icons' style='border: thick solid black; border-radius: 1000px;'>military_tech</span>
+	<select name='give[of]' style='width: 30%; padding: 0;'>
+      	  <option selected disabled>give</option>
+          <option value='vote'>vote</option>
+	  <% if @user.attr[:boss].to_i >= 2 %>
+	  <option value='badge'>badge</option>
+	  <% end %>
+	  <% if @user.attr[:boss].to_i >= 4 %>
+	  <option value='award'>award</option>
+	  <% end %>
+          <% if @user.attr[:boss].to_i > 9 %>
+          <option value='boss'>boss</option>
+          <% end %>
+	</select>
+	<select name='give[type]' style='width: 30%; padding: 0;'>
+	  <option selected disabled>category</option>
+	  <% BADGES.each_pair do |name, badge| %>
+	  <option value='<%= name %>'><%= name %></option>
+	  <% end %>
+	</select>
+      </h3>
+      <% if XFER[request.host] == 'true' || XFER['localhost'] == 'true' %>
+      <h1 style='background-color: white; color: black; text-align: center; padding: 0;'>
+	<span class='material-icons'>toll</span>
+	<span>
+	  <% if @user.attr[:class].to_i > 3 %>
+	  <input type='number' name='xfer' min='-100' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>
+	  <% else %>
+	  <input type='number' name='xfer' min='0' max='<%= @user.coins.value %>' value=''0 style='width: 25%;'>
+	<% end %>
+	</span>
+      </h1>
+      <% end %>
+</h3>
+
+<h3 style='width: 100%; text-align: center; background-color: white;'>
+    <span>ZAP</span>
+    <input type='checkbox' name='zap' value='true' style='width: min-content;' checked>
+</h3>
+
+</fieldset>
+
+<h3 style='width: 100%; text-align: center;'>
+  <button style='background-color: green; color: white;'>send</button>
+</h3>
+</div>
+
+<div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
+  <h1 id='sender' class='displays' style='width: 100%; text-align: center; margin: 0; display: none;'>
+    <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
+      <option value='callback' selected>callback</option>
+      <% if @user.attr[:class].to_i >= 3 %>
+      <option value='invite'>invite</option>
+      <% end %>
     </select>
     <input type='tel' name='send[number]' placeholder='PHONE' style='width: 55%; vertical-align: middle;' pattern='[0-9]{10}'>
     <button class='material-icons' style='vertical-align: middle; border: none;'>send</button>
