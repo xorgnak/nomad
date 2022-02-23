@@ -112,7 +112,7 @@ padding: 3%;
       <% end %>
       <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
       <h1 style='width: 100%; color: white; text-align: center;'><%= @user.attr[:sponsor] || OPTS[:domain] %></h1>
-      <% if ENV['LVLS'] != 'false' %>
+      <% if ENV['BADGES'] != 'false' %>
       <%= @user.sash.badges %>
       <% end %>
     </div>

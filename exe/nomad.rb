@@ -498,12 +498,7 @@ class Waypoint
   set :contributors
   hash_key :passwords
   def initialize i
-    if self.attr[:domain] == 'localhost'
-      h = 'http'
-    else
-      h = 'https'
-    end
-    @url = "#{h}://#{self.attr[:domain]}/waypoint?i=#{@id}"
+    @url = "/waypoint?i=#{@id}"
     @id = i
   end
   def id
