@@ -1,4 +1,4 @@
-```mermaid!
+```mermaid
 flowchart TB
     box-->cluster
     box-0-->cluster
