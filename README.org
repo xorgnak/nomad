@@ -7,6 +7,15 @@ The nomadic tool kit consists of a standard core of packages designed to get dev
 
 * PLATFORM
 ** the web app
+- technical features
+  - blockchain backed click tracking and reporting.
+  - gameified production and fulfillment incentives.
+  - integrated interal comodities.
+- in plain english
+  - clicks-by-campaign and clicks-by-post level reporting in real time.
+  - ranks, badges, and levels based inerface and usage.
+  - a click --> a token --> a product, service, franchise, or share of ownership --> a token.
+
 *** rsvp
 - a digital calback card app.
 - install by qr scan or callback link.
@@ -14,6 +23,7 @@ The nomadic tool kit consists of a standard core of packages designed to get dev
   - call/sms direct link.
   - social link.
   - network badge.
+
 *** user interface
 - installable progressive web app.
 - install by invite link.
@@ -42,3 +52,67 @@ The nomadic tool kit consists of a standard core of packages designed to get dev
   - flash.
   - rear light.
     
+** setup
+*** run one of the following:
+**** local raspberry pi
+#+BEGIN_SRC
+cd ~ && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install
+#+END_SRC
+**** cloud virtual machine
+#+BEGIN_SRC
+export EMAIL='me@gmail.com';
+export DOMAINS='example1.com example2.com';
+cd ~ && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install
+#+END_SRC
+*** edit the generated configuration file
+#+BEGIN_SRC
+export CLUSTER='vango.me';        # the nomad box we connect to for comms and telemetry
+export NICK='nomad';              # device operator id
+export EMAIL='xorgnak@gmail.com'; # certbot registration email
+export DOMAIN_ROOT='';            # certbot certificate root
+export BOX='true';                # true: local, false: cloud
+export DOMAINS='';                # local domains
+export PHONE_SID='';              # your twilio sid (optional)
+export PHONE_KEY='';              # your twilio key (optional)
+#export IOT='true';               # uncomment to install and enable the nomad iot tools
+#export GUI="true";               # uncomment to install and enable the nomad gui
+#export BONNET='true';            # uncomment to enable the pi-zero bonnet interface
+#export MINE='true';              # uncomment to install and enable the duino-coin miner
+#export MUSH='true';              # uncomment to install and enable the multi-user shared halusinaton
+#export DEVS='true';              # uncomment to automatically proxy iot devices to local routes
+#export COMMS='true';             # uncomment to install and enable comms
+export MUMBLE=64738;              # the local mumble port
+export OWNERSHIP='sponsor';       # network default: franchise | sponsor
+export EXCHANGE='1';              # network default: tokens to dollars for sms xfers
+#+END_SRC
+*** edit the generated domain config file 
+#+BEGIN_SRC
+export DOMAIN='';    # the local domain
+export PHONE='';     # the local twilio phone number
+export ADMIN='';     # the local admin phone number
+export MUMBLE='';    # the local mumble port
+export OWNERSHIP=''; # the local ownership definition
+export EXCHANGE='';  # the local exchange rate
+export SHARES='';    # the number of shares or franchises available
+export XFER='';      # allow local scan xfers
+#+END_SRC 
+*** reboot
+*** connect
+**** local raspberry pi (running as raspberrypi.local at 10.0.0.2)
+- ssh
+#+BEGIN_SRC
+ssh pi@raspberrypi.local
+#+END_SRC
+#+BEGIN_SRC
+ssh pi@10.0.0.2
+#+END_SRC
+- app: 
+  - http://raspberrypi.local
+  - http://10.0.0.2
+**** cloud virtual machine
+- ssh:
+#+BEGIN_SRC
+ssh user@domain.com
+#+END_SRC
+-app:
+  - https://domain.com
