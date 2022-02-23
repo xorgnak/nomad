@@ -599,7 +599,7 @@ end
 module Shares
   def self.shares k
     o, s, r = 0, 0, SHARES[k].to_i || 100
-    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v; r -= v; }
+    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| if v > 0; o += 1; end; s += v; r -= v; }
     return {owners: o, held: s, max: SHARES[k].to_i, remaining: r}
   end
   def self.cost k
