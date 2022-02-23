@@ -53,18 +53,18 @@ The nomadic tool kit consists of a standard core of packages designed to get dev
   - rear light.
     
 ** setup
-1. run one of the following:
-1.a. local raspberry pi
+*** run one of the following:
+**** local raspberry pi
 #+BEGIN_SRC
 cd ~ && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install
 #+END_SRC
-1.b. cloud virtual machine
+**** cloud virtual machine
 #+BEGIN_SRC
 export EMAIL='me@gmail.com';
 export DOMAINS='example1.com example2.com';
 cd ~ && git clone https://github.com/xorgnak/nomad && cd nomad && ./nomad.sh install
 #+END_SRC
-2. edit the generated configuration file
+*** edit the generated configuration file
 #+BEGIN_SRC
 export CLUSTER='vango.me';        # the nomad box we connect to for comms and telemetry
 export NICK='nomad';              # device operator id
@@ -85,7 +85,7 @@ export MUMBLE=64738;              # the local mumble port
 export OWNERSHIP='sponsor';       # network default: franchise | sponsor
 export EXCHANGE='1';              # network default: tokens to dollars for sms xfers
 #+END_SRC
-2.1. edit the generated domain config file 
+*** edit the generated domain config file 
 #+BEGIN_SRC
 export DOMAIN='';    # the local domain
 export PHONE='';     # the local twilio phone number
@@ -96,9 +96,9 @@ export EXCHANGE='';  # the local exchange rate
 export SHARES='';    # the number of shares or franchises available
 export XFER='';      # allow local scan xfers
 #+END_SRC 
-3. reboot
-4. connect
-4.a. local raspberry pi (running as raspberrypi.local at 10.0.0.2)
+*** reboot
+*** connect
+**** local raspberry pi (running as raspberrypi.local at 10.0.0.2)
 - ssh
 #+BEGIN_SRC
 ssh pi@raspberrypi.local
@@ -109,11 +109,10 @@ ssh pi@10.0.0.2
 - app: 
   - http://raspberrypi.local
   - http://10.0.0.2
-4.b. cloud virtual machine
+**** cloud virtual machine
 - ssh:
 #+BEGIN_SRC
 ssh user@domain.com
 #+END_SRC
 -app:
   - https://domain.com
-5. share and enjoy.
