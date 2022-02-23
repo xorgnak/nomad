@@ -172,6 +172,7 @@ padding: 3%;
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 && @user.zones.members.length > 0 %>
 	<h3 style='width: 100%; text-align: center; margin: 0;'>
 	  <select name='zone'>
+	    <option selected disabled>zone</option>
 	    <% @user.zones.members.each do |zone| %>
 	    <% if zone != '' %>
 	    <option value='<%= zone %>'><%= zone %></option>
