@@ -1844,7 +1844,7 @@ ga('send', 'pageview');
           params[:waypoint][:words].each_pair do |k,v|
             Redis.new.publish "WAYPOINT", "#{k}: #{v}"
             TRACKS[request.host][@by.attr[:sponsor]][@by.id].passwords.delete k
-            if v[:say].length > 0
+            if v[:say].length > 0 && v[:for].length > 0
               TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:to], v[:for]
             end
           end
