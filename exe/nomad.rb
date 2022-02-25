@@ -468,23 +468,28 @@ class Tracks
   def id; @id; end
   # an adventure track  
   def [] t
+    if t.length > 0
     self.adventures << t
     z = Zone.new(t)
     z.adventures << adventure(t)
     Adventure.new(adventure(t))
+    end
   end
   # user at waypoint
   def visit u, p
+    if u.length > 0 && p.length > 0
     self.players[u] = p
     uu = U.new(u)
     uu.visited << p
     uu.attr[:waypoint] = p
     uu.attr.incr(:xp)
+    end
   end
 
   #                  U   "say this" -> new track
   # zone, waypoint, password, to, for
   def mark z, w, p, t, f
+    if z.length > 0 && w.length > 0 && p.length > 0 && t.length > 0 && f.length > 0
     @a = Adventure.new(adventure(z))
     @z = Zone.new(z)
     @z.adventures << adventure(z)
@@ -493,20 +498,25 @@ class Tracks
     @u.waypoints << @a[w].id
     @a.contributors << @u.id
     @a[w].passwords[p] = { to: t, for: f }
+    end
   end
   
   # collect aset of waypoints as a zone.
   def track zone, *waypoints
+    if zone.length > 0
     self.adventures << zone
     a = Adventure.new(adventure(zone))
     z = Zone.new(zone)
     z.adventures << adventure(zone)
     [waypoints].flatten.each_with_index {|e, i|
       # adventure[waypoint].adventures << adventure(zone)
+      if e.length > 0
       a[e].adventures << adventure(zone)
       z.waypoints << a[e].id
+      end
     }
     return a
+    end
   end
   
   def adventure p
@@ -542,8 +552,10 @@ class Adventure
     @id
   end
   def [] p
+    if p.length > 0
     self.waypoints << p
     Waypoint.new(p)
+    end
   end
 end
 
