@@ -120,9 +120,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% @u.attr.delete(:track) %>
 <% else %>
 <p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
-<h3 style='width: 100%; text-align: center;'><span>OR</span></h3>
-<h1 style='width: 100%; text-align: center;'><a href='<%= request.fullpath %>&chance=true' class='material-icons' style='text-decoration: none; color: white; background-color: black; padding: 2%; border-radius: 50px; border: thick solid orange;'>casino</a></h1>
-<h3><span>roll the dice for your next nove.</span></h3>
+<h3 style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%; background-color: black; color: white;'>OR</span></h3>
+<h1 style='width: 100%; text-align: center;'><a href='<%= request.fullpath %>&chance=true' class='material-icons' style='text-decoration: none; color: white; background-color: black; padding: 2%; border-radius: 50px; border: dotted solid orange;'>casino</a></h1>
+<p style='width: 100%; text-align: center;'><span>roll the dice for your next nove.</span></p>
 <% end %>
 
 </dialog>
