@@ -10,8 +10,8 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 </style>
 <% @u = U.new("#{params[:u]}:#{params[:x] || 'solo'}:#{params[:z]}") %>
 <% if params.has_key? :chance %>
-<% @ad = TRACKS[request.host].adventures.members.to_a.sample %>
-<% @wa = TRACKS[request.host][@ad].waypoints.members.to_a.sample %>
+<% @ad = TRACKS[request.host].adventures.members.sample %>
+<% @wa = TRACKS[request.host][@ad].waypoints.members.sample %>
 <% @u.attr[:track] = "#{@wa}@#{@ad}" %>
 <% end %>
 <img src='/<%= @domain.id %>/<%= @user.id %>.img'>
