@@ -102,10 +102,6 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 </div>
 <% end %>
 
-<% @u.log.values.to_a.reverse.each do |e| %>
-<p style='width: 100%; margin: 0;'><%= e %></p>
-<% end %>
-
 <p style='width: 100%; text-align: center;'><span style='border: thin solid black; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span><span><%= @u.attr[:xp].to_i %></span></p>
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>toll</span><span><%= @u.coins.value %></span></p>
 
@@ -124,7 +120,11 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <h1 style='width: 100%; text-align: center;'><a href='<%= request.fullpath %>&chance=true' class='material-icons' style='text-decoration: none; color: white; background-color: black; padding: 2%; border-radius: 50px; border: dotted solid orange;'>casino</a></h1>
 <p style='width: 100%; text-align: center;'><span>roll the dice for your next nove.</span></p>
 <% end %>
-
+<fieldset><legend>logs</legend>
+<% @u.log.values.to_a.reverse.each do |e| %>
+<p style='width: 100%; margin: 0;'><%= e %></p>
+<% end %>
+</fieldset>
 </dialog>
 
 <% @ts = Time.now.utc.to_i %>
