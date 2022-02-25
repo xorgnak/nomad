@@ -9,6 +9,11 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 .badge { font-size: x-large; padding: 1%; margin 1%; }
 </style>
 <% @u = U.new("#{params[:u]}:#{params[:x] || 'solo'}:#{params[:z]}") %>
+<% if params.has_key? :chance %>
+<% @ad = TRACKS[request.host].adventures.members.to_a.sample %>
+<% @wa = TRACKS[request.host][@ad].waypoints.members.to_a.sample %>
+<% @u.attr[:track] = "#{@wa}@#{@ad}" %>
+<% end %>
 <img src='/<%= @domain.id %>/<%= @user.id %>.img'>
 
 <% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = contest(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
@@ -114,6 +119,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>verified</span><%= U.new(@t[0]).attr[:title] %></p>
 <% else %>
 <p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
+<h3 style='width: 100%; text-align: center;'><span>OR</span></h3>
+<h1 style='width: 100%; text-align: center;'><a href='<%= request.fullpath %>&chance=true' class='material-icons' style='text-decoration: none; color: white; background-color: black; padding: 2%; border-radius: 50px; border: thick solid orange;'>casino</a></h1>
+<h3><span>roll the dice for your next nove.</span></h3>
 <% end %>
 
 </dialog>
