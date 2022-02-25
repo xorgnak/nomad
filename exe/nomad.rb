@@ -1932,7 +1932,7 @@ ga('send', 'pageview');
           if params[:shares][:mode] == 'sell' && Shares.by(request.host)[@by.id].to_i >= params[:shares][:qty].to_i
             Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
-            @by.log(%[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:sh\ares][:qty].to_i * Shares.cost(request.host)}])
+            @by.log(%[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
           elsif params[:shares][:mode] == 'buy' && Bank.wallet[@by.id] >= (params[:shares][:qty].to_i * Shares.cost(request.host))
             Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
