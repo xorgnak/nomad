@@ -1787,7 +1787,7 @@ ga('send', 'pageview');
             @user.badges.incr(c[:badge]);
             @user.log << %[<span class='material-icons'>#{BADGES[c[:badge]]}</span> you have earned the #{c[:badge]}.<br>#{c[:desc]}]
           end
-          [:lvl, :rank].each do |e|
+          [:xp, :rank].each do |e|
             if c[e]; @user.attr.incr(e); end
             @user.log << %[<span class='material-icons'>info</span> +#{e}.]
           end
@@ -1913,28 +1913,30 @@ ga('send', 'pageview');
           @tree.link[params[:sponsor][:name]] = @by.attr[:zone] || @tree.attr[:lobby] || request.host
           ZONES << params[:sponsor][:name]
           z = Zone.new(params[:sponsor][:name])
-          z.attr[:owner] = @user.id
-          z.attr[:admin] = @user.id
-          z.pool << @user.id
+          z.attr[:owner] = @by.id
+          z.attr[:admin] = @by.id
+          z.pool << @by.id
           z.attr[:till] = Time.now.utc.to_i + tf;
           z.attr[:pay] = pay;
           z.attr[:cap] = params[:sponsor][:units].to_i;
           z.attr[:budget] = cost
-          z.coins.value = cost
-          @user.zones << params[:sponsor][:name]
+          @by.zones << params[:sponsor][:name]
           Bank.wallet.decr @by.id, cost
+          @by.log(%[<span class='material-icons'>cabin</span>#{params[:sponsor][:name]} <span class='material-icons'>savings</span>#{cost}])
         elsif params[:act] == 'shares'
           Redis.new.publish("OWNERSHIP.shares", "#{params}")
           if ENV['OWNERSHIP'] == 'franchise'
-            @user.attr[:tos] = params[:tos][:terms]
-            @user.attr[:agreed] = params[:tos][:agreed]
+            @by.attr[:tos] = params[:tos][:terms]
+            @by.attr[:agreed] = params[:tos][:agreed]
           end
-          if params[:shares][:mode] == 'sell'
+          if params[:shares][:mode] == 'sell' && Shares.by(request.host)[@by.id].to_i >= params[:shares][:qty].to_i
             Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
-          elsif params[:shares][:mode] == 'buy'
+            @by.log(%[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:sh\ares][:qty].to_i * Shares.cost(request.host)}])
+          elsif params[:shares][:mode] == 'buy' && Bank.wallet[@by.id] >= (params[:shares][:qty].to_i * Shares.cost(request.host))
             Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
+            @by.log(%[+<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} -<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
           end
         end
       end
