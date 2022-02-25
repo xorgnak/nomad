@@ -1832,7 +1832,7 @@ ga('send', 'pageview');
       if params.has_key?(:waypoint)
         # zone, waypoint, password, to, for
         @a = TRACKS[request.host][@by.attr[:zone]]
-        Redis.new.publish "WAYPOINT", "#{params[:waypoint]}"
+        Redis.new.publish "WAYPOINT", "#{@by.attr.all} #{params[:waypoint]}"
         @a.attr[:location] = params[:waypoint][:location]
         @a.attr[:description] = params[:waypoint][:description]
         @a.attr[:lvl] = params[:waypoint][:lvl]
@@ -1841,13 +1841,13 @@ ga('send', 'pageview');
           TRACKS[request.host].mark @by.attr[:zone], @by.id, v[:say], v[:to], v[:for]
         end
         if params[:waypoint].has_key? :words
-        params[:waypoint][:words].each_pair do |k,v|
-          TRACKS[request.host][@by.attr[:zone]][@by.id].passwords.delete k
-          if v[:say].length > 0
-            TRACKS[request.host].mark @by.attr[:zone], @by.id, v[:say], v[:to], v[:for]
+          params[:waypoint][:words].each_pair do |k,v|
+            Redis.new.publish "WAYPOINT", "#{k}: #{v}"
+            TRACKS[request.host][@by.attr[:zone]][@by.id].passwords.delete k
+            if v[:say].length > 0
+              TRACKS[request.host].mark @by.attr[:zone], @by.id, v[:say], v[:to], v[:for]
+            end
           end
-          Redis.new.publish "WAYPOINT", "#{k}: #{v}"
-        end
         end
 #        TRACKS[request.host].mark @user.attr[:zone], params 
 #        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
