@@ -87,21 +87,13 @@ padding: 3%;
     </h1>
     <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
 
-    <% if @user.attr[:class].to_i > 4 %>
+    <% if @user.attr[:class].to_i >= 4 && @user.attr.has_key?(:zone) %>
     <fieldset>
-    <legend>waypoint</legend>
+    <legend><%= @user.attr[:zone] %></legend>
       <%= erb :waypoint, layout: false %>
     </fieldset>  
     <% end %>
 
-    <% if @user.attr[:class].to_i >= 5 && @user.attr.has_key?(:zone) %>
-    <fieldset id='urls'>
-    <legend>urls</legend>
-      <input name='waypoint[urls][new]' placeholder='https://'>
-      <% Zone.new(@user.attr[:zone]).urls.each do |e| %>
-      <% end %>
-    </fieldset>
-    <% end %>
     <button style='background-color: green; color: white;'>save</button>
   </div>
   
@@ -190,8 +182,11 @@ padding: 3%;
 	</datalist>
 	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
 	<% end %>
+
+
       </div>
-      
+
+
       <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
 	<span class='material-icons' style='border: thick solid black; border-radius: 1000px;'>military_tech</span>
 	<select name='give[of]' style='width: 30%; padding: 0;'>
@@ -214,6 +209,24 @@ padding: 3%;
 	  <% end %>
 	</select>
       </h3>
+
+      <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+	<select name='track'>
+	  <option selected disabled>adventure</option>
+	  <% @h = {} %>
+	  <% @user.zones.each do |z| %>
+	  <% TRACKS[request.host][z][@user.id].passwords.all.each_pair do |k,v| %>
+	  <% if @user.id == v[:to] && k.length > 0 %>
+	  <% @h[k] = v[:for] %>
+	  <% end %>
+	  <% end %>
+	  <% end %>
+	  <% @h.each_pair do |k,v| %>
+	  <option value='<%= v %>'><%= k %></option>
+	  <% end %>
+	</select>
+      </h3>
+      
       <% if XFER[request.host] == 'true' || XFER['localhost'] == 'true' %>
       <h1 style='background-color: white; color: black; text-align: center; padding: 0;'>
 	<span class='material-icons'>toll</span>

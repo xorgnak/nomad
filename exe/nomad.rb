@@ -457,66 +457,107 @@ def phone
   Phone.new
 end
 
+class Tracks
+  include Redis::Objects
+  set :adventures
+  set :waypoints
+  hash_key :players
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+  # an adventure track  
+  def [] t
+    self.adventures << t
+    z = Zone.new(t)
+    z.adventures << adventure(t)
+    Adventure.new(adventure(t))
+  end
+  # user at waypoint
+  def visit u, p
+    self.players[u] = p
+    uu = U.new(u)
+    uu.visited << p
+    uu.attr[:waypoint] = p
+    uu.attr.incr(:xp)
+  end
+
+  #                  U   "say this" -> new track
+  # zone, waypoint, password, to, for
+  def mark z, w, p, t, f
+    @a = Adventure.new(adventure(z))
+    @z = Zone.new(z)
+    @z.adventures << adventure(z)
+    @z.waypoints << @a[w].id
+    @u = U.new(w)
+    @u.waypoints << @a[w].id
+    @a.contributors << @u.id
+    @a[w].passwords[p] = { to: t, for: f }
+  end
+  
+  # collect aset of waypoints as a zone.
+  def track zone, *waypoints
+    self.adventures << zone
+    a = Adventure.new(adventure(zone))
+    z = Zone.new(zone)
+    z.adventures << adventure(zone)
+    [waypoints].flatten.each_with_index {|e, i|
+      # adventure[waypoint].adventures << adventure(zone)
+      a[e].adventures << adventure(zone)
+      z.waypoints << a[e].id
+    }
+    return a
+  end
+  
+  def adventure p
+    "#{@id}:#{p}"
+  end
+end
+
+
+##
+# TRACKS[request.host]track zone, *user
+#
+# TRACKS[request.host][zone].contributors << @user.id
+# TRACKS[request.host][zone][waypoint].passwords[password] = { to: @user.id, for: desc }
+#
+# TRACKS[request.host][zone].visit(@user.id, waypoint)
+#
+# TRACKS[request.host][zone][waypoint].stat.incr(zone)
+# TRACKS[request.host][zone].stat.incr(waypoint)
+
+TRACKS = Hash.new {|h,k| h[k] = Tracks.new(k) }
+
 class Adventure
   include Redis::Objects
   set :waypoints
   hash_key :attr
   set :contributors
   sorted_set :stat
-  sorted_set :players
+  hash_key :players
   def initialize i
-    ADVENTURES << i
-    @url = "https://#{self.attr[:domain]}/adventure?a=#{i}"
     @id = i
   end
   def id
     @id
   end
-  def create player
-    if !self.players.members.include? player
-      self.players[player] = 0
-      U.new(player).attr.bulk_set({ class: self.attr[:class], pin: self.attr[:pin], adventure: @id })
-      U.new(player).log << %[adventure: #{@id}<br>#{self.attr[:desc]}<br>#{self.attr[:instructions]}]
-    end
-  end
-  def progress player
-
-  end
-  def html
-    o = []
-    o << %[<p class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</p>]
-    o << %[<p class='description'>#{self.attr[:description]}</p>]
-    o << %[<p class='goal'>#{self.attr[:badge]}</p>]
-    return %[<div>#{o.join('')}</div>]
+  def [] p
+    self.waypoints << p
+    Waypoint.new(p)
   end
 end
 
 class Waypoint
   include Redis::Objects
+  set :adventures
   hash_key :attr
   sorted_set :stat
-  set :contributors
-  hash_key :passwords
+  hash_key :passwords, marshal: true
   def initialize i
-    @url = "/waypoint?i=#{@id}"
     @id = i
   end
   def id
     @id
-  end
-  def html
-    o = []
-    o << %[<ul>]
-    o << %[<li class='title'><a href='#{@url}'>...</a>#{self.attr[:name]}</li>]
-    o << %[<li class='location'>#{self.attr[:location]}</li>]
-    o << %[<li class='description'>#{self.attr[:description]}</li>]
-    o << %[<li class='instructions'>#{self.attr[:instructions]}</li>]
-    o << %[<li class='goal'>#{self.attr[:goal]}</li>]
-    o << %[<ul>]
-    o << %[<fieldset><legend>passwords</legend><ul>]
-    self.passwords.all.each_pair { |k,v| o << %[<li><span style='padding: 0 1% 0 0;'>#{v}</span><span>#{k}</span></li>] }
-    o << %[</ul></fieldset>]
-    return %[<fieldset><legend>#{@id}</legend>#{o.join('')}</fieldset>]
   end
 end
 
@@ -583,6 +624,7 @@ end
 class Zone
   include Redis::Objects
   set :pool
+  set :users
   hash_key :attr
   counter :coins
   set :waypoints
@@ -593,6 +635,13 @@ class Zone
   end
   def id
     @id
+  end
+  def pay a, *u
+    [u].flatten.each {|e| Bank.xfer to: e, from: @id, amt: a }
+  end
+  def rm!
+    Bank.xfer from: @id, amt: self.coins.value
+    Redis.new.keys.each { |e| if /#{@id}/.match(e); Redis.new.del(e); end }
   end
 end
 
@@ -859,6 +908,8 @@ end
 
 class U
   include Redis::Objects
+  set :waypoints
+  set :visited
   sorted_set :wallet
   sorted_set :awards
   sorted_set :stripes
@@ -887,6 +938,8 @@ class U
     Sash.new(@id)
   end
 end
+
+
 
 class Tree
   include Redis::Objects
@@ -1275,6 +1328,7 @@ class APP < Sinatra::Base
   
   get('/favicon.ico') { return '' }
   get('/manifest.webmanifest') { content_type('application/json'); erb :manifest, layout: false }
+  get('/nomad') { erb :nomad }
 
   get('/term') { if params.has_key?(:reset); @term.attr.delete(:file); end; erb @term.term }
   
@@ -1657,11 +1711,14 @@ ga('send', 'pageview');
       @by = U.new(@id)
 
       if params.has_key? :ts
-        @user = U.new(params[:u] + ":" + params[:x]  + ":" + params[:ts]);
+        @user = U.new(params[:u]);
+        @user.attr[:seen] = params[:ts]
       elsif params.has_key? :target
         @user = U.new(QRI[params[:target]])
+        @user.attr[:seen] = Time.now.utc.to_i
       else
         @user = U.new(@id);
+        @user.attr[:seen] = Time.now.utc.to_i
       end
       @user.attr.incr(:xp)
       @by.attr.incr(:xp)
@@ -1755,22 +1812,36 @@ ga('send', 'pageview');
           @user.log << %[<span class='material-icons'>info</span> #{e}]
         }
       end
-
-      if params.has_key?(:waypoint) && params.has_key?(:a)
-        Adventure.new(params[:a]).waypoints << "#{params[:a]}:#{params[:i]}"
-        Waypoint.new(params[:a] + ':' + params[:i]).contributors << params[:u]
-        params[:waypoint].each_pair { |k,v|
-          Waypoint.new(params[:a] + ':' + params[:i]).attr[k] = v
-        }
-        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
-      end
       
-      if params.has_key? :adventure
-        Adventure.new(params[:a]).contributors << params[:u]
-        params[:adventure].each_pair { |k,v|
-          Adventure.new(params[:a]).attr[k] = v
-        }
-        @user.log << %[<span class='material-icons'>info</span> adventure #{params[:a]} updated.]
+      if params.has_key?(:waypoint)
+        # zone, waypoint, password, to, for
+        @a = TRACKS[request.host][@user.attr[:zone]]
+        Redis.new.publish "WAYPOINT", "#{params[:waypoint]}"
+        @a.attr[:location] = params[:waypoint][:location]
+        @a.attr[:description] = params[:waypoint][:description]
+        @a.attr[:lvl] = params[:waypoint][:lvl]
+        if params[:waypoint][:new][:say].length > 0
+          v = params[:waypoint][:new]
+          TRACKS[request.host].mark @user.attr[:zone], @user.id, v[:say], v[:to], v[:for]
+        end
+        if params[:waypoint].has_key? :words
+        params[:waypoint][:words].each_pair do |k,v|
+          TRACKS[request.host][@user.attr[:zone]][@user.id].passwords.delete k
+          if v[:say].length > 0
+            TRACKS[request.host].mark @user.attr[:zone], @user.id, v[:say], v[:to], v[:for]
+          end
+          Redis.new.publish "WAYPOINT", "#{k}: #{v}"
+        end
+        end
+#        TRACKS[request.host].mark @user.attr[:zone], params 
+#        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
+      end
+
+      if params.has_key?(:track) && params[:track] != ''
+        Redis.new.publish "TRACK", "#{params[:track]}"
+        #a = params[:adventure].split('@')
+        TRACKS[request.host].visit @user.id, @by.attr[:zone]
+        @user.attr[:track] = params[:track]
       end
 
       if params.has_key? :board

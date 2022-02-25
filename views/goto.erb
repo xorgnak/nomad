@@ -8,7 +8,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 #badge > h1 > * { vertical-align: middle; }
 .badge { font-size: x-large; padding: 1%; margin 1%; }
 </style>
-
+<% @u = U.new("#{params[:u]}:#{params[:x] || 'solo'}:#{params[:z]}") %>
 <img src='/<%= @domain.id %>/<%= @user.id %>.img'>
 
 <% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = contest(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
@@ -88,11 +88,37 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
+<dialog id='modal' style='height: 80%; width: 80%; padding: 0;'>
+
+<h3 style='width: 100%; text-align: center; margin: 0;'>
+<span onclick='$("#modal").hide()' style='float: right; background-color: red; color: white; border: thick solid black; vertical-align: middle;'>X</span>
+</h3>
+<% if @user.attr.has_key? :vote %>
+<div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
+<p style='width: 100%; text-align: center; margin: 0;'>vote (<span class='material-icons'>thumb_up_off_alt</span>) for me for:</p>
+<h4 style='width: 100%; text-align: center; margin: 0;'><%= @user.attr[:vote] %></h4>
+</div>
+<% end %>
+<% @u.log.values.to_a.reverse.each do |e| %>
+<p style='width: 100%; margin: 0;'><%= e %></p>
+<% end %>
+<hr>
+<p style='width: 100%; text-align: center;'><span style='border: thin solid black; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span><span><%= @u.attr[:xp].to_i %></span></p>
+<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>toll</span><span><%= @u.coins.value %></span></p>
+<% if @u.attr.has_key? :track %>
+<% @t = @u.attr[:track].split('@') %>
+<h3>ADVENTURE</h3>
+<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>location</span><span><%= @t[1] %></span></p>
+< style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>profile</span><span><%= @t[0] %></span></p>
+<% end %>
+</ul>
+</dialog>
+
 <% @ts = Time.now.utc.to_i %>
 <input type='hidden' name='z' value='<%= params[:z] %>'>
 <input type='hidden' name='x' value='<%= params[:x] || "solo" %>'>
 <input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
 <script>
-$('#qrcode').qrcode('<%= @path %>/?u=<%= params[:u] %>:<%= params[:z] %>&x=<%= params[:x] || 'solo' %>&ts=<%= params[:ts] || @ts %>');
-
+$('#qrcode').qrcode('<%= @path %>/?u=<%= @u.id %>&ts=<%= params[:ts] || @ts %>');
+document.querySelector("#modal").showModal()
 </script>

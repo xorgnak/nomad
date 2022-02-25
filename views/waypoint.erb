@@ -1,17 +1,71 @@
+<% @zone = Zone.new(@user.attr[:zone]) %>
+<% @z = TRACKS[request.host][@zone.id] %>
+<% @track = TRACKS[request.host][@zone.id][@user.id] %>
 <style>
 input { margin: 0; width: 100%; }
 textarea { margin: 0; width: 100%; font-size: x-large; }
 legend { background-color: white; color: black; padding: 1%; border-radius: 50px; }
 </style>
-  <p><input type='text' name='waypoint[location]' placeholder='location'></p>
-  <p><input type='text' name='waypoint[description]' placeholder='description'></p>
+  <p><input type='text' name='waypoint[location]' placeholder='location' value='<%= @z.attr[:location] %>'></p>
+  <p><input type='text' name='waypoint[description]' placeholder='description' value='<%= @z.attr[:description] %>'></p>
 <fieldset id='passwords'><legend>passwords</legend>
   <p style='width: 100%; text-align: center;'>
     <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>child_friendly</span>
-    <input type='range' min='0' max='7' name='waypoint[passwords][lvl]' style='width: 65%;'>
+    <input type='range' min='0' max='7' name='waypoint[lvl]' value='<%= @z.attr[:lvl] %>' style='width: 65%;'>
     <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>nightlife</span>
   </p>
-  <input name='waypoint[passwords][say]' placeholder='SAY'>
-  <input name='waypoint[passwords][to]' placeholder='TO'>
-  <input name='waypoint[passwords][for]' placeholder='FOR'>
+  <datalist id='passwords'>
+    <% @track.passwords.all.keys.each do |e| %>
+    <option value='<%= e %>'>
+    <% end %>
+  </datalist>
+  <h3 style='width: 100%; text-align: center;'>
+    <input list='passwords' name='waypoint[new][say]' placeholder='SAY' style='width: 40%;'>
+    <select name='waypoint[new][to]'>
+      <% @zone.pool.each do |e| %>
+      <% @e = U.new(e) %>
+      <option value='<%= e %>'><%= @e.attr[:name] %></option>
+      <% end %>
+    </select>
+    <select name='waypoint[new][for]'>
+      <% TRACKS[request.host].adventures.each do |e| %>
+        <% TRACKS[request.host][e].waypoints.each do |w| %>
+          <% if w != '' && e !='' %>
+          <% @u = U.new(w) %>
+      <option value='<%= w %>@<%= e %>'><%= @u.attr[:name] %>@<%= e %></option>
+          <% end %>
+        <% end %>
+      <% end %>
+    </select>
+  </h3>
+  <% @track.passwords.all.each_pair do |k,v| %>
+    <% k.length > 0 %>
+  <h3 style='width: 100%; text-align: center;'>
+  <input list='passwords' name='waypoint[words][<%= k %>][say]' placeholder='SAY' value='<%= k %>' style='width: 40%;'>
+  <select name='waypoint[words][<%= k %>][to]'>
+    <% @zone.pool.each do |e| %>
+      <% @e = U.new(e) %>
+      <% if v[:to] == e %>
+    <option value='<%= e %>' selected><%= @e.attr[:name] %></option>
+      <% else %>
+    <option value='<%= e %>'><%= @e.attr[:name] %></option>
+      <% end %>
+    <% end %>
+  </select>
+  <select name='waypoint[words][<%= k %>][for]'>
+    <% TRACKS[request.host].adventures.each do |e| %>
+      <% TRACKS[request.host][e].waypoints.each do |w| %>
+        <% if w != '' && e != '' %>
+        <% @u = U.new(w) %>
+        <% if v[:for] != e %>
+    <option value='<%= w %>@<%= e %>'><%= @u.attr[:name] %>@<%= e %></option>
+        <% else %>
+    <option value='<%= w %>@<%= e %>' selected><%= @u.attr[:name] %>@<%= e %></option>
+        <% end %>
+      <% end %>
+    <% end %>
+  </select>
+  </h3>
+  <% end %>
+  <% end %>
 </fieldset>
