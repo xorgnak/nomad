@@ -124,6 +124,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% @u.log.values.to_a.reverse.each do |e| %>
 <p style='width: 100%; margin: 0;'><%= e %></p>
 <% end %>
+<% @u.log.clear() %>
 </fieldset>
 </dialog>
 
