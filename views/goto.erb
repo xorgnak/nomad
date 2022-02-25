@@ -88,30 +88,31 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
-<dialog id='modal' style='height: 80%; width: 80%; padding: 0;'>
+<dialog id='modal' style='height: 80%; width: 80%; padding: 0;' onclick='document.querySelector("#modal").close()'>
 
-<h3 style='width: 100%; text-align: center; margin: 0;'>
-<span onclick='$("#modal").close()' style='float: right; background-color: red; color: white; border: thick solid black; vertical-align: middle;'>X</span>
-</h3>
 <% if @user.attr.has_key? :vote %>
 <div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
 <p style='width: 100%; text-align: center; margin: 0;'>vote (<span class='material-icons'>thumb_up_off_alt</span>) for me for:</p>
 <h4 style='width: 100%; text-align: center; margin: 0;'><%= @user.attr[:vote] %></h4>
 </div>
 <% end %>
+
 <% @u.log.values.to_a.reverse.each do |e| %>
 <p style='width: 100%; margin: 0;'><%= e %></p>
 <% end %>
-<hr>
+
 <p style='width: 100%; text-align: center;'><span style='border: thin solid black; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span><span><%= @u.attr[:xp].to_i %></span></p>
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>toll</span><span><%= @u.coins.value %></span></p>
+
 <% if @u.attr.has_key? :track %>
 <% @t = @u.attr[:track].split('@') %>
 <h3>ADVENTURE</h3>
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>location</span><span><%= @t[1] %></span></p>
 < style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>profile</span><span><%= @t[0] %></span></p>
+<% else %>
+<p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
 <% end %>
-</ul>
+
 </dialog>
 
 <% @ts = Time.now.utc.to_i %>
