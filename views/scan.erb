@@ -10,30 +10,28 @@ function handler(scn) {
 	var oo = v.split('=');
 	h[oo[0]] = oo[1]
     });
-    if (h.ts) {
-	log("<span class='material-icons'>qr_code_2</span> " + JSON.stringify(h));
-    } else {
-	$('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
-	$('form').append("<input type='hidden' name='box' value='" + ho + "'>");
-	    <% if @user.attr[:class].to_i > 6 %>
-	    $('#boss').val(h.b);
-	$('#rank').val(h.r);
-	    <% else %>
-            $('#boss').text(h.b);
-	$('#rank').text(h.r);
-	    <% end %>
-	    $('#xp').text(h.p);
-	$('#class').text(h.c);
-	$('#set_class').val(h.c)
-	$('#role').text(roles[h.c]);
-	$('#z').text(h.x);
-	$('#scan').val(h.u);
-	$('#view').hide();
-	$('#display').hide();
-	$('#magic').show();
-	//mine(h.u);
-    }
+
+    $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
+    $('form').append("<input type='hidden' name='box' value='" + ho + "'>");
+	<% if @user.attr[:class].to_i > 6 %>
+	$('#boss').val(h.b);
+    $('#rank').val(h.r);
+	<% else %>
+        $('#boss').text(h.b);
+    $('#rank').text(h.r);
+	<% end %>
+	$('#xp').text(h.p);
+    $('#class').text(h.c);
+    $('#set_class').val(h.c)
+    $('#role').text(roles[h.c]);
+    $('#z').text(h.x);
+    $('#scan').val(h.u);
+    $('#view').hide();
+    $('#display').hide();
+    $('#magic').show();
+    //mine(h.u);
 }
+
 
 var video = document.createElement("video");
 var canvasElement = document.getElementById("canvas");
