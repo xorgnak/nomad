@@ -117,6 +117,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>place</span><span><%= @t[1] %></span></p>
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>person</span><span><%= U.new(@t[0]).attr[:name] %></span></p>
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>verified</span><%= U.new(@t[0]).attr[:title] %></p>
+<% @u.attr.delete(:track) %>
 <% else %>
 <p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
 <h3 style='width: 100%; text-align: center;'><span>OR</span></h3>
