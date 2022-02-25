@@ -91,7 +91,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <dialog id='modal' style='height: 80%; width: 80%; padding: 0;'>
 
 <h3 style='width: 100%; text-align: center; margin: 0;'>
-<span onclick='$("#modal").hide()' style='float: right; background-color: red; color: white; border: thick solid black; vertical-align: middle;'>X</span>
+<span onclick='$("#modal").close()' style='float: right; background-color: red; color: white; border: thick solid black; vertical-align: middle;'>X</span>
 </h3>
 <% if @user.attr.has_key? :vote %>
 <div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
