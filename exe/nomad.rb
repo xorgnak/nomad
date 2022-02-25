@@ -1714,7 +1714,11 @@ ga('send', 'pageview');
         @user = U.new(params[:u]);
         @user.attr[:seen] = params[:ts]
       elsif params.has_key? :target
-        @user = U.new(QRI[params[:target]])
+        if QRI.has_key? params[:target]
+          @user = U.new(QRI[params[:target]])
+        else
+          @user = U.new(params[:target])
+        end
         @user.attr[:seen] = Time.now.utc.to_i
       else
         @user = U.new(@id);
