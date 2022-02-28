@@ -30,7 +30,7 @@ padding: 3%;
     <button class='material-icons' type='button'
 	    onclick='$("#badge").toggle(); $("#display").toggle();'
 	    style='background-color: black;font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
-    <span onclick='$("#config").toggle(); $("#display").toggle();'>
+    <span onclick='$("#display").toggle(); document.querySelector("#config").showModal();'>
       <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
       <%= @user.attr[:name] %>
       <% else %>
@@ -39,7 +39,7 @@ padding: 3%;
     </span>
   </h1>
   
-  <div id='config' style='background-color: black; display: none;'>
+  <dialog id='config' style='background-color: black; padding: 0; height: 100%; width: 100%;'>
     <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
     <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>    
     <h1 style='width: 100%;'>
@@ -66,7 +66,7 @@ padding: 3%;
     </h1>
 
     <h1 style='width: 100%;'>
-      <select id='sponsor' name='config[zone]' style='width: 100%;'>
+      <select id='sponsor' name='config[sponsor]' style='width: 100%;'>
 	<option value='sponsor' selected disabled>sponsor</option>
 	<% @user.zones.members.each do |e| %>
 	<option value='<%= e %>'><%= e %></option>
@@ -85,17 +85,40 @@ padding: 3%;
       </datalist>
       <input type='tel' list='numbs' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>' pattern='[0-9]{10}'>
     </h1>
-    <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
-
-    <% if @user.attr[:class].to_i >= 4 && @user.attr.has_key?(:zone) %>
-    <fieldset>
-    <legend><%= @user.attr[:zone] %></legend>
-      <%= erb :waypoint, layout: false %>
-    </fieldset>  
-    <% end %>
-
+    <h3 style='width: 100%; text-align: center;'>
+      <select id='chance' name='config[chance]' style='width: 30%;'>
+	<option selected disabled>chance</option>
+	<option>none</option>
+	<option value='card'>card</option>
+	<option value='coin'>coin</option>
+	<option value='dice'>dice</option>
+      </select>
+      <span style='width: 65%'>
+      <span id='card' class='chance' style='display: none; text-align: center;'>
+	<input type='number' name='config[hand]' min='0' max='10' step='1' value='1' style='width: 15%;' placeholder='hand' value='<%= @user.attr[:hand] %>'>
+	<span style='color: white; padding: 0 3% 0 3%;'>&gt;</span>
+	<input type='number' name='config[over]' min='0' max='100' step='1' style='width: 15%;' placeholder='over' value='<%= @user.attr[:over] %>'>
+      </span>
+      <span id='coin' class='chance' style='display: none; text-align: center;'>
+	<span style='width: 25%; text-align: center;'>
+	  <input type='radio' id='coin_1' name='config[over]' value='1' style='width: 5%;'>
+	  <span class='material-icons' style='color: white; vertical-align: middle;'>file_upload</span>
+	</span>
+	<span style='width: 25%; text-align: center;'>
+	  <input type='radio' id='coin_0' name='config[over]' value='0' style='width: 5%;'>
+	  <span class='material-icons' style='color: white; vertical-align: middle;'>file_download</span>
+	</span>
+      </span>
+      <span id='dice' class='chance' style='display: none; text-align: center;'>
+	<input type='number' name='config[number]' min='1' max='99' step='1' value='<%= @user.attr[:number] || "2" %>' style='width: 15%;' maxlength='2' placeholder='2'><span style='color: white;'>d</span><input type='number' min='1' max='999' step='1' style='width: 15%;' maxlength='3' value='<%= @user.attr[:sides] || "6" %>' name='config[sides]' style='' placeholder='6'><span style='color: white; padding: 0 3% 0 3%;'>&gt;</span><input type='number' name='config[over]' min='0' step='1' maxlength='6' value='<%= @user.attr[:over] || "999999" %>' style='width: 20%;' placeholder='0'>
+      </span>
+    </h3>
+    <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+    <input type='file' id='pic' accept="image/*" name='file'>
+    <span>rsvp image</span>
+    </h3>
     <button style='background-color: green; color: white;'>save</button>
-  </div>
+  </dialog>
   
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
@@ -268,6 +291,31 @@ padding: 3%;
       <% @user.log.values.to_a.reverse.each do |e| %>
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
+      <% if @user.attr.has_key? :sponsor %>
+      <div id='messenger'>
+    <h3 style='width: 100%; text-align: center; margin: 0;'>
+    <span style='background-color: white;'>
+      <span class='material-icons' style='color: black; vertical-align: middle; padding: 0 1% 0 1%;'>groups</span>
+      <input type='checkbox' name='message[broadcast]' value='users' style='width: unset;'>
+    </span>
+	  <select name='message[zone]' style='width: 75%; text-align: left;'>
+	    <% @user.zones.members.each do |e| %>
+	    <% if "#{e}".length > 0 %>
+	    <% if e == @user.attr[:sponsor] %>
+	    <option value='<%= e %>' selected><%= e %></option>
+	    <% else %>
+	    <option value='<%= e %>'><%= e %></option>
+	    <% end %>
+	    <% end %>
+	    <% end %>
+	  </select>
+	</h3>
+	<h1 style='width: 100%; text-align: center; margin: 0;'>
+	  <input type='text' name='message[body]' placeholder='message...' style='width: 80%;'>
+	  <button type='submit' class='material-icons' style='vertical-align: middle; background-color: green; padding: 1%; border: none;'>send</button>
+        </h1>
+      </div>
+      <% end %>
     </div>
     <%= erb :bank %>
     <% if Bank.wallet[@user.id].to_i > 0 %>
@@ -284,6 +332,12 @@ padding: 3%;
     <%= erb :shares %>
     <% end %>
     <% end %>
+    <% if @user.attr[:class].to_i >= 4 && @user.attr.has_key?(:zone) %>
+    <fieldset id='waypoint' class='displays' style='display: none;'>
+      <legend><%= @user.attr[:zone] %></legend>
+      <%= erb :waypoint, layout: false %>
+    </fieldset>
+    <% end %>
     <nav id='menu' style='width: 100%; font-size: small; text-align: center;'>
     <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>
     <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
@@ -296,6 +350,8 @@ padding: 3%;
     <% end %>
     <% if @user.attr[:class].to_i >= 5 %>
     <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: red;'>terminal</a>
+    <% elsif @user.attr[:class].to_i < 5 && @user.attr[:class].to_i >= 2 %>
+    <button class='open material-icons' id='open_waypoint' value='waypoint'>location</button>
     <% end %>
     <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble').gsub('://', "://#{@user.attr[:name] || 'nomad'}@") %>:<%= MUMBLE[request.host] || '64738' %>/?version=1.2.0">headset_mic</a>
     </nav>
@@ -316,8 +372,20 @@ var mnu = false;
 $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
 $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
 $('#title').val('<%= @user.attr[:title] || 'title' %>');
+
+    <% if @user.attr.has_key?(:chance) && @user.attr[:chance] != 'none' %>
+    $('#<%= @user.attr[:chance] %>').show();
+$('#chance').val('<%= @user.attr[:chance] %>');
+if ("<%= @user.attr[:chance] %>" == 'coin') {
+    $('#coin_<%= @user.attr[:over] %>').prop('checked', true);
+}
+
+<% end %>
+
 function log(s) { $('#log').prepend(s + '</br>'); console.log(s); }
+
 $(document).on('change', '#pic', function(ev) { ev.preventDefault(); });
+
 <% if !params.has_key? :installed %>
 log('<span class="material-icons">info</span> Add to homescreen to install.');
 <% end %>
@@ -361,5 +429,9 @@ $(document).on('change', '#s_qty', function(ev) {
     }
 });
 
+$(document).on('change', '#chance', function() {
+    $('.chance').hide();
+    $('#' + $('#chance').val()).show();
+});
 </script>
     

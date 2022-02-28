@@ -88,21 +88,27 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
-<dialog id='modal' style='height: 80%; width: 80%; padding: 0;' onclick='document.querySelector("#modal").close()'>
+<dialog id='modal' style='height: 90%; width: 90%; padding: 0; box-shadow: 0 0 15px white;' onclick='document.querySelector("#modal").close()'>
 
+<p style='width: 100%; text-align: center; background-color: black; color: white; margin: 0;'>
+<span style='border: thin solid white; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span>
+<span><%= @u.attr[:xp].to_i %></span>
+<span style='padding: 0 2% 0 2%; vertical-align: middle;' class='material-icons'>toll</span>
+<span><%= @u.coins.value %></span></p>
 <% if @user.attr.has_key? :vote %>
+
 <div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
 <p style='width: 100%; text-align: center; margin: 0;'>vote (<span class='material-icons'>thumb_up_off_alt</span>) for me for:</p>
 <h4 style='width: 100%; text-align: center; margin: 0;'><%= @user.attr[:vote] %></h4>
 </div>
 <% end %>
 
+<% if @u.log.values.length > 0 %>
+<fieldset><legend>log</legend>
 <% @u.log.values.to_a.reverse.each do |e| %>
 <p style='width: 100%; margin: 0;'><%= e %></p>
+<% end %></fieldset>
 <% end %>
-
-<p style='width: 100%; text-align: center;'><span style='border: thin solid black; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span><span><%= @u.attr[:xp].to_i %></span></p>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>toll</span><span><%= @u.coins.value %></span></p>
 
 <% if @u.attr.has_key? :track %>
 <% @t = @u.attr[:track].split('@') %>
@@ -110,9 +116,29 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>location</span><span><%= @t[1] %></span></p>
 < style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>profile</span><span><%= @t[0] %></span></p>
 <% else %>
-<p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
-<% end %>
 
+ <% if Chance.new(@user.id).try? %>
+ <% @chance = Chance.new(@user.id); @chance.try! %>
+ <div style='width: 100%; text-align: center;'>
+
+  <% if @user.attr[:chance] == 'card' %>
+   <% @res = @chance.result[:hand].map {|e| "#{e[:card]}#{e[:suit]}" }.join(", ") %>
+  <% elsif @user.attr[:chance] == 'coin' %>
+   <% @res = @chance.result[:toss] %>
+  <% elsif @user.attr[:chance] == 'dice' %>
+   <% @res = @chance.result[:dice].join(', ') %>
+  <% end %>
+  <% if @chance.success? == 'true' %>
+ <h3 style='width: 100%; text-align: center;'><span style='background-color: gold; border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>WINNER</span></h3>
+  <% else %>
+  <h3 style='width: 100%; text-align: center;'><span style='border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>Try Again</span></h3>
+  <% end %>
+ <h1 style='width: 100%; text-align: center;'><span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span></h1>
+ </div>
+ <% else %>
+<p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
+ <% end %>
+<% end %>
 </dialog>
 
 <% @ts = Time.now.utc.to_i %>

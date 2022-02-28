@@ -968,6 +968,67 @@ class Domain
   end
 end
 
+class Cards
+  include Redis::Objects
+  list :cards, marshal: true
+  sorted_set :stat
+  hash_key :attr
+  counter :total
+  counter :card
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+  def shuffle!
+    d = self.cards.values.to_a
+    self.cards.clear
+    d.shuffle!
+    d.each {|e| self.cards << e }
+  end
+  def add h={}
+    self.total.increment(h[:value])
+    self.stat.incr(h[:card])
+    self.cards << h
+    self.card.increment
+  end
+  def deal *n
+    if self.card.value.to_i - n[0] || 1 >= 0
+    hand, tot, cards = [], 0, Hash.new {|h,k| h[k] = 0 }
+    [self.cards.shift(n[0] || 1)].flatten.each {|e|
+      cards[e[:card]] += 1;
+      self.stat.decr(e[:card]);
+      tot += e[:value]
+      self.total.decrement(e[:value])
+      self.card.decrement
+      hand << e;
+    }
+    return { hand: hand, total: tot, cards: cards }
+    end
+  end
+  def deck h={}
+    self.cards.clear
+    self.card.value = 0;
+    self.total.value = 0;
+    self.stat.clear
+    d = []
+    hh = {
+      suits: ["&#9829;", "&#9830;", "&#9824;", "&#9827;"],
+      numbers: { min: 2, max: 10 },
+      faces: { ace: 10, king: 10, queen: 10, jack: 10 },
+      special: { :"&#x1F0CF;" => 1, :"&#x1F004;" => 10 },
+      shuffle: true
+    }.merge(h)
+    numbers = (hh[:numbers][:min]..hh[:numbers][:max]).to_a
+    hh[:suits].each do |suit|        
+      hh[:faces].each_pair {|c, v| add(suit: suit, card: c, value: v) }
+      numbers.each {|e| add(suit: suit, card: e, value: e) }
+    end
+    hh[:special].each_pair {|c,v| add(suit: '#', card: c, value: v)  }
+    if hh[:shuffle] == true
+      shuffle!
+    end
+  end
+end
 
 @man = Slop::Options.new
 @man.symbol '-s', '--sid', "the twilio sid", default: ''
@@ -1168,37 +1229,98 @@ end
 
 class Chance
   include Redis::Objects
-
   list :cards, marshal: true
-
+  value :res, marshal: true
+  value :try
   def initialize i
     @id = i
+    @u = U.new(@id)
   end
   def id; @id; end
   def deal *n
-    self.cards.shift(n[0] || 1)
+    a, t = [], 0
+    [self.cards.shift(n[0].to_i || 1)].flatten.each {|e| t += e[:value]; a << e }
+    return { total: t, hand: a }                            
+  end
+  def try?
+    if @u.attr.has_key?(:chance) && @u.attr[:chance] != 'none'
+      return true
+    else
+      return false
+    end
+  end
+  def try!
+    case @u.attr[:chance]
+    when 'coin'
+      self.res.value = coin
+    when 'card'
+      if self.cards.values.length - @u.attr[:hand].to_i  >= 0
+        deck
+      end
+      self.res.value = deal(@u.attr[:hand])
+    when 'dice'
+      self.res.value = roll("#{@u.attr[:number]}d#{@u.attr[:sides]}") {|r| r }
+    end
+    self.try.value = success(result)
+    return success?
+  end
+  def success i
+    Redis.new.publish("CHANCE.success", "#{i} #{@u.attr.all}")
+    if i[:total].to_i >= @u.attr[:over].to_i
+      return true
+    else
+      return false
+    end
+  end
+  def success?
+    self.try.value
+  end
+  def result
+    self.res.value
   end
   def deck h={}
-    p = []
+    de = []
+    hh = {
+      suits: ["&#9829;", "&#9830;", "&#9824;", "&#9827;"],
+      numbers: (2..10).to_a,
+      faces: [ :A, :K, :Q, :J ],
+      special: [ :"&#x1F0CF;", :"&#x1F004;" ],
+    }.merge(h)
+    Redis.new.publish("CHANCE.deck", "#{hh}")
     self.cards.clear
-    h[:decks] || 1.times {|d|
-      [h[:suits]].flatten.each { |s|
+      [hh[:suits]].flatten.each { |s|
+        Redis.new.publish("CHANCE.deck.s", "#{s}")
         [:faces, :numbers].each { |k|
-          if h.has_key? k
-            [h[k]].flatten.each {|e| p << { deck: d, suit: s, card: e } }
+          Redis.new.publish("CHANCE.deck.k", "#{k}")
+          if hh.has_key? k.to_sym
+            [hh[k]].flatten.each {|e|
+              if /\d+/.match("#{e}")
+                v = e.to_i
+              else
+                v = 10
+              end
+              de << { suit: s, card: e, value: v }
+              Redis.new.publish("CHANCE.deck.card", "s#{s} c#{e} v#{v}")
+            }
           end
         }
       }
-    }
-    p.shuffle!
-    p.each {|e| self.cards << e }
+      [hh[:special]].flatten.each {|e| de << { suit: "#", card: e, value: 0 };
+        Redis.new.publish("CHANCE.deck.special", "#{e}")
+      }
+    Redis.new.publish("CHANCE.deck.de", "#{de}")
+    de.shuffle!
+    de.each {|e| self.cards << e }
   end
   def coin
-    if rand(2) == 0
-      return :heads
+    c = rand(2)
+    if c == 0
+      t = "tails"
     else
-      return :tails
+      t = "heads"
     end
+    Redis.new.publish("CHANCE.coin", "#{c} #{t}")
+    { total: c, toss: t }
   end
   def roll i, &b
     b.call(die(i))
@@ -1207,6 +1329,7 @@ class Chance
     r, tot = [], 0
     ii = i.split('d')
     ii[0].to_i.times { x = rand(ii[1].to_i) + 1; tot += x; r << x }
+    Redis.new.publish("CHANCE.dice", "#{tot} #{r}")
     return { total: tot, dice: r }
   end
   def zap u
@@ -1217,7 +1340,7 @@ class Chance
     z = die("#{d}d#{you.attr[:rank].to_i + you.attr[:class].to_i}")
     roll("#{a}d#{me.attr[:rank].to_i + me.attr[:class].to_i}") {|h|
       if h[:total] > z[:total]
-        r = true
+        r = 1
         me.zapper.incr(you.id)
         me.zap.incr(you.id)
         you.zap.incr(me.id)
@@ -1226,13 +1349,13 @@ class Chance
         me.log << %[you zapped #{you.attr[:name] || 'another player'}.]
         you.log << %[you got zapped by #{me.attr[:name] || 'another player'}.]
       else
-        r = false
+        r = 0
         me.zap.incr(you.id)
         you.zap.incr(me.id)
         me.log << %[you missed #{you.attr[:name] || 'another player'}.]
         you.log << %[#{me.attr[:name] || 'another player'} missed you.]
       end
-      { me: h, you: z, result: r }
+      { me: h, you: z, total: r }
     }
   end
 end
@@ -1576,6 +1699,11 @@ class APP < Sinatra::Base
     if params.has_key?(:u);
       @user = U.new(QRI[@id]);
       Bank.mint
+      if @user.attr.has_key?(:chance) && @user.attr[:chance] != 'none'
+        @chance = Chance.new(@user.id)
+      else
+        @chance = false
+      end
       browser = Browser.new(request.user_agent)
       b = %[#{browser.device.id} #{browser.platform.id} #{browser.name} #{browser.full_version}]
       tx = Blockchain.new(request.host).new_transaction('BANK', @user.id, 1, browser.meta, 'rsvp')
@@ -1803,13 +1931,15 @@ ga('send', 'pageview');
       if params.has_key? :config 
         l = []
         params[:config].each_pair { |k,v|
-          if v != '' && v != @by.attr[k] && k != 'boss' && k != 'class' 
-          @by.attr[k] = v
-          l << %[#{k} #{v}]
+          if v != '' && v != @by.attr[k] && k != 'boss' && k != 'class'
+            if "#{v}".length > 0
+              @by.attr[k] = v
+              l << %[#{k}: #{v}]
+            end
           end
         }
         l.each {|e|
-          @user.log << %[<span class='material-icons'>info</span> #{e}]
+          @by.log << %[<span class='material-icons'>info</span> #{e}]
         }
       end
       
@@ -1843,7 +1973,7 @@ ga('send', 'pageview');
         TRACKS[request.host].visit @user.id, @by.attr[:zone]
         @user.attr[:track] = params[:track]
       end
-
+      
       if params.has_key? :board
         params[:board].each_pair { |k,v|
           Board.new(k).is.value = v
@@ -1865,7 +1995,7 @@ ga('send', 'pageview');
       
       if params.has_key?(:zone) && params[:zone] != ''
 #        ZONES << params[:zone]
-#        Zone.new(params[:zone]).pool << @user.id
+        Zone.new(params[:zone]).pool << @user.id
         @user.zones << params[:zone]
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
       end
@@ -1880,7 +2010,7 @@ ga('send', 'pageview');
         Chance.new(@by.id).zap(@user.id)
       end
       
-      if params.has_key?(:give) && params[:give][:type] != nil
+      if params.has_key?(:give) && "#{params[:give][:type]}".length > 0
         if params[:give][:of] == 'award'
           if @by.boss[params[:give][:type]] > 2
             @user.awards.incr(params[:give][:type])
@@ -1945,11 +2075,26 @@ ga('send', 'pageview');
         @user.log << %[<span class='material-icons'>toll</span> #{params[:xfer]} --> #{@user.coins.value}]
       end
       
-      if params.has_key?(:message) && params[:message] != ''
-        p = patch(@by.attr[:class], @by.attr[:rank], @by.attr[:boss], @by.attr[:stripes], 0)
-        @user.log << %[<span style='#{p[:style]} padding-left: 2%; padding-right: 2%;'>#{@by.attr[:name] || @by.id}</span>#{params[:message]}]
+      if params.has_key?(:message) && params[:message][:body] != ''
+        Redis.new.publish "MESSENGER", "#{params[:message]}"
+        z, to = [],[]; [params[:message][:zone]].flatten.each { |e| z << Zone.new(e) }
+        z.each do |zone|
+        if params[:message].has_key?(:broadcast) && params[:message][:broadcast] == 'users'
+          Bank.xfer from: @by.id, amt: zone.users.members.length
+          to << [zone.users.members.to_a, zone.pool.members.to_a]
+          @p = "star"
+        else
+          to << zone.pool.members.to_a
+          @p = 'stars'
+        end
+        end
+        [to].flatten.each do |e|
+          if "#{e}".length > 0
+            U.new(e).log << %[<span class='material-icons' style='color: gold; vertical-align: middle;'>#{@p}</span><span style='vertical-align: middle; padding: 0 1% 0 1%; background-color: white; color: black; border-radius: 50px;'><span style=''>#{@by.attr[:name]}</span>@<span style='vertical-align: middle;'>#{@by.attr[:sponsor]}</span></span><span style='vertical-align: middle;'>#{params[:message][:body]}</span>]
+          end
+        end
       end
-
+      
       if params.has_key?(:send) && params[:send][:number].length == 10
         if params[:send][:mode] == 'invite'
           tok = []; 16.times { tok << rand(16).to_s(16) }
