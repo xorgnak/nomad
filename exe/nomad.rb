@@ -468,23 +468,28 @@ class Tracks
   def id; @id; end
   # an adventure track  
   def [] t
+    if t.length > 0
     self.adventures << t
     z = Zone.new(t)
     z.adventures << adventure(t)
     Adventure.new(adventure(t))
+    end
   end
   # user at waypoint
   def visit u, p
+    if u.length > 0 && p.length > 0
     self.players[u] = p
     uu = U.new(u)
     uu.visited << p
     uu.attr[:waypoint] = p
     uu.attr.incr(:xp)
+    end
   end
 
   #                  U   "say this" -> new track
   # zone, waypoint, password, to, for
   def mark z, w, p, t, f
+    if z.length > 0 && w.length > 0 && p.length > 0 && t.length > 0 && f.length > 0
     @a = Adventure.new(adventure(z))
     @z = Zone.new(z)
     @z.adventures << adventure(z)
@@ -493,20 +498,25 @@ class Tracks
     @u.waypoints << @a[w].id
     @a.contributors << @u.id
     @a[w].passwords[p] = { to: t, for: f }
+    end
   end
   
   # collect aset of waypoints as a zone.
   def track zone, *waypoints
+    if zone.length > 0
     self.adventures << zone
     a = Adventure.new(adventure(zone))
     z = Zone.new(zone)
     z.adventures << adventure(zone)
     [waypoints].flatten.each_with_index {|e, i|
       # adventure[waypoint].adventures << adventure(zone)
+      if e.length > 0
       a[e].adventures << adventure(zone)
       z.waypoints << a[e].id
+      end
     }
     return a
+    end
   end
   
   def adventure p
@@ -542,8 +552,10 @@ class Adventure
     @id
   end
   def [] p
+    if p.length > 0
     self.waypoints << p
     Waypoint.new(p)
+    end
   end
 end
 
@@ -1842,7 +1854,11 @@ ga('send', 'pageview');
         @user = U.new(params[:u]);
         @user.attr[:seen] = params[:ts]
       elsif params.has_key? :target
-        @user = U.new(QRI[params[:target]])
+        if QRI.has_key? params[:target]
+          @user = U.new(QRI[params[:target]])
+        else
+          @user = U.new(params[:target])
+        end
         @user.attr[:seen] = Time.now.utc.to_i
       else
         @user = U.new(@id);
@@ -1915,7 +1931,7 @@ ga('send', 'pageview');
             @user.badges.incr(c[:badge]);
             @user.log << %[<span class='material-icons'>#{BADGES[c[:badge]]}</span> you have earned the #{c[:badge]}.<br>#{c[:desc]}]
           end
-          [:lvl, :rank].each do |e|
+          [:xp, :rank].each do |e|
             if c[e]; @user.attr.incr(e); end
             @user.log << %[<span class='material-icons'>info</span> +#{e}.]
           end
@@ -1945,23 +1961,23 @@ ga('send', 'pageview');
       
       if params.has_key?(:waypoint)
         # zone, waypoint, password, to, for
-        @a = TRACKS[request.host][@user.attr[:zone]]
-        Redis.new.publish "WAYPOINT", "#{params[:waypoint]}"
+        @a = TRACKS[request.host][@by.attr[:sponsor]]
+        Redis.new.publish "WAYPOINT", "#{@by.attr.all} #{params[:waypoint]}"
         @a.attr[:location] = params[:waypoint][:location]
         @a.attr[:description] = params[:waypoint][:description]
         @a.attr[:lvl] = params[:waypoint][:lvl]
         if params[:waypoint][:new][:say].length > 0
           v = params[:waypoint][:new]
-          TRACKS[request.host].mark @user.attr[:zone], @user.id, v[:say], v[:to], v[:for]
+          TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:to], v[:for]
         end
         if params[:waypoint].has_key? :words
-        params[:waypoint][:words].each_pair do |k,v|
-          TRACKS[request.host][@user.attr[:zone]][@user.id].passwords.delete k
-          if v[:say].length > 0
-            TRACKS[request.host].mark @user.attr[:zone], @user.id, v[:say], v[:to], v[:for]
+          params[:waypoint][:words].each_pair do |k,v|
+            Redis.new.publish "WAYPOINT", "#{k}: #{v}"
+            TRACKS[request.host][@by.attr[:sponsor]][@by.id].passwords.delete k
+            if v[:say].length > 0 && v.has_key?(:for) && v[:for].length > 0
+              TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:to], v[:for]
+            end
           end
-          Redis.new.publish "WAYPOINT", "#{k}: #{v}"
-        end
         end
 #        TRACKS[request.host].mark @user.attr[:zone], params 
 #        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
@@ -2043,28 +2059,30 @@ ga('send', 'pageview');
           @tree.link[params[:sponsor][:name]] = @by.attr[:zone] || @tree.attr[:lobby] || request.host
           ZONES << params[:sponsor][:name]
           z = Zone.new(params[:sponsor][:name])
-          z.attr[:owner] = @user.id
-          z.attr[:admin] = @user.id
-          z.pool << @user.id
+          z.attr[:owner] = @by.id
+          z.attr[:admin] = @by.id
+          z.pool << @by.id
           z.attr[:till] = Time.now.utc.to_i + tf;
           z.attr[:pay] = pay;
           z.attr[:cap] = params[:sponsor][:units].to_i;
           z.attr[:budget] = cost
-          z.coins.value = cost
-          @user.zones << params[:sponsor][:name]
+          @by.zones << params[:sponsor][:name]
           Bank.wallet.decr @by.id, cost
+          @by.log(%[<span class='material-icons'>cabin</span>#{params[:sponsor][:name]} <span class='material-icons'>savings</span>#{cost}])
         elsif params[:act] == 'shares'
           Redis.new.publish("OWNERSHIP.shares", "#{params}")
           if ENV['OWNERSHIP'] == 'franchise'
-            @user.attr[:tos] = params[:tos][:terms]
-            @user.attr[:agreed] = params[:tos][:agreed]
+            @by.attr[:tos] = params[:tos][:terms]
+            @by.attr[:agreed] = params[:tos][:agreed]
           end
-          if params[:shares][:mode] == 'sell'
+          if params[:shares][:mode] == 'sell' && Shares.by(request.host)[@by.id].to_i >= params[:shares][:qty].to_i
             Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
-          elsif params[:shares][:mode] == 'buy'
+            @by.log(%[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
+          elsif params[:shares][:mode] == 'buy' && Bank.wallet[@by.id] >= (params[:shares][:qty].to_i * Shares.cost(request.host))
             Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
+            @by.log(%[+<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} -<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
           end
         end
       end

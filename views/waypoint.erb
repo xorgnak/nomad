@@ -43,6 +43,7 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
   <h3 style='width: 100%; text-align: center;'>
   <input list='passwords' name='waypoint[words][<%= k %>][say]' placeholder='SAY' value='<%= k %>' style='width: 40%;'>
   <select name='waypoint[words][<%= k %>][to]'>
+  <option selected disabled>TO</option>
     <% @zone.pool.each do |e| %>
       <% @e = U.new(e) %>
       <% if v[:to] == e %>
@@ -53,11 +54,12 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
     <% end %>
   </select>
   <select name='waypoint[words][<%= k %>][for]'>
+  <option selected disabled>FOR</option>
     <% TRACKS[request.host].adventures.each do |e| %>
       <% TRACKS[request.host][e].waypoints.each do |w| %>
         <% if w != '' && e != '' %>
         <% @u = U.new(w) %>
-        <% if v[:for] != e %>
+        <% if v[:for] != "#{w}@#{e}" %>
     <option value='<%= w %>@<%= e %>'><%= @u.attr[:name] %>@<%= e %></option>
         <% else %>
     <option value='<%= w %>@<%= e %>' selected><%= @u.attr[:name] %>@<%= e %></option>
