@@ -1804,7 +1804,7 @@ ga('send', 'pageview');
   }
   post('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
-    content_type 'application/json'
+    content_type :json
     if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
 
       params[:u] = IDS[CHA[params[:cha]]]
@@ -1874,7 +1874,8 @@ Redis.new.publish 'BOX.out', "#{params}"
     if ENV['BOX'] == 'true'
       uri = URI("https://#{ENV['CLUSTER']}/box")
       res = Net::HTTP.post_form(uri, params)
-      Redis.new.publish 'POST.BOX', "#{res.body}"
+      j = JSON.parse(res)
+      Redis.new.publish 'POST.BOX', "#{j}"
     end
     
     if params.has_key?(:file) && params.has_key?(:u)
@@ -1889,7 +1890,7 @@ Redis.new.publish 'BOX.out', "#{params}"
       @term.attr.delete(:file)
     end
     
-    if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
+    if ENV['BOX'] != 'true' && params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
       params[:u] = IDS[CHA[params[:cha]]]
       BOOK['+1' + CHA[params[:cha]]] = params[:u]
       LOOK[params[:u]] = '+1' + CHA[params[:cha]]
@@ -1912,7 +1913,7 @@ Redis.new.publish 'BOX.out', "#{params}"
       @domain.users.incr(@id)
       Redis.new.publish("AUTHORIZE", "#{@path}")
       redirect "#{@path}/#{params[:u]}"
-    elsif params.has_key?(:usr)
+    elsif ENV['BOX'] != 'true' && params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
       qrp = []; 16.times { qrp << rand(16).to_s(16) }
       pin = []; 6.times { pin << rand(9) }
@@ -1930,6 +1931,7 @@ Redis.new.publish 'BOX.out', "#{params}"
       params.delete(:usr)
       erb :landing
     else
+      Redis.new.publish('POST.post', "#{params}")
       @id = id(params[:u]);
       @by = U.new(@id)
 
