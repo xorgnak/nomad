@@ -1866,7 +1866,7 @@ a.each { |e| @by.log << %[<span class='material-icons'>info</span> #{e}] }
       end
 end
 Redis.new.publish 'BOX.out', "#{params}"
-    return params
+    return params.to_json
   end
   
   post('/') do
@@ -1874,8 +1874,13 @@ Redis.new.publish 'BOX.out', "#{params}"
     if ENV['BOX'] == 'true'
       uri = URI("https://#{ENV['CLUSTER']}/box")
       res = Net::HTTP.post_form(uri, params)
-      j = JSON.parse(res)
+      j = JSON.parse(res.body)
       Redis.new.publish 'POST.BOX', "#{j}"
+      if j.has_key? :cha
+        erb :landing
+      else
+        redirect "#{@path}/#{j[:u]}"
+      end
     end
     
     if params.has_key?(:file) && params.has_key?(:u)
