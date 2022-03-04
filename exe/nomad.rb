@@ -980,65 +980,46 @@ class Domain
   end
 end
 
-class Cards
-  include Redis::Objects
-  list :cards, marshal: true
-  sorted_set :stat
-  hash_key :attr
-  counter :total
-  counter :card
-  def initialize i
-    @id = i
+class Badge
+  def initialize u
+    @id = u
+    @user = U.new(u)
+    if QRO.has_key? u
+      @uid = QRO[u]
+    else
+      @uid = u
+    end
+  end
+  def z
+    zz = []; 12.times { zz << rand(16).to_s(16) };
+    zzz = zz.join('')
+    # do something on z create
+    return zzz
+  end
+  def ts
+    t = Time.now.utc.to_i
+    # do something on ts create
+    return t
   end
   def id; @id; end
-  def shuffle!
-    d = self.cards.values.to_a
-    self.cards.clear
-    d.shuffle!
-    d.each {|e| self.cards << e }
+  def member
+    ##
+    # key:
+    # u: ORO[@id]
+    # x: sponsor zone
+    # b: boss level (brand privledge)
+    # c: class level (network privledge)
+    # r: adventure level ("completed adventures".length)
+    # z: adventure neuton
+    return CGI.escape(%[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&z=#{z}])
   end
-  def add h={}
-    self.total.increment(h[:value])
-    self.stat.incr(h[:card])
-    self.cards << h
-    self.card.increment
+  def user
+    ##
+    # ts: last reload time index
+    return CGI.escape(%[#{member}&ts=#{ts}])
   end
-  def deal *n
-    if self.card.value.to_i - n[0] || 1 >= 0
-    hand, tot, cards = [], 0, Hash.new {|h,k| h[k] = 0 }
-    [self.cards.shift(n[0] || 1)].flatten.each {|e|
-      cards[e[:card]] += 1;
-      self.stat.decr(e[:card]);
-      tot += e[:value]
-      self.total.decrement(e[:value])
-      self.card.decrement
-      hand << e;
-    }
-    return { hand: hand, total: tot, cards: cards }
-    end
-  end
-  def deck h={}
-    self.cards.clear
-    self.card.value = 0;
-    self.total.value = 0;
-    self.stat.clear
-    d = []
-    hh = {
-      suits: ["&#9829;", "&#9830;", "&#9824;", "&#9827;"],
-      numbers: { min: 2, max: 10 },
-      faces: { ace: 10, king: 10, queen: 10, jack: 10 },
-      special: { :"&#x1F0CF;" => 1, :"&#x1F004;" => 10 },
-      shuffle: true
-    }.merge(h)
-    numbers = (hh[:numbers][:min]..hh[:numbers][:max]).to_a
-    hh[:suits].each do |suit|        
-      hh[:faces].each_pair {|c, v| add(suit: suit, card: c, value: v) }
-      numbers.each {|e| add(suit: suit, card: e, value: e) }
-    end
-    hh[:special].each_pair {|c,v| add(suit: '#', card: c, value: v)  }
-    if hh[:shuffle] == true
-      shuffle!
-    end
+  def zap
+    return CGI.escape(%[NOMAD@id])
   end
 end
 
@@ -1051,24 +1032,48 @@ end
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
 
-def train!
-  us = []
-  IDS.all.each_pair do |user, id|
-    b, a = {}, {}
-    BADGES.each_pair do |n, i|
-      b[n] = ((U.new(id).badges[n].to_f || 0) / 1000).to_f
-      a[n] = ((U.new(id).awards[n].to_f || 0) / 1000).to_f
-    end
-    us << { input: b, output: a }
-  end
-  BRAIN.train(us)
+def train a, b
+  BRAIN.train({input: a, output: b})
 end
-def predict u
-  b = {}
-  BADGES.each_pair do |n, i|
-    b[n] = ((U.new(u).badges[n].to_f || 0) / 1000).to_f
+def predict a
+  BRAIN.run(a)
+end
+
+class Ui
+  def initialize t
+    @title = t
+    @html = []
   end
-  BRAIN.run(b)
+  def html
+    return %[<fieldset><legend>#{@title}</legend>#{@html.join('')}</fieldset>]
+  end
+  def button(t, h={});
+    a = [];
+    h.each_pair { |k,v|
+      a << %[#{k}='#{v}']
+    };
+    @html << %[<button #{a.join(' ')}>#{t}</button>]
+  end
+  def input(h={});
+    a = [];
+    h.each_pair { |k,v|
+      a << %[#{k}='#{v}']
+    };
+    @html << %[<input #{a.join(' ')}>];
+  end
+end
+class UI
+  def initialize
+    @ui = Hash.new {|h,k| h[k] = Ui.new(k) }
+  end
+  def [] k
+    @ui[k]
+  end
+  def html
+    a = []
+    @ui.each_pair {|k,v| a << v.html }
+    return a.join('') 
+  end
 end
 
 class K
@@ -1087,7 +1092,8 @@ class K
           %[ #ls { height: 80%; overflow-y: scroll; font-size: small; }],
           %[ #ui > * { vertical-align: middle; }],
           %[ #ui > textarea { height: 80%; width: 100%; }<%= css %></style>],
-          %[<h1 id='ui'><a href='/<%= @id %>' class='material-icons' style='border: thin solid black;'>home</a>],
+          %[<h1 id='ui'>],
+          %[<a href='/<%= @id %>' class='material-icons' style='border: thin solid black;'>home</a>],
           %[<button type='button' onclick='$("#ls").toggle();'>FS</button>],
           %[<input name='cmd' placeholder='<%= `hostname` %>'>],
           %[<button type='submit' class='material-icons'>send</button></h1>],
@@ -1406,7 +1412,9 @@ class APP < Sinatra::Base
         return false
       end
     end
-
+    def badge u
+      Badge.new(u)
+    end
     def banner
       hostname = `hostname`.chomp
       hh = hostname.split('-')
@@ -1452,10 +1460,11 @@ class APP < Sinatra::Base
     
     if "#{ENV['DOMAINS']}".split(' ').include? request.host
       s = 'https'
+      @path = %[#{s}://#{@domain.id}];
     else
       s = 'http'
+      @path = %[https://#{ENV['CLUSTER']}]
     end
-    @path = %[#{s}://#{@domain.id}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
     @tree = Tree.new(@domain.id)
@@ -1470,6 +1479,7 @@ class APP < Sinatra::Base
 #  get('/man') { erb :man }
   get('/a') { erb :a }
   get('/board') { erb :board }
+  get('/onboard') { erb :onboard }
   get('/chance') { erb :chance }
   get('/adventures') { erb :adventures }
   get('/adventure') { erb :adventure }
@@ -1792,8 +1802,81 @@ ga('send', 'pageview');
       redirect "#{@path}"
     end
   }
+  post('/box') do
+    Redis.new.publish 'BOX.in', "#{params}"
+    content_type 'application/json'
+    if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
+
+      params[:u] = IDS[CHA[params[:cha]]]
+      BOOK['+1' + CHA[params[:cha]]] = params[:u]
+      LOOK[params[:u]] = '+1' + CHA[params[:cha]]
+      U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
+      U.new(params[:u]).attr.incr(:key);
+      r = []; 100.times { r << rand(16).to_s(16) }
+      j = JSON.generate({ utc: Time.now.utc.to_f,
+                          id: U.new(params[:u]).id,
+                          key: U.new(params[:u]).attr[:key],
+                          rnd: r.join('')
+                      })
+      U.new(params[:u]).attr[:credentials] = j
+      U.new(params[:u]).attr[:priv] = Digest::SHA512.hexdigest(j)
+      U.new(params[:u]).attr[:pub] = Digest::SHA2.hexdigest(U.new(params[:u]).attr[:priv])
+      token(params[:u], ttl: (((60 * 60) * 24) * 7))
+      CHA.delete(params[:cha])
+      @id = id(params[:u]);
+      params.delete(:cha)
+      params.delete(:pin)
+      @domain.users.incr(@id)
+      Redis.new.publish("AUTHORIZE", "#{@path}")
+      
+    elsif params.has_key?(:usr)
+
+      cha = []; 64.times { cha << rand(16).to_s(16) }
+      qrp = []; 16.times { qrp << rand(16).to_s(16) }
+      pin = []; 6.times { pin << rand(9) }
+      if !IDS.has_key? params[:usr]
+        IDS[params[:usr]] = params[:u]
+        QRI[qrp.join('')] = params[:u]
+        QRO[params[:u]] = qrp.join('')
+      else
+        params[:u] = IDS[params[:usr]]
+      end
+      CHA[cha.join('')] = params[:usr]
+      params[:cha] = cha.join('')
+      Redis.new.setex params[:cha], 180, pin.join('');
+      phone.send_sms to: '+1' + params[:usr], body: "pin: #{pin.join('')}"
+      params.delete(:usr)
+    elsif token(params[:u]) == 'true';
+
+      if params.has_key?(:file) && params.has_key?(:u)
+        fi = params[:file][:tempfile]
+        File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
+      end
+
+      @id = id(params[:u]);
+      @by = U.new(@id)
+      @by.attr[:seen] = Time.now.utc.to_i
+
+      if params.has_key? :config
+        a = []
+        params[:config].each_pair do |k,v|
+          if "#{v}".length > 0 && v != @by.attr[k] && k != 'boss' && k != 'class'; @by.attr[k] = v; a << %[#{k}: #{v}]; end
+end
+a.each { |e| @by.log << %[<span class='material-icons'>info</span> #{e}] }
+      end
+end
+Redis.new.publish 'BOX.out', "#{params}"
+    return params
+  end
+  
   post('/') do
     Redis.new.publish 'POST', "#{params}"
+    if ENV['BOX'] == 'true'
+      uri = URI("https://#{ENV['CLUSTER']}/box")
+      res = Net::HTTP.post_form(uri, params)
+      Redis.new.publish 'POST.BOX', "#{res.body}"
+    end
+    
     if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
       File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
@@ -1947,11 +2030,9 @@ ga('send', 'pageview');
       if params.has_key? :config 
         l = []
         params[:config].each_pair { |k,v|
-          if v != '' && v != @by.attr[k] && k != 'boss' && k != 'class'
-            if "#{v}".length > 0
+          if "#{v}".length > 0 && v != @by.attr[k] && k != 'boss' && k != 'class'
               @by.attr[k] = v
               l << %[#{k}: #{v}]
-            end
           end
         }
         l.each {|e|
@@ -1984,10 +2065,25 @@ ga('send', 'pageview');
       end
 
       if params.has_key?(:track) && params[:track] != ''
-        Redis.new.publish "TRACK", "#{params[:track]}"
+        t = params[:track].split('@')
+        if params[:success] != nil
+          @user.attr.delete(:track)
+        end
+        Redis.new.publish "TRACK", "#{params}"
         #a = params[:adventure].split('@')
         TRACKS[request.host].visit @user.id, @by.attr[:zone]
-        @user.attr[:track] = params[:track]
+        case params[:track]
+        when 'done'
+          @user.log %[Play again soon!]
+        when 'park'
+          w = TRACKS[request.host][@by.attr[:zone]].waypoints.members.to_a.sample
+          p = TRACKS[request.host][@by.attr[:zone]][w].passwords.keys.sample
+          @user.attr[:track] = {say: p, to: w, for: @by.attr[:zone]}
+        when 'fail'
+          @user.log %[you failed the #{t[1]} adventure.]
+        else
+          @user.attr[:track] = params[:track]
+        end
       end
       
       if params.has_key? :board
@@ -2170,17 +2266,17 @@ ga('send', 'pageview');
       end
       
       if params.has_key? :landing
-        redirect "#{@path}"
+        redirect "/"
       elsif params.has_key? :quick
-        redirect "#{@path}"
+        redirect "/"
       elsif params.has_key? :cmd
-        redirect "#{@path}/term?u=#{params[:u]}"
+        redirect "/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
+        redirect "/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
       elsif params.has_key? :a
-        redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
+        redirect "/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
-        redirect "#{@path}/#{@by.id}"
+        redirect "/#{@by.id}"
       end
     end
   end

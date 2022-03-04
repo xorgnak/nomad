@@ -93,13 +93,20 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
-<dialog id='modal' style='height: 90%; width: 90%; padding: 0; box-shadow: 0 0 15px white;' onclick='document.querySelector("#modal").close()'>
-
+<dialog id='modal' style='padding: 0; box-shadow: 0 0 15px white;' onclick='document.querySelector("#modal").close()'>
+<div style='background-color: white; color: black; width'>
 <p style='width: 100%; text-align: center; background-color: black; color: white; margin: 0;'>
+<span style='text-align: left; width: 35%;'>
 <span style='border: thin solid white; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span>
 <span><%= @u.attr[:xp].to_i %></span>
+</span>
+<span id='orb' class='material-icons' style='border-radius: 50px; border: thick solid black; color: black; display: none; vertical-align: middle; '>circle</span>
+    
+<span style='text-align: right; width: 35%'>
+<span><%= @u.coins.value %></span>
 <span style='padding: 0 2% 0 2%; vertical-align: middle;' class='material-icons'>toll</span>
-<span><%= @u.coins.value %></span></p>
+</span>
+</p>
 <% if @user.attr.has_key? :vote %>
 
 <div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
@@ -115,15 +122,18 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% end %></fieldset>
 <% end %>
 
-<% if @u.attr.has_key? :track %>
-<% @t = @u.attr[:track].split('@') %>
+    <% if @u.attr.has_key? :track %>
+    <% @t = @user.attr[:track]; tt = @t.split('|'); @kw = tt[0]; @tr = tt[1]; %>
+    <% @wp = @tr.split('@') %>
+    <% @wpu = U.new(@wp[0]) %>
 <h3 style='width: 100%; text-align: center;'>
 <span style='padding: 1% 3% 1% 3%; border: thin solid orange; border-radius: 50px;'>ADVENTURE</span>
 </h3>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>place</span><span><%= @t[1] %></span></p>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>person</span><span><%= U.new(@t[0]).attr[:name] %></span></p>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>verified</span><%= U.new(@t[0]).attr[:title] %></p>
-<% @u.attr.delete(:track) %>
+    <p style='width: 100%; text-align: center'><span style='padding: 0 2% 0 2%;' class='material-icons'>record_voice_over</span><span><%= @kw %></span></p>
+    <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>place</span><span><%= @wp[1] %></span></p>
+<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>person</span><span><%= @wpu.attr[:name] %></span></p>
+<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%; color: gold; background-color: green; border-radius: 50px; padding: 1%;' class='material-icons'>verified</span><%= @wpu.attr[:title] %></p>
+<%# @u.attr.delete(:track) %>
 <% else %>
 
  <% if Chance.new(@user.id).try? %>
@@ -138,23 +148,59 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
    <% @res = @chance.result[:dice].join(', ') %>
   <% end %>
   <% if @chance.success? == 'true' %>
- <h3 style='width: 100%; text-align: center;'><span style='background-color: gold; border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>WINNER</span></h3>
+    <h3 style='width: 100%; text-align: center;'><span style='background-color: gold; border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>WINNER</span></h3>
   <% else %>
   <h3 style='width: 100%; text-align: center;'><span style='border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>Try Again</span></h3>
   <% end %>
  <h1 style='width: 100%; text-align: center;'><span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span></h1>
- </div>
+    </div>
  <% else %>
-<p style='width: 100%; text-align: center;'><span>Collect passwords to continue the adventure!</span></p>
+
+<p style='width: 100%; text-align: center;'><span>continue the adventure?</span></p>
  <% end %>
 <% end %>
+</div>
 </dialog>
 
 <% @ts = Time.now.utc.to_i %>
 <input type='hidden' name='z' value='<%= params[:z] %>'>
 <input type='hidden' name='x' value='<%= params[:x] || "solo" %>'>
 <input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
-<script>
-$('#qrcode').qrcode('<%= @path %>/?u=<%= @u.id %>&ts=<%= params[:ts] || @ts %>');
+    <script>
+    
+$('#qrcode').qrcode('<%= @path %>/<%= badge(@u.id).user %>');
 document.querySelector("#modal").showModal()
+
+var orb_wake = 100;
+var orb_rest = 200;
+
+$( "#orb" ).animate({
+    width: [ "toggle", "swing" ],
+    height: [ "toggle", "swing" ],
+    opacity: "toggle"
+}, 3000, "linear", function() {
+    setInterval(function() {
+	setTimeout(function() {
+	    $('#orb').css('border-color', '<%= @u.attr[:rest] || "black" %>');
+	    var r = Math.floor(Math.random() * 256);
+	    var g = Math.floor(Math.random() * 100);
+	    var b = Math.floor(Math.random() * 100);
+	    $('#orb').css('color', 'rgb(' + r + ',' + g + ',' + b + ')');
+	    orb_rest = Math.floor(Math.random() * 200);
+	}, orb_rest);
+	$('#orb').css('border-color', '<%= @u.attr[:wake] || "white" %>');
+	orb_wake = Math.floor(Math.random() * 100);
+    }, orb_wake);
+});
+    <% if ENV['BOX'] == 'true' %>
+    let socket = new WebSocket("wss://<%= ENV['CLUSTER'] %>/ws");
+    <% else %>
+let socket = new WebSocket("wss://<%= request.host %>/ws");
+    <% end %>
+socket.onopen = function(e) {
+    alert("[open] Connection established");
+    alert("Sending to server");
+    $('#orb').css('color', '<%= @u.attr[:orb] || "white" %>');
+    socket.send("ok: <%= @u.id %>");
+};
 </script>

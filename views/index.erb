@@ -226,18 +226,27 @@ padding: 3%;
       </h3>
 
       <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
+      <span style='padding: 0 2% 0 2%; border: thin solid black;'>
+      <span class='material-icons'>check_box</span>
+      <input type='checkbox' name='success' style='width: 5%;'>
+      </span>
 	<select name='track'>
 	  <option selected disabled>adventure</option>
+	  <option value='done'>DONE</option>
+	  <option value='park'>PARK</option>
+	  <option value='fail'>FAIL</option>
 	  <% @h = {} %>
 	  <% @user.zones.each do |z| %>
+	  <% if "#{z}".length > 0 %>
 	  <% TRACKS[request.host][z][@user.id].passwords.all.each_pair do |k,v| %>
-	  <% if @user.id == v[:to] && k.length > 0 %>
+	  <% if @user.id == v[:to] && "#{k}".length > 0 %>
 	  <% @h[k] = v[:for] %>
 	  <% end %>
 	  <% end %>
 	  <% end %>
+	  <% end %>
 	  <% @h.each_pair do |k,v| %>
-	  <option value='<%= v %>'><%= k %></option>
+	  <option value='<%= k %>|<%= v %>'><%= k %></option>
 	  <% end %>
 	</select>
       </h3>
@@ -283,14 +292,20 @@ padding: 3%;
       <% @user.log.values.to_a.reverse.each do |e| %>
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
-      <% if @user.attr.has_key? :sponsor %>
+      <% if @user.attr.has_key? :zone %>
+      <% if @user.attr[:class].to_i >= 2 %>
+      <fieldset id='waypoint' style='display: none;'><legend><%= @user.attr[:zone] %></legend>
+      <%= erb :waypoint %>
+      </fieldset>
+      <% end %>
       <div id='messenger'>
     <h3 style='width: 100%; text-align: center; margin: 0;'>
+    <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; padding: 0 1% 0 1%'>edit</button>
     <span style='background-color: white;'>
       <span class='material-icons' style='color: black; vertical-align: middle; padding: 0 1% 0 1%;'>groups</span>
       <input type='checkbox' name='message[broadcast]' value='users' style='width: unset;'>
     </span>
-	  <select name='message[zone]' style='width: 75%; text-align: left;'>
+	  <select name='message[zone]' style='width: 65%; text-align: left;'>
 	    <% @user.zones.members.each do |e| %>
 	    <% if "#{e}".length > 0 %>
 	    <% if e == @user.attr[:sponsor] %>
@@ -352,13 +367,13 @@ padding: 3%;
   </div>
   <script>
   var roles = ['user', 'influencer', 'ambassdor', 'manager', 'agent', 'operator', 'owner', 'developer']
-  <% if /^https/.match(request.url) %>
+
+<% if /^https/.match(request.url) %>
   <%= erb :sw %>
   <% end %>
-  <% z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('') %>
-    var id = '<%= QRO[@id] %>';
+
 var sender = true;
-$('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss].to_i %>&p=<%= @user.attr[:xp].to_i %>&r=<%= @user.attr[:rank].to_i %>&c=<%= @user.attr[:class].to_i %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id + '&z=<%= @z %>');
+$('#qrcode').qrcode('<%= @path %>/<%= badge(@user.id).member %>');
 var inv = false;
 var mnu = false;
 $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');

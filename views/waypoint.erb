@@ -10,9 +10,9 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
   <p><input type='text' name='waypoint[description]' placeholder='description' value='<%= @z.attr[:description] %>'></p>
 <fieldset id='passwords'><legend>passwords</legend>
   <p style='width: 100%; text-align: center;'>
-    <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>child_friendly</span>
+    <span style='background-color: black; padding: 2%; border-radius: 50px;' class='material-icons'>child_friendly</span>
     <input type='range' min='0' max='7' name='waypoint[lvl]' value='<%= @z.attr[:lvl] %>' style='width: 65%;'>
-    <span style='background-color: white; padding: 2%; border-radius: 50px;' class='material-icons'>nightlife</span>
+    <span style='background-color: black; padding: 2%; border-radius: 50px;' class='material-icons'>nightlife</span>
   </p>
   <datalist id='passwords'>
     <% @track.passwords.all.keys.each do |e| %>
@@ -29,12 +29,14 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
     </select>
     <select name='waypoint[new][for]'>
       <% TRACKS[request.host].adventures.each do |e| %>
+      <% if "#{e}".length > 0 %>
         <% TRACKS[request.host][e].waypoints.each do |w| %>
           <% if w != '' && e !='' %>
           <% @u = U.new(w) %>
       <option value='<%= w %>@<%= e %>'><%= @u.attr[:name] %>@<%= e %></option>
           <% end %>
         <% end %>
+	<% end %>
       <% end %>
     </select>
   </h3>
@@ -56,6 +58,7 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
   <select name='waypoint[words][<%= k %>][for]'>
   <option selected disabled>FOR</option>
     <% TRACKS[request.host].adventures.each do |e| %>
+    <% if "#{e}".length > 0 %>
       <% TRACKS[request.host][e].waypoints.each do |w| %>
         <% if w != '' && e != '' %>
         <% @u = U.new(w) %>
@@ -64,6 +67,7 @@ legend { background-color: white; color: black; padding: 1%; border-radius: 50px
         <% else %>
     <option value='<%= w %>@<%= e %>' selected><%= @u.attr[:name] %>@<%= e %></option>
         <% end %>
+	<% end %>
       <% end %>
     <% end %>
   </select>
