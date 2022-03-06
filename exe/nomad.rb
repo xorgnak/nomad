@@ -522,8 +522,6 @@ class Tracks
   # user at waypoint
   def visit u, p
     if u.length > 0 && p.length > 0
-      me = ME[u]
-      me.learn p
       self.players[u] = p
       uu = U.new(u)
       uu.visited << p
