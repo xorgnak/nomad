@@ -125,29 +125,6 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% end %></fieldset>
 <% end %>
 
-    <% if @u.attr.has_key? :track %>
-    <% @t = @user.attr[:track]; tt = @t.split('|'); if tt.length > 1; @kw = tt[0]; @tr = tt[1]; else @kw = 'hello'; @tr = tt[0]; end %>
-    <% @wp = @tr.split('@') %>
-    <% @bd = @tr.split('#')[1..-1] %>
-    <% @wpu = U.new(@wp[0]) %>
-
-    <p style='width: 100%; text-align: center;'>
-    <span> go to <%= @wp[1] %>, find <%= @wpu.attr[:name] %> and say <%= @kw %></span>
-    </p>
-    <fieldset><legend>badges</legend>
-    <ul>
-    <% @bd.each do |e| %>
-    <li><span class='material-icons'><%= BADGES[e] %></span><%= DESCRIPTIONS[e] %></li>
-    <% end %>
-    </ul>
-    </fieldset>
-<p style='width: 100%; text-align: center;'>
-<span style='padding: 0 2% 0 2%; color: gold; background-color: green; border-radius: 50px; padding: 1%;' class='material-icons'>verified</span>
-<%= @wpu.attr[:title] %>
-</p>
-<%# @u.attr.delete(:track) %>
-<% else %>
-
  <% if Chance.new(@user.id).try? %>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
@@ -173,7 +150,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <p style='width: 100%; text-align: center;'><span>please add this app to your homescreen for quick and direct updates.</span></p>
  <% end %>
  <% end %>
-<% end %>
+
 </div>
 </dialog>
 
