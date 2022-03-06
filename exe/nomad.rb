@@ -1056,7 +1056,11 @@ class Badge
     # r: adventure level ("completed adventures".length)
     # z: adventure neuton
     zo = CGI.escape("#{@user.attr[:zone] || 'solo' }")
-    return %[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{zo}&u=#{QRO[@id]}&z=#{z}]
+    if QRO.has_key? @id
+      return %[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{zo}&u=#{QRO[@id]}&z=#{z}]
+    else
+      return %[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{zo}&u=#{@id}&z=#{z}]
+    end
   end
   def user
     ##
