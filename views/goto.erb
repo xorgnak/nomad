@@ -98,9 +98,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <span><%= @u.attr[:xp].to_i %></span>
 </span>
 
-<% if OWNERSHIP[request.host] != 'franchise' %>
+
 <span id='orb' class='material-icons' style='border-radius: 50px; border: thick solid black; color: black; display: none; vertical-align: middle; '>circle</span>
-<% end %>
+
 
 <span style='text-align: right; width: 35%'>
 <span><%= @u.coins.value %></span>
@@ -126,7 +126,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% end %>
 
     <% if @u.attr.has_key? :track %>
-    <% @t = @user.attr[:track]; tt = @t.split('|'); @kw = tt[0]; @tr = tt[1]; %>
+    <% @t = @user.attr[:track]; tt = @t.split('|'); if tt.length > 1; @kw = tt[0]; @tr = tt[1]; else @kw = 'hello'; @tr = tt[0]; end %>
     <% @wp = @tr.split('@') %>
     <% @bd = @tr.split('#')[1..-1] %>
     <% @wpu = U.new(@wp[0]) %>
