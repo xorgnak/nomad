@@ -138,9 +138,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
    <% @res = @chance.result[:dice].join(', ') %>
   <% end %>
   <% if @chance.success? == 'true' %>
-    <span class='material-icons'>happy</span>
+    <span class='material-icons'>sentiment_very_satisfied</span>
   <% else %>
-  <span class='material-icons'>sad</span>
+  <span class='material-icons'>sentiment_very_dissatisfied</span>
   <% end %>
  <span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span>
  </h3>
