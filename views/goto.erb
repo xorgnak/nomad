@@ -129,7 +129,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <fieldset><legend>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
- <h3 style='width: 100%; text-align: center;'>
+ <h3 style='width: 100%; text-align: center; margin: 0;'>
   <% if @user.attr[:chance] == 'card' %>
    <% @res = @chance.result[:hand].map {|e| "#{e[:card]}#{e[:suit]}" }.join(", ") %>
   <% elsif @user.attr[:chance] == 'coin' %>
@@ -138,9 +138,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
    <% @res = @chance.result[:dice].join(', ') %>
   <% end %>
   <% if @chance.success? == 'true' %>
-    <span style='background-color: gold; border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>WINNER</span>
+    <span class='material-icons'>happy</span>
   <% else %>
-  <span style='border-radius: 50px; border: thick solid black; padding: 2%; margin: 0;'>Try Again</span>
+  <span class='material-icons'>sad</span>
   <% end %>
  <span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span>
  </h3>
