@@ -130,24 +130,24 @@ DEPS = {
 DESCRIPTIONS = {
   nomad: 'able to operate autonomously.',
   pedicab: 'able to operate a pedicab.',
-  food: 'knowledgable on the subject of food,',
+  food: 'knowledgable on the subject of food.',
   bike: 'able to operate a pedicab.',
-  grill: 'knowlegable on the subject of grilled meat,',
+  grill: 'knowlegable on the subject of grilled meat.',
   pathfinder: 'able to manage multiple transportation vectors.',
   kids: 'child friendly.',
   meals: 'knowlegable on the subject of sit down meals.',
-  pizza: 'knowlegable on the subject of pizza,',
-  bar: 'knowlegable on the subject of local bars,',
-  asian: 'knowlegable on the subject of asian food,',
-  coffee: 'knowlegable on the subject of local coffee,',
+  pizza: 'knowlegable on the subject of pizza.',
+  bar: 'knowlegable on the subject of local bars.',
+  asian: 'knowlegable on the subject of asian food.',
+  coffee: 'knowlegable on the subject of local coffee.',
   influence: 'knowlegable on the subject of ultra-exclusive local events.',
   referral: 'knowlegable on the subject of local events.',
   directions: 'able to find things.',
   adventure: 'qualified to conduct adventures.',
   radio: 'qualified to use a radio.',
   dispatch: 'managing network radio operatons.',
-  farmer: 'knowlegable on the subject of growing things,',
-  cannabis: 'knowlegable on the subject of cannabis,',
+  farmer: 'knowlegable on the subject of growing things.',
+  cannabis: 'knowlegable on the subject of cannabis.',
   medic: 'able to help you.',
   guide: 'able to show you around.',
   fire: 'knowlegable on the subject of exclusive local events.',
@@ -531,9 +531,10 @@ class Tracks
   end
 
   #                  U   "say this" -> new track
-  # zone, waypoint, password, to, for
-  def mark z, w, p, t, f
-    if z.length > 0 && w.length > 0 && p.length > 0 && t.length > 0 && f.length > 0
+  # zone, waypoint, password, for
+  def mark z, w, p, f
+    Redis.new.publish "WAYPOINT.mark", "#{z} #{w} #{p} #{f}"
+    if "#{z}".length > 0 && "#{w}".length > 0 && "#{p}".length > 0 && "#{f}".length > 0
     @a = Adventure.new(adventure(z))
     @z = Zone.new(z)
     @z.adventures << adventure(z)
@@ -541,7 +542,7 @@ class Tracks
     @u = U.new(w)
     @u.waypoints << @a[w].id
     @a.contributors << @u.id
-    @a[w].passwords[p] = { to: t, for: f }
+    @a[w].passwords[p] = { for: f }
     end
   end
   
@@ -2105,50 +2106,48 @@ Redis.new.publish 'BOX.out', "#{params}"
       end
       
       if params.has_key?(:waypoint)
-        # zone, waypoint, password, to, for
+        Zone.new(@by.attr[:sponsor]).attr[:full] = params[:full]
         @a = TRACKS[request.host][@by.attr[:sponsor]]
-        Redis.new.publish "WAYPOINT", "#{@by.attr.all} #{params[:waypoint]}"
-        @a.attr[:location] = params[:waypoint][:location]
-        @a.attr[:description] = params[:waypoint][:description]
-        @a.attr[:lvl] = params[:waypoint][:lvl]
-        if params[:waypoint][:new][:say].length > 0
+        Redis.new.publish "WAYPOINT", "#{params} #{params[:waypoint]}"
+        if "#{params[:waypoint][:new][:say]}".length > 0
           v = params[:waypoint][:new]
-          TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:to], v[:for]
+          TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:for]
         end
-        if params[:waypoint].has_key? :words
-          params[:waypoint][:words].each_pair do |k,v|
-            Redis.new.publish "WAYPOINT", "#{k}: #{v}"
-            TRACKS[request.host][@by.attr[:sponsor]][@by.id].passwords.delete k
-            if v[:say].length > 0 && v.has_key?(:for) && v[:for].length > 0
-              TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:to], v[:for]
-            end
-          end
-        end
-#        TRACKS[request.host].mark @user.attr[:zone], params 
-#        @user.log << %[<span class='material-icons'>info</span> waypoint #{params[:a]}:#{params[:i]} updated.]
       end
 
       if params.has_key?(:track) && params[:track] != ''
-        t = params[:track].split('@')
+        a = params[:track].split('@')
+        tp = a[0].split('|')
+        tf = a[1].split('#')
         if params[:success] != nil
+          @user.attr[:zone] = tf[0]
+          @user.badges.incr(tf[1])
           @user.attr.delete(:track)
+          @user.log << %[<span class='material-icons' style='color: gold;'>flag</span> You completed you task.]
         end
-        Redis.new.publish "TRACK", "#{params}"
-        #a = params[:adventure].split('@')
-        learn(request.host, @user.id, @by.attr[:zone])
-        TRACKS[request.host].visit @user.id, @by.attr[:zone]
+        Redis.new.publish "WAYPOINT.TRACK", "#{params}"
+        learn(request.host, @user.id, @user.attr[:zone] || @by.attr[:sponsor])
+        TRACKS[request.host].visit @user.id, @user.attr[:zone] || @by.attr[:sponsor]
         case params[:track]
-        when 'done'
-          @user.log << %[You finished your journey.]
-        when 'park'
-          w = TRACKS[request.host][@by.attr[:zone]].waypoints.members.to_a.sample
-          p = TRACKS[request.host][@by.attr[:zone]][w].passwords.keys.sample
-          @user.attr[:track] = {say: p, to: w, for: @by.attr[:zone]}
-          @user.log << %[<span class='material-icons'>flag</span> go to #{@by.attr[:zone]}. find #{U.new(w).attr[:name]}. Your password is: '#{p}']
+        when 'auto'
+          z = Zone.new(@user.attr[:zone])
+          if z.attr[:full].to_i == 5
+            zz = @by.attr[:sponsor]
+          else
+            zz = @user.attr[:zone] || @by.attr[:sponsor]
+          end
+          w = TRACKS[request.host][zz].waypoints.members.to_a.sample
+          p = TRACKS[request.host][zz][w].passwords.keys.to_a.sample
+          @user.attr[:track] = { for: 'nomad' }
+          @user.log << %[<span class='material-icons' style='color: green;'>flag</span> Go to #{@user.attr[:zone]}. find #{U.new(w).attr[:name]}. The password is: '#{p}']
         when 'fail'
-          @user.log << %[you failed the #{t[1]}.]
+          @user.log << %[<span class='material-icons' style='color: red;'>flag</span> Try again!.]
         else
           @user.attr[:track] = params[:track]
+          t = {}; ts = params[:track].split('@')
+          tp = ts[0].split('|')
+          tf = ts[1].split('#')
+          @user.log << %[<span class='material-icons' style='color: blue;'>#{BADGES[tf[1].to_sym]}</span> Go to #{tf[0]}, meet #{U.new(tp[1]).attr[:name]} and say "#{tp[0]}"]
         end
       end
       
@@ -2189,22 +2188,16 @@ Redis.new.publish 'BOX.out', "#{params}"
       end
       
       if params.has_key?(:give) && "#{params[:give][:type]}".length > 0
-        if params[:give][:of] == 'award'
-          if @by.boss[params[:give][:type]] > 2
-            @user.awards.incr(params[:give][:type])
-          end  
-        elsif params[:give][:of] == 'vote'
-          v = Vote.new(params[:give][:type])
-          v.votes.incr @user.id
-        elsif params[:give][:of] == 'badge' && params[:give][:desc] != ''
-          if @by.boss[params[:give][:type]] > 0
-            @user.sash << params[:give][:type]
-          end
-        elsif params[:give][:of] == 'boss'
-          if @by.boss[params[:give][:type]] > 4 || @by.attr[:boss].to_i > 5
-            @user.boss.incr params[:give][:type]
-          end
+        if params[:give][:of] != nil
+          @user.boss.incr(params[:give][:type])
         end
+        if @user.boss[params[:give][:type]].to_i > (2 ** "#{@user.awards[params[:give][:type]].to_i}".length)
+          @user.awards.incr(params[:give][:type])
+        end
+        if @user.awards[params[:give][:type]].to_i > (2 ** "#{@user.stripes[params[:give][:type]].to_i}".length)
+          @user.stripes.incr(params[:give][:type])
+        end
+        @user.badges.incr(params[:give][:type])
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
       end
       if params.has_key? :act
