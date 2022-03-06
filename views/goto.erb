@@ -9,11 +9,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 .badge { font-size: x-large; padding: 1%; margin 1%; }
 </style>
 <% @u = U.new("#{params[:u]}:#{params[:x] || 'solo'}:#{params[:z]}") %>
-<% if params.has_key? :chance %>
-<% @ad = TRACKS[request.host].adventures.members.sample %>
-<% @wa = TRACKS[request.host][@ad].waypoints.members.sample %>
-<% @u.attr[:track] = "#{@wa}@#{@ad}" %>
-<% end %>
+
 <img src='/<%= @domain.id %>/<%= @user.id %>.img'>
 
 <% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = contest(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
@@ -95,6 +91,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <dialog id='modal' style='padding: 0; box-shadow: 0 0 15px white;' onclick='document.querySelector("#modal").close()'>
 <div style='background-color: white; color: black; width'>
+<% if OWNERSHIP[request.host] != 'franchise' %>
 <p style='width: 100%; text-align: center; background-color: black; color: white; margin: 0;'>
 <span style='text-align: left; width: 35%;'>
 <span style='border: thin solid white; border-radius: 50px; padding: 0 2% 0 2%;'>xp</span>
@@ -107,6 +104,9 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <span style='padding: 0 2% 0 2%; vertical-align: middle;' class='material-icons'>toll</span>
 </span>
 </p>
+<% end %>
+
+
 <% if @user.attr.has_key? :vote %>
 
 <div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
@@ -125,14 +125,23 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
     <% if @u.attr.has_key? :track %>
     <% @t = @user.attr[:track]; tt = @t.split('|'); @kw = tt[0]; @tr = tt[1]; %>
     <% @wp = @tr.split('@') %>
+    <% @bd = @tr.split('#')[1..-1] %>
     <% @wpu = U.new(@wp[0]) %>
-<h3 style='width: 100%; text-align: center;'>
-<span style='padding: 1% 3% 1% 3%; border: thin solid orange; border-radius: 50px;'>ADVENTURE</span>
-</h3>
-    <p style='width: 100%; text-align: center'><span style='padding: 0 2% 0 2%;' class='material-icons'>record_voice_over</span><span><%= @kw %></span></p>
-    <p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>place</span><span><%= @wp[1] %></span></p>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%;' class='material-icons'>person</span><span><%= @wpu.attr[:name] %></span></p>
-<p style='width: 100%; text-align: center;'><span style='padding: 0 2% 0 2%; color: gold; background-color: green; border-radius: 50px; padding: 1%;' class='material-icons'>verified</span><%= @wpu.attr[:title] %></p>
+
+    <p style='width: 100%; text-align: center;'>
+    <span> go to <%= @wp[1] %>, find <%= @wpu.attr[:name] %> and say <%= @kw %></span>
+    </p>
+    <fieldset><legend>badges</legend>
+    <ul>
+    <% @bd.each do |e| %>
+    <li><span class='material-icons'><%= BADGES[e] %></span><%= DESCRIPTIONS[e] %></li>
+    <% end %>
+    </ul>
+    </fieldset>
+<p style='width: 100%; text-align: center;'>
+<span style='padding: 0 2% 0 2%; color: gold; background-color: green; border-radius: 50px; padding: 1%;' class='material-icons'>verified</span>
+<%= @wpu.attr[:title] %>
+</p>
 <%# @u.attr.delete(:track) %>
 <% else %>
 
@@ -155,8 +164,11 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <h1 style='width: 100%; text-align: center;'><span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span></h1>
     </div>
  <% else %>
-
-<p style='width: 100%; text-align: center;'><span>continue the adventure?</span></p>
+ <% if OWNERSHIP[request.host] != 'franchise' %>
+ <p style='width: 100%; text-align: center;'><span>continue the adventure?</span></p>
+ <% else %>
+ <p style='width: 100%; text-align: center;'><span>please add this app to your homescreen for quick and direct updates.</span></p>
+ <% end %>
  <% end %>
 <% end %>
 </div>
@@ -168,7 +180,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <input type='hidden' name='ts' value='<%= params[:ts] || @ts %>'>
     <script>
     
-$('#qrcode').qrcode('<%= @path %>/<%= badge(@u.id).user %>');
+$('#qrcode').qrcode('<%= @qr %>/<%= badge(@u.id).user %>');
 document.querySelector("#modal").showModal()
 
 var orb_wake = 100;

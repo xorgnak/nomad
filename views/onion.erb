@@ -159,7 +159,7 @@ padding: 3%;
   <% z = []; 12.times { z << rand(16).to_s(16) }; @z = z.join('') %>
     var id = '<%= QRO[@id] %>';
 var sender = true;
-$('#qrcode').qrcode('<%= @path %>/?b=<%= @user.attr[:boss].to_i %>&p=<%= @user.attr[:xp].to_i %>&r=<%= @user.attr[:rank].to_i %>&c=<%= @user.attr[:class].to_i %>&x=<%= @user.attr[:zone] || 'solo' %>&u=' + id + '&z=<%= @z %>');
+$('#qrcode').qrcode('<%= @qr %>/<%= badge(@user.id).member %>');
 $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');
 $('#sponsor').val('<%= @user.attr[:sponsor] || 'sponsor' %>');
 $('#title').val('<%= @user.attr[:title] || 'title' %>');

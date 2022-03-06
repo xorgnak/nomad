@@ -35,6 +35,8 @@ export OWNERSHIP='sponsor';
 export EXCHANGE='1';
 export SHARES='100';
 export XFER='true';
+export PROCUREMENT='';
+export FULFILLMENT='';
 redis-cli hset PHONES localhost $PHONE > /dev/null; 
 redis-cli hset MUMBLE localhost $MUMBLE > /dev/null;
 redis-cli hset ADMINS localhost $ADMIN > /dev/null;
@@ -42,5 +44,7 @@ redis-cli hset OWNERSHIP localhost $OWNERSHIP > /dev/null;
 redis-cli hset EXCHANGE localhost $EXCHANGE > /dev/null; 
 redis-cli hset SHARES localhost $SHARES > /dev/null;
 redis-cli hset XFER localhost $XFER > /dev/null;
+redis-cli hset PROCUREMENT localhost $PROCUREMENT > /dev/null;
+redis-cli hset FULFILLMENT localhost $FULFILLMENT > /dev/null;
 ruby bin/mumble.rb localhost;
 umurmurd -c mumble/$DOMAIN.conf

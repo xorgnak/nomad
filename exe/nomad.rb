@@ -195,6 +195,7 @@ require 'sentimental'
 require 'digest/md5'
 require 'securerandom'
 require 'browser'
+require 'faraday'
 
 load "bin/colorize.rb"
 
@@ -234,16 +235,59 @@ FRANCHISE = Redis::HashKey.new("FRANCHISE")
 PROCUREMENT = Redis::HashKey.new('PROCUREMENT')
 FULFILLMENT = Redis::HashKey.new('FULFILLMENT')
 XFER = Redis::HashKey.new("XFER")
+OTP = Redis::HashKey.new('OTP')
+OTK = Redis::HashKey.new('OTK')
 
-BRAIN = Cerebrum.new
+WE = Hash.new { |h,k| h[k] = Cerebrum.new }
+ME = Hash.new {|h,k| h[k] = Hash.new { |hh, kk| hh[kk] = Me.new("#{k}:#{kk}") } }
 
-SENTIMENT = Sentimental.new
-SENTIMENT.load_defaults
-SENTIMENT.threshold = 0.1
-
-def sentiment s
-{ sentment:  SENTIMENT.sentiment(s), score: SENTIMENT.score(s) }  
+class Me
+  def initialize u
+    @user = U.new(u)
+    @brain = Cerebrum.new
+    @mood = Sentimental.new
+    @mood.load_defaults
+    @mood.threshold = 0.1
+  end
+  def mood
+    @mood
+  end
+  def feel f
+    @mood.sentiment f
+    @mood.score f
+  end
+  
+  def brain
+    @brain
+  end
+  def learn loc
+    da = {}
+    @user.badges.members(with_scores: true).to_h.each_pair do |b, s|
+      da[b] = (s / 1000000).to_f
+    end
+    dat = { input: da, output: { "#{loc}" => 1 }}
+    @brain.train([dat])
+  end
+  def predict
+    u = @user.badges.members(with_scores: true).to_h
+    @brain.run(u)
+  end
 end
+
+def learn d, u, l
+  da = {}
+  U.new(u).badges.members(with_scores: true).to_h.each_pair do |b, s|
+    da[b] = (s / 1000000).to_f
+  end
+  dat = { input: da, output: { "#{l}" => 1 }}
+  { me: ME[d][u].learn(l), we: WE[d].train([dat]) }
+end
+
+def predict d, u
+  uu = U.new(u).badges.members(with_scores: true).to_h
+  { me: ME[d][u].predict, we: WE[d].run(uu) }
+end
+
 
 
 
@@ -478,11 +522,13 @@ class Tracks
   # user at waypoint
   def visit u, p
     if u.length > 0 && p.length > 0
-    self.players[u] = p
-    uu = U.new(u)
-    uu.visited << p
-    uu.attr[:waypoint] = p
-    uu.attr.incr(:xp)
+      me = ME[u]
+      me.learn p
+      self.players[u] = p
+      uu = U.new(u)
+      uu.visited << p
+      uu.attr[:waypoint] = p
+      uu.attr.incr(:xp)
     end
   end
 
@@ -1011,15 +1057,16 @@ class Badge
     # c: class level (network privledge)
     # r: adventure level ("completed adventures".length)
     # z: adventure neuton
-    return CGI.escape(%[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{@user.attr[:zone] || 'solo'}&u=#{QRO[@id]}&z=#{z}])
+    zo = CGI.escape("#{@user.attr[:zone] || 'solo' }")
+    return %[?b=#{@user.attr[:boss].to_i}&p=#{@user.attr[:xp].to_i}&r=#{@user.attr[:rank].to_i}&c=#{@user.attr[:class].to_i}&x=#{zo}&u=#{QRO[@id]}&z=#{z}]
   end
   def user
     ##
     # ts: last reload time index
-    return CGI.escape(%[#{member}&ts=#{ts}])
+    return %[#{member}&ts=#{ts}]
   end
   def zap
-    return CGI.escape(%[NOMAD@id])
+    return %[NOMAD@id]
   end
 end
 
@@ -1031,13 +1078,6 @@ end
 ['-h', '-u', '--help', '--usage', 'help', 'usage'].each { |e| @man.on(e) { puts @man; exit; }}
 
 OPTS = Slop::Parser.new(@man).parse(ARGF.argv)
-
-def train a, b
-  BRAIN.train({input: a, output: b})
-end
-def predict a
-  BRAIN.run(a)
-end
 
 class Ui
   def initialize t
@@ -1384,7 +1424,7 @@ class APP < Sinatra::Base
   set :public_folder, "/home/pi/nomad/public/"
   set :views, "/home/pi/nomad/views/"
   set :sockets, []
-  
+  enable :sessions
   helpers do
     def contest c
       Contest.new(c)
@@ -1460,11 +1500,12 @@ class APP < Sinatra::Base
     
     if "#{ENV['DOMAINS']}".split(' ').include? request.host
       s = 'https'
-      @path = %[#{s}://#{@domain.id}];
+      @qr = %[#{s}://#{@domain.id}];
     else
       s = 'http'
-      @path = %[https://#{ENV['CLUSTER']}]
+      @qr = %[https://#{ENV['CLUSTER']}]
     end
+    @path = %[#{s}://#{@domain.id}];
     @term = K.new(params[:u]);
     Redis.new.publish("BEFORE", "#{@path} #{@domain}")
     @tree = Tree.new(@domain.id)
@@ -1759,9 +1800,12 @@ ga('send', 'pageview');
     ERB.new(File.read("home/#{u}/#{params[:c]}/index.erb") + ga + ta).result(binding)
   }
   get('/:u') {
+    Redis.new.publish('GET.otp', "#{session[:otp]} #{OTP.all}")
     if QRO.has_key? params[:u]
-      if token(params[:u]) == 'true';
-        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i
+      if token(params[:u]) == 'true'
+        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i && OTP[params[:u]] == session[:otp]
+          ot = []; 6.times { ot << rand(16).to_s(16) }; @otk = ot.join('')
+          OTK[params[:u]] = @otk
           @vapid = Webpush.generate_key;
           @id = id(params[:u]);
           @user = U.new(@id);
@@ -1789,19 +1833,31 @@ ga('send', 'pageview');
           end
         else
           # expired link
+          if ENV['BOX'] == 'false'
           w = []; 16.times { w << rand(16).to_s(16) }
           redirect "#{@path}/?w=#{w.join('')}"
+          else
+            redirect '/'
+          end
         end
       else
         # expired token
+        if ENV['BOX'] == 'false'
         w = []; 16.times { w << rand(16).to_s(16) }
         redirect "#{@path}/?w=#{w.join('')}"
+        else
+          redirect '/'
+        end
       end
     else
       # does not exist
       redirect "#{@path}"
     end
   }
+
+  ##
+  # remote api
+  # NOT WORKING
   post('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
     content_type :json
@@ -1871,17 +1927,13 @@ Redis.new.publish 'BOX.out', "#{params}"
   
   post('/') do
     Redis.new.publish 'POST', "#{params}"
-    if ENV['BOX'] == 'true'
-      uri = URI("https://#{ENV['CLUSTER']}/box")
-      res = Net::HTTP.post_form(uri, params)
-      j = JSON.parse(res.body)
-      Redis.new.publish 'POST.BOX', "#{j}"
-      if j.has_key? :cha
-        erb :landing
-      else
-        redirect "#{@path}/#{j[:u]}"
-      end
-    end
+#    if ENV['BOX'] == 'true' && !params.has_key?(:usr) && !params.has_key?(:cha)
+#      uri = URI.parse("https://#{ENV['CLUSTER']}/box")
+#      @res = Net::HTTP.post_form(uri, params)
+#      j = JSON.parse(@res.body)
+#      Redis.new.publish 'POST.BOX', "#{j}"
+#      j.each_pair { |k,v| params[k.to_sym] = v }
+#    end
     
     if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
@@ -1917,6 +1969,9 @@ Redis.new.publish 'BOX.out', "#{params}"
       params.delete(:pin)
       @domain.users.incr(@id)
       Redis.new.publish("AUTHORIZE", "#{@path}")
+      ot = []; 64.times { ot << rand(16).to_s(16) }
+      OTP[@id] = ot.join('')
+      session[:otp] = ot.join('')
       redirect "#{@path}/#{params[:u]}"
     elsif ENV['BOX'] != 'true' && params.has_key?(:usr)
       cha = []; 64.times { cha << rand(16).to_s(16) }
@@ -2078,16 +2133,18 @@ Redis.new.publish 'BOX.out', "#{params}"
         end
         Redis.new.publish "TRACK", "#{params}"
         #a = params[:adventure].split('@')
+        learn(request.host, @user.id, @by.attr[:zone])
         TRACKS[request.host].visit @user.id, @by.attr[:zone]
         case params[:track]
         when 'done'
-          @user.log %[Play again soon!]
+          @user.log << %[You finished your journey.]
         when 'park'
           w = TRACKS[request.host][@by.attr[:zone]].waypoints.members.to_a.sample
           p = TRACKS[request.host][@by.attr[:zone]][w].passwords.keys.sample
           @user.attr[:track] = {say: p, to: w, for: @by.attr[:zone]}
+          @user.log << %[<span class='material-icons'>flag</span> go to #{@by.attr[:zone]}. find #{U.new(w).attr[:name]}. Your password is: '#{p}']
         when 'fail'
-          @user.log %[you failed the #{t[1]} adventure.]
+          @user.log << %[you failed the #{t[1]}.]
         else
           @user.attr[:track] = params[:track]
         end
@@ -2261,6 +2318,9 @@ Redis.new.publish 'BOX.out', "#{params}"
             end
             if @by.password.value.to_s == params[:login][:password].to_s
               token(@by.id, ttl: (((60 * 60) * 24) * 7))
+              ot = []; 64.times { ot << rand(16).to_s(16) }
+              OTP[@by.id] = ot.join('')
+              session[:otp] = ot.join('')
               @domain.users.incr(@by.id)
               redirect "#{@path}/#{@by.id}"
             end
@@ -2315,6 +2375,12 @@ def op u
     @u.attr[:boss] = 999999999
     @u.attr[:class] = 7
     @u.coins.value ||= 999999999
+    @u.zones.members.each do |z|
+      if "#{z}".length > 0
+      ENV['DOMAINS'].split(' ').each{ |d| learn(d, @u.id, z) }
+      learn('localhost', @u.id, z)
+      end
+    end
   end
 end
 op ENV['admin']

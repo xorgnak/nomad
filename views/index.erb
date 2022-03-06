@@ -19,6 +19,36 @@ padding: 3%;
 .badge { font-size: xx-large; padding: 2%; margin 3%; }
 .open { border: thin solid white; padding: 1% 3% 1% 3%; font-size: medium; }
 .tog { border: thin solid white; padding: 1% 3% 1% 3%; font-size: medium; }
+
+#broadcast + label { vertical-align: middle; color: black; background-color: white; }
+
+#broadcast + label:before {
+  content: "star";
+}
+
+#broadcast:checked + label:before {
+  content: "stars";
+}
+
+#zap + label { vertical-align: middle; color: black; background-color: white; }
+
+#zap + label:before {
+  content: "auto_fix_off";
+  }
+
+#zap:checked + label:before {
+  content: "auto_fix_normal";
+  }
+
+#success + label { vertical-align: middle; color: black; background-color: white; }
+
+#success + label:before {
+  content: "repeat";
+    }
+
+#success:checked + label:before {
+  content: "redo";
+    }
 </style>
 
 <% @a = @user.attr.all %>
@@ -109,6 +139,10 @@ padding: 3%;
     <input type='file' id='pic' accept="image/*" name='file'>
     <span>rsvp image</span>
     </h3>
+    <fieldset>
+    <legend>one time key</legend>
+    <p style='width: 100%; text-align: center; margin: 0; color: white;'><%= @otk %></p>
+    </fieldset>
     <button type='submit'style='background-color: green; color: white;'>save</button>
   </dialog>
   
@@ -127,8 +161,12 @@ padding: 3%;
   
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; overflow-y: scroll;'>
     <fieldset>
-      <legend style='padding: 0 3% 0 3%;'><input type='text' id='scan' name='scan' value='<%= @id %>' style='width: min-content;' disabled></legend>
-      <ul style='background-color: white; color: black;'>
+      <legend style='padding: 0 3% 0 3%;'>
+      <input type='checkbox' id='zap' name='zap' value='true' style='display: none;' checked>
+      <label for="zap" class='material-icons'></label>
+      <input type='text' id='scan' name='scan' value='<%= @id %>' style='width: min-content;' disabled></legend>
+      <fieldset><legend>attributes</legend>
+      <ul style='background-color: white; color: black; margin: 0;'>
 	<li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
 	
 	<li><span style='padding: 2%;'>rank:</span>
@@ -166,6 +204,9 @@ padding: 3%;
 	<li><span style='padding: 2%;'>zone:</span><span id='z'></span></li>
 	<li><span style='padding: 2%;'>role:</span><span id='role'></span></li>
       </ul>
+      </fieldset>
+      
+      <fieldset><legend>network</legend>
       <div style='background-color: white;'>
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 && @user.zones.members.length > 0 %>
 	<datalist id='titles'>
@@ -178,7 +219,7 @@ padding: 3%;
 
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 && @user.zones.members.length > 0 %>
 	<h3 style='width: 100%; text-align: center; margin: 0;'>
-	  <select name='zone'>
+	  <select name='zone' style='width: 100%;'>
 	    <option selected disabled>zone</option>
 	    <% @user.zones.members.each do |zone| %>
 	    <% if zone != '' %>
@@ -198,12 +239,11 @@ padding: 3%;
 	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
 	<% end %>
 
-
       </div>
+      </fieldset>
 
-
-      <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black;'>
-	<span class='material-icons' style='border: thick solid black; border-radius: 1000px;'>military_tech</span>
+      <fieldset><legend>badges</legend>
+      <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black; margin: 0;'>
 	<select name='give[of]' style='width: 30%; padding: 0;'>
       	  <option selected disabled>give</option>
           <option value='vote'>vote</option>
@@ -224,25 +264,22 @@ padding: 3%;
 	  <% end %>
 	</select>
       </h3>
+      </fieldset>
 
-      <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
-      <span style='padding: 0 2% 0 2%; border: thin solid black;'>
-      <span class='material-icons'>check_box</span>
-      <input type='checkbox' name='success' style='width: 5%;'>
-      </span>
+
+      <fieldset><legend>track</legend>
+      <h3 style='width: 100%; text-align: center; background-color: white; color: black; margin: 0;'>
+      <input type='checkbox' id='success' name='success' value='true' style='display: none;' checked>
+      <label for="success" class='material-icons'></label>
 	<select name='track'>
 	  <option selected disabled>adventure</option>
 	  <option value='done'>DONE</option>
 	  <option value='park'>PARK</option>
 	  <option value='fail'>FAIL</option>
 	  <% @h = {} %>
-	  <% @user.zones.each do |z| %>
-	  <% if "#{z}".length > 0 %>
-	  <% TRACKS[request.host][z][@user.id].passwords.all.each_pair do |k,v| %>
-	  <% if @user.id == v[:to] && "#{k}".length > 0 %>
+	  <% TRACKS[request.host][@user.attr[:zone]][@user.id].passwords.all.each_pair do |k,v| %>
+	  <% if "#{k}".length > 0 %>
 	  <% @h[k] = v[:for] %>
-	  <% end %>
-	  <% end %>
 	  <% end %>
 	  <% end %>
 	  <% @h.each_pair do |k,v| %>
@@ -250,10 +287,10 @@ padding: 3%;
 	  <% end %>
 	</select>
       </h3>
-      
+      </fieldset>
       <% if XFER[request.host] == 'true' || XFER['localhost'] == 'true' %>
-      <h1 style='background-color: white; color: black; text-align: center; padding: 0;'>
-	<span class='material-icons'>toll</span>
+      <fieldset><legend class='material-icons'>toll</legend>
+      <h1 style='background-color: white; color: black; text-align: center; padding: 0; margin: 0;'>
 	<span>
 	  <% if @user.attr[:class].to_i > 3 %>
 	  <input type='number' name='xfer' min='-100' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>
@@ -262,12 +299,8 @@ padding: 3%;
 	<% end %>
 	</span>
       </h1>
+      </fieldset>
       <% end %>
-</h3>
-
-<h3 style='width: 100%; text-align: center; background-color: white;'>
-    <span>ZAP</span>
-    <input type='checkbox' name='zap' value='true' style='width: min-content;' checked>
 </h3>
 
 </fieldset>
@@ -292,19 +325,26 @@ padding: 3%;
       <% @user.log.values.to_a.reverse.each do |e| %>
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
+
       <% if @user.attr.has_key? :zone %>
+
       <% if @user.attr[:class].to_i >= 2 %>
       <fieldset id='waypoint' style='display: none;'><legend><%= @user.attr[:zone] %></legend>
+
+      <% if OWNERSHIP[request.host] != 'franchise' %>
       <%= erb :waypoint %>
+      <% else %>
+      <%= erb :pool %>
+      <% end %>
+
       </fieldset>
       <% end %>
+
       <div id='messenger'>
     <h3 style='width: 100%; text-align: center; margin: 0;'>
-    <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; padding: 0 1% 0 1%'>edit</button>
-    <span style='background-color: white;'>
-      <span class='material-icons' style='color: black; vertical-align: middle; padding: 0 1% 0 1%;'>groups</span>
-      <input type='checkbox' name='message[broadcast]' value='users' style='width: unset;'>
-    </span>
+    <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; color: black; padding: 0 1% 0 1%'>edit</button>
+      <input type='checkbox' id='broadcast' name='message[broadcast]' value='users' style='display: none;'>
+      <label for="broadcast" class='material-icons'></label>
 	  <select name='message[zone]' style='width: 65%; text-align: left;'>
 	    <% @user.zones.members.each do |e| %>
 	    <% if "#{e}".length > 0 %>
@@ -373,7 +413,7 @@ padding: 3%;
   <% end %>
 
 var sender = true;
-$('#qrcode').qrcode('<%= @path %>/<%= badge(@user.id).member %>');
+$('#qrcode').qrcode('<%= @qr %>/<%= badge(@user.id).member %>');
 var inv = false;
 var mnu = false;
 $('#contact').val('<%= @user.attr[:contact] || 'contact' %>');

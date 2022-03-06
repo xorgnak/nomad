@@ -29,6 +29,8 @@ export OWNERSHIP='`redis-cli hget OWNERSHIP $1 || "franchise"`';
 export EXCHANGE='`redis-cli hget EXCHANGE $1 || "1"`';
 export SHARES='`redis-cli hget SHARES $1 || 100`';
 export XFER='`redis-cli hget XFER $1 || "true"`';
+export PROCUREMENT='`redis-cli hget PROCUREMENT $1 || "5"`';
+export FULFILLMENT='`redis-cli hget FULFILLMENT $1 || "60"`';
 redis-cli hset PHONES $1 \$PHONE > /dev/null; 
 redis-cli hset MUMBLE $1 \$MUMBLE > /dev/null;
 redis-cli hset ADMINS $1 \$ADMIN > /dev/null;
@@ -36,6 +38,8 @@ redis-cli hset OWNERSHIP $1 \$OWNERSHIP > /dev/null;
 redis-cli hset EXCHANGE $1 \$EXCHANGE > /dev/null; 
 redis-cli hset SHARES $1 \$SHARES > /dev/null;
 redis-cli hset XFER $1 \$XFER > /dev/null;
+redis-cli hset PROCUREMENT $1 \$PROCUREMENT > /dev/null;
+redis-cli hset FULFILLMENT $1 \$FULFILLMENT > /dev/null;
 ruby bin/mumble.rb $1;
 umurmurd -c mumble/\$DOMAIN.conf
 EOF

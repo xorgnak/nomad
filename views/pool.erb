@@ -1,0 +1,7 @@
+<% @zone = Zone.new(@user.attr[:zone]) %>
+
+
+    <% @zone.pool.each do |e| %>
+      <% @e = U.new(e) %>
+    <% end %>
+
