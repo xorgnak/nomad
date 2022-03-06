@@ -2331,17 +2331,17 @@ Redis.new.publish 'BOX.out', "#{params}"
       end
       
       if params.has_key? :landing
-        redirect "/"
+        redirect "#{@path}/"
       elsif params.has_key? :quick
-        redirect "/"
+        redirect "#{@path}/"
       elsif params.has_key? :cmd
-        redirect "/term?u=#{params[:u]}"
+        redirect "#{@path}/term?u=#{params[:u]}"
       elsif params.has_key? :code
-        redirect "/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
+        redirect "#{@path}/?u=#{params[:u]}&x=#{params[:x]}&ts=#{params[:ts]}&z=#{params[:z]}"
       elsif params.has_key? :a
-        redirect "/adventure?u=#{params[:u]}&a=#{params[:a]}"
+        redirect "#{@path}/adventure?u=#{params[:u]}&a=#{params[:a]}"
       else
-        redirect "/#{@by.id}"
+        redirect "#{@path}/#{@by.id}"
       end
     end
   end
