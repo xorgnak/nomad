@@ -47,27 +47,3 @@ redis-cli hset PROCUREMENT localhost $PROCUREMENT > /dev/null;
 redis-cli hset FULFILLMENT localhost $FULFILLMENT > /dev/null;
 ruby bin/mumble.rb localhost;
 umurmurd -c mumble/$DOMAIN.conf
-#   
-# EDIT TO SUIT YOUR NEEDS.
-#
-export DOMAIN='localhost';
-export PHONE='';
-export ADMIN='';
-export MUMBLE='64738';
-export OWNERSHIP='';
-export EXCHANGE='';
-export SHARES='';
-export XFER='';
-export PROCUREMENT='';
-export FULFILLMENT='';
-redis-cli hset PHONES localhost $PHONE > /dev/null; 
-redis-cli hset MUMBLE localhost $MUMBLE > /dev/null;
-redis-cli hset ADMINS localhost $ADMIN > /dev/null;
-redis-cli hset OWNERSHIP localhost $OWNERSHIP > /dev/null;
-redis-cli hset EXCHANGE localhost $EXCHANGE > /dev/null; 
-redis-cli hset SHARES localhost $SHARES > /dev/null;
-redis-cli hset XFER localhost $XFER > /dev/null;
-redis-cli hset PROCUREMENT localhost $PROCUREMENT > /dev/null;
-redis-cli hset FULFILLMENT localhost $FULFILLMENT > /dev/null;
-ruby bin/mumble.rb localhost;
-umurmurd -c mumble/$DOMAIN.conf
