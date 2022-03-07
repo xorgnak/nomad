@@ -262,7 +262,7 @@ color: gold;
 	</h3>
 	<% end %>
 	
-	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 6 %>
+	<% if @user.attr[:class].to_i >= 6 %>
 	<datalist id='contests'>
 	  <% VOTES.members.each do |vote| %>
 	  <option value='<%= vote %>'>
@@ -361,31 +361,12 @@ color: gold;
       <% end %>
     </div>
     <%= erb :bank %>
-    <% if Bank.wallet[@user.id].to_i > 0 %>
-    <% if OWNERSHIP[request.host] == 'franchise' %>
-    <%= erb :franchisee %>
-    <% else %>
-    <%= erb :sponsor %>
-    <% end %>
-    <% end %>
-    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
-    <% if OWNERSHIP[request.host] == 'franchise' %>
-    <%= erb :franchise %>
-    <% else %>
-    <%= erb :shares %>
-    <% end %>
-    <% end %>
- 
+    <%= erb :report %>
     <nav id='menu' style='width: 100%; font-size: small; text-align: center;'>
     <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>
     <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
     <button class='open material-icons' id='open_bank' value='bank'>savings</button>
-    <% if Bank.wallet[@user.id].to_i > 0 %>
-    <button class='open material-icons' id='open_sponsorship' value='sponsorship'>cabin</button>
-    <% end %>
-    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
-    <button class='open material-icons' id='open_shares' value='shares'>confirmation_number</button>
-    <% end %>
+    <button class='open material-icons' id='open_report' value='report'>report</button>
     <% if @user.attr[:class].to_i >= 5 %>
     <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: red;'>terminal</a>
     <% elsif @user.attr[:class].to_i < 5 && @user.attr[:class].to_i >= 2 %>

@@ -1,35 +1,35 @@
 <style>
-h1 { width: 100%; }
-h1 > * { vertical-align: middle; }
-input { width: 60%; }
+  h1 { width: 100%; }
+  h1 > * { vertical-align: middle; }
+  input { width: 60%; }
 </style>
-<div id='shares' class='displays' style='display: none;'>
-
-<% @tot = Shares.shares(request.host) %>
-<fieldset><legend>ownership</legend>
-<ul>
-<li>
-<span>you own:</span>
-<span><%= Shares.by(request.host)[@user.id].to_i || 0 %></span>
-</li>
-<% @tot.each_pair do |k,v| %>
-<li>
-<span><%= k %>:</span>
-<span><%= v %></span>
-</li>
-<% end %>
-</ul>
-</fieldset>
-<fieldset><legend>shares</legend>
-<h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
-<span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
+<div id='shares' class='' style='display: none;'>
+  
+  <% @tot = Shares.shares(request.host) %>
+  <fieldset><legend>ownership</legend>
+    <ul>
+      <li>
+	<span>you own:</span>
+	<span><%= Shares.by(request.host)[@user.id].to_i || 0 %></span>
+      </li>
+      <% @tot.each_pair do |k,v| %>
+      <li>
+	<span><%= k %>:</span>
+	<span><%= v %></span>
+      </li>
+      <% end %>
+    </ul>
+  </fieldset>
+  <fieldset><legend>shares</legend>
+    <h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
+      <span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
 <select name='shares[mode]'>
-<% if Bank.wallet[@user.id] > Shares.cost(request.host) %>
-<option value='buy'>buy</option>
-<% end %>
-<% if Shares.by(request.host)[@user.id] > 0 %>
-<option value='sell'>sell</option>
-<% end %>
+  <% if Bank.wallet[@user.id] > Shares.cost(request.host) %>
+  <option value='buy'>buy</option>
+  <% end %>
+  <% if Shares.by(request.host)[@user.id] > 0 %>
+  <option value='sell'>sell</option>
+  <% end %>
 </select>
 <% @max = (Bank.wallet[@user.id].to_i || 1 / Shares.cost(request.host)).to_i || 1 %>
 <% if Shares.by(request.host)[@user.id].to_i > 0 %>
@@ -39,14 +39,11 @@ input { width: 60%; }
 <% end %>
 </h3>
 <h3 style='text-align: center; width: 100%; margin: 0;'>
-<span id='s_desc'></span>
-<span id='s_tot'></span>
-<button type='submit' id='s_ready' class='material-icons' style='display: none;' name='act' value='shares'>confirmation_number</button>
+  <span id='s_desc'></span>
+  <span id='s_tot'></span>
+  <button type='submit' id='s_ready' class='material-icons' style='display: none;' name='act' value='shares'>confirmation_number</button>
 </h3>
 </fieldset>
 </div>
-<script>
-<% if params.has_key? :bare %>
-$('#shares').show();
-<% end %>
-</script>
+
+  

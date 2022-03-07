@@ -3,19 +3,36 @@
 #bank > h1 > * { vertical-align: middle; }
 #bank > h1 > input { width: 60%; }
 </style>
-<div id='bank' class='displays' style='text-align: center; display: none;'>
-<h3 style='width: 100%;'>
+<fieldset id='bank' class='displays' style='text-align: center; display: none; overflow-y: scroll;'><legend>bank</legend>
+<h3 style='width: 100%; margin: 0; text-align: center;'>
 <input type='range' id='b_slider' step='1' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value).to_i %>' value='<%= @user.coins.value %>' style='width: 100%;'>
 </h3>
-<h3>
+<h3 style='width: 100%; margin: 0; text-align: center;'>
 <span class='material-icons'>toll</span>
 <input id='b_coins' class='b' type='number' name='bank[coins]' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>' value='<%= @user.coins.value %>' style='width: 25%;'>
 <span class='material-icons'>savings</span>
 <input id='b_credit' class='b' type='number' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>' name='bank[credit]' value='<%= Bank.wallet[@user.id] %>' style='width: 25%;'>
-
-<button type='submit' class='ready material-icons' name='act' value='bank'>account_balance</button>
 </h3>
-</div>
+<% if Bank.wallet[@user.id].to_i > 0 %>
+<fieldset><legend class='material-icons'>cabin</legend>
+    <% if OWNERSHIP[request.host] == 'franchise' %>
+    <%= erb :franchisee %>
+    <% else %>
+    <%= erb :sponsor %>
+    <% end %>
+    </fieldset>
+    <% end %>
+    <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
+    <fieldset><legend class='material-icons'>confirmation_number</legend>
+    <% if OWNERSHIP[request.host] == 'franchise' %>
+    <%= erb :franchise %>
+    <% else %>
+    <%= erb :shares %>
+    <% end %>
+    </fieldset>
+    <% end %>
+    <button type='submit' class='ready material-icons' name='act' value='bank' style='color: green;'>account_balance</button>
+</fieldset>    
 <script>
 <% if params.has_key? :bare %>
 $('#bank').show();
