@@ -661,6 +661,33 @@ class Contest
   end
 end
 
+class Comms
+  def initialize user, host
+    @user = U.new(user)
+    @host = host
+    if ENV['cluster'] == 'localhost' && /.onion/.match(host)
+      @here = host
+    else
+      @here = ENV['CLUSTER']
+    end
+    if MUMBLE.has_key? @here
+      @port = MUMBLE[@here]
+    else
+      @port = ENV['MUMBLE']
+    end
+  end
+
+  def cluster
+    return %[mumble://#{@user.attr[:name] || 'nomad'}@#{ENV['CLUSTER']}:#{@port}/?version=1.2]                                                                   end
+  def onion
+    return %[mumble://#{@user.attr[:name] || 'nomad'}@#{Redis.new.get('ONION')}:#{@port}/?version=1.2]                                                           end
+  def host
+    return %[mumble://#{@user.attr[:name] || 'nomad'}@#{@host}:#{@port}/?version=1.2]
+  end
+  def here
+    return %[mumble://#{@user.attr[:name] || 'nomad'}@#{@here}:#{@port}/?version=1.2]
+  end
+end
 
 class Vote
   include Redis::Objects
