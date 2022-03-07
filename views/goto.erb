@@ -117,7 +117,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <h4 style='width: 100%; text-align: center; margin: 0;'><%= @user.attr[:vote] %></h4>
 </div>
 <% end %>
-
+<% @u.log.clear() if params.has_key?(:clear) %>
 <% if @u.log.values.length > 0 %>
 <fieldset><legend>log</legend>
 <% @u.log.values.to_a.reverse.each do |e| %>
