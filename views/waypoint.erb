@@ -1,13 +1,13 @@
-<% @zone = Zone.new(@user.attr[:sponsor]) %>
+<% @zone = Zone.new(@user.attr[:sponsor] || @user.id + ':solo') %>
 <% @z = TRACKS[request.host][@zone.id] %>
-<% @track = TRACKS[request.host][@zone.id][@user.id] %>
+<% @track = @z[@user.id] %>
 <% @words = [] %>
 
 <fieldset id='waypoint' class='displays' style='display: none;'>
 <legend>waypoint</legend>
 <p style='width: 100%; text-align: center; margin: 0;'>
 <span class='material-icons'>person</span>
-<input type='range' name='full' min='0' value='<%= Zone.new(@user.attr[:sponsor]).attr[:full] || "3" %>' max='5' style='width: 60%; margin: 0;'>
+<input type='range' name='full' min='0' value='<%= Zone.new(@zone.id).attr[:full] || "3" %>' max='5' style='width: 60%; margin: 0;'>
 <span class='material-icons'>groups</span>
 </p>
 <ul>
