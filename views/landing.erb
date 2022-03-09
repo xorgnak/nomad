@@ -4,6 +4,9 @@ form { }
 textarea { font-size: x-large; width: 100%; }
 </style>
 
+<% if LOCKED[@domain.id] == 'false'  %>
+<a href='<%= @path %>/?landing=edit' class='material-icons'>unlocked</a>
+<% end %>
 <% if Redis.new.get('ONION') != nil && ENV['BOX'] == 'true' %>
 <button type='button' onclick='$("#onion").toggle()' class='material-icons'>my_location</button>
 <div id='onion' style='display: none;'>
@@ -22,7 +25,7 @@ textarea { font-size: x-large; width: 100%; }
 </h1>
 <div style='width: 100%; text-align:center;'>
 
-<% if Redis.new.get('LOCKED') == nil && params.has_key?(:edit) %>
+<% if LOCKED[@domain.id] == 'false' && params.has_key?(:edit) %>
   <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 80%;'><%= LANDING[OPTS[:domain]] %></textarea>
   <button>save</button>
 <% end %>
@@ -40,9 +43,45 @@ textarea { font-size: x-large; width: 100%; }
     <% end %>
 <% else %>
 
-  <% if params[:landing] == 'edit' %>
+  <% if params[:landing] == 'edit' && LOCKED[@domain.id] == 'false' %>
+  <% if ENV['BOX'] == 'true' %>
+  <fieldset><legend>box</legend>
+	<input type='text' placeholder='mumble' name='conf[mumble]' value='<%= MUMBLE[request.host] %>'></p>
+  </fieldset>
+  <% end %>
+     <fieldset><legend>ownership</legend>
+     <p style='width: 100%; text-align: center'>
+     <input type='tel' placeholder='phone' name='conf[phone]' value='<%= PHONES[request.host] %>'></p>
+     <p style='width: 100%; text-align: center'>
+     <input type='tel' placeholder='admin' name='conf[admin]' value='<%= ADMINS[request.host] %>'></p>
+     <label for='conf_ownership_franchise' class='material-icons'>person</label>
+     <input type='radio' id='conf_ownership_franchise' name='conf[ownership]' value='franchise'>
+     <label for='conf_ownership_sponsor' class='material-icons'>groups</label>
+     <input type='radio' id='conf_ownership_sponsor' name='conf[ownership]' value='sponsor' checked>
+     <p style='width: 100%; text-align: center'>
+     <input type='checkbox' id='conf_ownership_xfer' name='conf[xfer]' value='true' checked>
+     <label for='conf_ownership_xfer'>allow xfer?</label>
+     </p>
+     <p style='width: 100%; text-align: center'>
+     <input type='number' name='conf[shares]' placeholder='shares' value='<%= SHARES[request.host] || 100 %>'></p>
+     <p style='width: 100%; text-align: center'>
+     <input type='number' name='conf[exchange]' placeholder='exchange' value='<%= EXCHANGE[request.host] || 1 %>'>
+     </p>
+     <p style='width: 100%; text-align: center'>
+     <input type='number' name='conf[procurement]' placeholder='procurement' value='<%= PROCUREMENT[request.host] || 5 %>'>
+     </p>
+     <p style='width: 100%; text-align: center'>
+     <input type='number' name='conf[fulfillment]' placeholder='fulfillment' value='<%= FULFILLMENT[request.host] || 30 %>'>
+     </p>
+     </fieldset>
+     <fieldset><legend>content</legend>
       <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 80%;'><%= LANDING[OPTS[:domain]] %></textarea>
-      <button>save</button>     
+      </fieldset>
+<p style='width: 100%; text-align: center'>
+  <input type='checkbox' id='conf_ownership_lock' name='conf[lock]' value='true'>
+  <label for='conf_ownership_xfer'>lock!</label>
+</p>
+<button>save</button>     
   <% end %>
       
   <% if params.has_key?(:quick) %>
@@ -57,7 +96,7 @@ textarea { font-size: x-large; width: 100%; }
       <% end %>
       <button style='width: 80%; background-color: green; color: white;'>ASK</button></div>
   <% end %>
-  <% if !params.has_key?(:quick) && ENV['BOX'] == 'true' %>
+  <% if !params.has_key?(:landing); !params.has_key?(:quick) && ENV['BOX'] == 'true' %>
       <h1><input type='text' name='login[username]' maxlength='20' placeholder='username' style='text-align: center;'></h1>
       <h1><input type='text' name='login[password]' maxlength='20' placeholder='password' style='text-align: center;'></h1>
       <h1><button>login</button></h1>

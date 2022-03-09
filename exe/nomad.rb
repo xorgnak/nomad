@@ -682,6 +682,8 @@ class Zone
   include Redis::Objects
   set :pool
   set :users
+  hash_key :jobs
+  hash_key :items
   hash_key :attr
   counter :coins
   set :waypoints
@@ -963,10 +965,45 @@ class Sash
   end
 end
 
+JOBS = Redis::HashKey.new('JOBS')
+
+class JOB
+  include Redis::Objects
+  set :pool
+  def initialize i
+    @id = i
+  end
+  def id; @id; end
+end
+class Job
+  include Redis::Objects
+  hash_key :attr
+  hash_key :item, marshal: true
+  set :items
+  def initialize u, j
+    @user = U.new(u)
+    @zone = Zone.new(@user.attr[:sponsor])
+    JOB.new(j).pool << @user.id
+    JOBS[j] = @user.id
+    @id = "#{@user.id}:#{@user.attr[:sponsor]}:#{j}"
+    @zone.jobs[@id] = @user.id
+    @user.jobs << j
+  end
+  def id; @id; end
+  def << h={}
+    self.items << h[:body]
+    @user.items << h[:body]
+    @zone.items["#{@id}:#{h[:body]}"] = @user.id
+    self.item["#{@id}:#{h[:body]}"] = h
+  end
+end
+
 class U
   include Redis::Objects
   set :waypoints
   set :visited
+  set :jobs
+  set :items
   sorted_set :wallet
   sorted_set :awards
   sorted_set :stripes
@@ -2069,10 +2106,33 @@ Redis.new.publish 'BOX.out', "#{params}"
         end
       end
                        
-      if params.has_key?(:landing) && LOCKED[@domain.id] != 'true'
+      if params.has_key?(:landing) && LOCKED[@domain.id] == 'false'
         LANDING[@domain.id] = params[:landing]
-      end          
-      
+        OWNERSHIP[@domain.id] = params[:conf][:ownership] || 'sponsor'
+        XFER[@domain.id] = params[:conf][:xfer] || 'false'
+        if params[:conf].has_key? :mumble
+          MUMBLE[@domain.id] = params[:conf][:mumble]
+        end
+        if "#{params[:conf][:phone]}".length > 0
+          PHONES[@domain.id] = params[:conf][:phone]
+        end
+        if "#{params[:conf][:admin]}".length > 0
+          ADMINS[@domain.id] = params[:conf][:admin]
+        end
+        if "#{params[:conf][:shares]}".length > 0
+          SHARES[@domain.id] = params[:conf][:shares]
+        end
+        if "#{params[:conf][:exchange]}".length > 0
+          EXCHANGE[@domain.id] = params[:conf][:exchange]
+        end
+        if "#{params[:conf][:procurement]}".length > 0
+          PROCUREMENT[@domain.id] = params[:conf][:procurement]
+        end
+        if "#{params[:conf][:fulfillment]}".length > 0
+          FULFILLMENT[@domain.id] = params[:conf][:fulfillment]
+        end
+        LOCKED[@domain.id] = params[:conf][:lock] || false
+      end
       if params.has_key? :code
         if c = code(params[:code])
           if c[:badge];
@@ -2250,8 +2310,8 @@ Redis.new.publish 'BOX.out', "#{params}"
       
       if params.has_key?(:message) && params[:message][:body] != ''
         Redis.new.publish "MESSENGER", "#{params[:message]}"
-        z, to = [],[]; [params[:message][:zone]].flatten.each { |e| z << Zone.new(e) }
-        z.each do |zone|
+        to = []
+        zone = Zone.new(@by.attr[:sponsor])
         if params[:message].has_key?(:broadcast) && params[:message][:broadcast] == 'users'
           Bank.xfer from: @by.id, amt: zone.users.members.length
           to << [zone.users.members.to_a, zone.pool.members.to_a]
@@ -2260,11 +2320,16 @@ Redis.new.publish 'BOX.out', "#{params}"
           to << zone.pool.members.to_a
           @p = 'stars'
         end
-        end
+        if OWNERSHIP[request.host] == 'sponsor'
         [to].flatten.each do |e|
           if "#{e}".length > 0
             U.new(e).log << %[<span class='material-icons' style='color: gold; vertical-align: middle;'>#{@p}</span><span style='vertical-align: middle; padding: 0 1% 0 1%; background-color: white; color: black; border-radius: 50px;'><span style=''>#{@by.attr[:name]}</span>@<span style='vertical-align: middle;'>#{@by.attr[:sponsor]}</span></span><span style='vertical-align: middle;'>#{params[:message][:body]}</span>]
           end
+        end
+        else
+          # save png
+          # message[pfx] message[body]
+          Job.new(@by.id, params[:message][:job]) << params[:message];
         end
       end
       

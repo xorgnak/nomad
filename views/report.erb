@@ -1,3 +1,16 @@
-<fieldset id='report' class='displays' style='display: none;'><legend>report</legend>
-<i>coming soon...</i>
+<fieldset id='report' class='displays' style='display: none; height: 85vh; overflow-y: scroll;'><legend>report</legend>
+<% @user.jobs.each do |job| %>
+<% Job.new(@user.id, job).item.all.each_pair do |k,v| %>
+<fieldset>
+<legend style='width: 100%; border: thin solid white;'>
+<span style='padding: 0 2% 0 0%;'>[<%= v[:state] %>]</span>
+<span class='material-icons' style='vertical-align: middle;'><%= v[:pfx] %></span>
+
+<span><%= v[:job] %></span>
+</legend>
+<img src='<%= v[:pic] %>'>
+<p><span><%= v[:body] %></span></p>
+</fieldset>
+<% end %>
+<% end %>
 </fieldset>

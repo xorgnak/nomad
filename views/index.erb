@@ -20,6 +20,8 @@ padding: 3%;
 .open { border: thin solid white; padding: 1% 3% 1% 3%; font-size: medium; }
 .tog { border: thin solid white; padding: 1% 3% 1% 3%; font-size: medium; }
 
+#messenger > * { vertical-align: middle; }
+
 legend { padding: 0 2% 0 2%; background-color: black; color: white; border-radius: 50px; }
 
 #broadcast + label { vertical-align: middle; color: black; background-color: white; }
@@ -337,27 +339,66 @@ color: gold;
       <% end %>
 
       <div id='messenger'>
+      <% if OWNERSHIP[request.host] != 'franchise' %>
     <h3 style='width: 100%; text-align: center; margin: 0;'>
     <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; color: black; padding: 0 1% 0 1%'>edit</button>
       <input type='checkbox' id='broadcast' name='message[broadcast]' value='users' style='display: none;'>
       <label for="broadcast" class='material-icons'></label>
-	  <select name='message[zone]' style='width: 65%; text-align: left;'>
-	    <% @user.zones.members.each do |e| %>
-	    <% if "#{e}".length > 0 %>
-	    <% if e == @user.attr[:sponsor] %>
-	    <option value='<%= e %>' selected><%= e %></option>
-	    <% else %>
-	    <option value='<%= e %>'><%= e %></option>
-	    <% end %>
-	    <% end %>
-	    <% end %>
-	  </select>
-	</h3>
-	<h1 style='width: 100%; text-align: center; margin: 0;'>
-	  <input type='text' name='message[body]' placeholder='message...' style='width: 80%;'>
+	  <input type='text' name='message[body]' placeholder='message...' style='width: 60%;'>
 	  <button type='submit' class='ready material-icons' style='vertical-align: middle; background-color: green; padding: 1%; border: none;'>send</button>
         </h1>
-      </div>
+	<% else %>
+	  <datalist id='npt'>
+	    <option value='delivered as ordered'>
+	    <option value='ready'>
+	    <option value='in process'>
+	    <option value='review'>
+	  </datalist>
+	  <datalist id='states'>
+	    <option value='X'>
+	    <option value='*'>
+	    <option value=' '>
+	    <option value='?'>
+	  </datalist>
+	  <datalist>
+	    <% @user.jobs.members.each do |e| %>
+	    <option value='<%= e %>'>
+	      <% end %>
+	  </datalist>
+	  <dialog id='pfxs' style='width: 90%;'>
+	    <div style='border: thin solid black;'>
+	      <p style='margin: 0; padding: 0; width: 100%;'><button style='margin: 0; padding: 0;' class='pfx material-icons' value='add_box'>add_box</button><span>new</span></p>
+	      <p style='font-size: small'>new procurement</p>
+	    </div>
+	    <div style='border: thin solid black;'>
+	      <p style='margin: 0; padding: 0; width: 100%;'><button style='margin: 0; padding: 0;' class='pfx material-icons' value='launch'>launch</button><span>ready</span></p>
+	      <p style='font-size: small'>ready procurement</p>
+	    </div>
+	    <div style='border: thin solid black;'>
+	      <p style='margin: 0; padding: 0; width: 100%;'><button style='margin: 0; padding: 0;' class='pfx material-icons' value='check_box_outline_blank'>check_box_outline_blank</button><span>undone</span></p>
+	      <p style='font-size: small'>undone fulfillment</p>
+	    </div>
+	    <div style='border: thin solid black;'>
+	      <p style='margin: 0; padding: 0; width: 100%;'><button style='margin: 0; padding: 0;' class='pfx material-icons' value='check_box'>check_box</button><span>ok</span></p>
+	      <p style='font-size: small'>passed fulfillment</p>
+	    </div>
+	    <div style='border: thin solid black;'>
+	      <p style='margin: 0; padding: 0; width: 100%;'><button style='margin: 0; padding: 0;' class='pfx material-icons' value='disabled_by_default'>disabled_by_default</button><span>not ok</span></p>
+	      <p style='font-size: small'>failed fulfillment</p>
+	    </div>
+	    
+	  </dialog>
+	  <h3 style='width: 100%; text-align: center; margin: 0;'>
+	  <input type='hidden' id='the_pic' name='message[pic]' value='none'>
+	  <input type='hidden' id='the_pfx' name='message[pfx]' value='none'>
+	  <button id='pfx' type='button' class='material-icons' style='vertical-align: middle; background-color: green; border: none; padding: 1%;' onclick='document.querySelector("#pfxs").showModal();'>north</button>
+	  <input type='text' list='jobs' name='message[job]' placeholder='job...' style='vertical-align: middle; width: 10%;'>
+	  [<input type='text' list='states' name='message[state]' style='vertical-align: middle; width: 15%;'>]
+	  <input type='text' list='npt' name='message[body]' placeholder='message...' style='vertical-align: middle; width: 25%;'>
+	  <button id='pfx' class='ready material-icons' style='vertical-align: middle; background-color: white; border: none; padding: 1%;' disabled>send</button>
+	  </h3>
+	<% end %>
+	</div>
       <% end %>
     </div>
     <%= erb :bank %>
@@ -418,6 +459,14 @@ log('<span class="material-icons">info</span> Add to homescreen to install.');
 <%= erb :mqtt %>
 <%# erb :websocket %>
 
+$(document).on('click', '.ready', function(ev) {
+<% if OWNERSHIP[request.host] == 'franchise' %>
+var pic = $("#canvas").get(0).toDataURL("img/png");
+$('#the_pic').val(pic);
+<% end %>
+$('#form').submit();
+});
+
 $(document).on('change', '#zap', function() {
 $('.magic').hide();
 if ( $('#zap').prop('checked') ) {
@@ -432,8 +481,16 @@ $(document).on('change', '#set_class', function() {
     $('#role').text(roles[$(this).val()]);
 });
 
-$(document).on('click', '.ready', function(ev) {
-    $('#form').submit();
+$(document).on('click', '.pfx', function(ev) {
+ev.preventDefault();
+console.log($(this));
+$('#the_pfx').val($(this).val());
+$('#pfx').text($(this).val());
+$('#pfx').val($(this).val());
+$('#pfx').css('background-color', 'white');
+document.querySelector("#pfxs").close();
+$('.ready').css('background-color', 'green');
+$('.ready').attr('disabled', false);
 });
 
 $(document).on('click', '.open', function(ev) {
