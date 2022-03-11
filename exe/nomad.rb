@@ -935,10 +935,10 @@ class Sash
   end
 
   def colors b,f,d
-    bg = { 0 => 'darkgrey', 1 => 'white', 2 => 'blue', 3 => 'darkgreen', 4 => 'red' }
-    fg = { 0 => 'lightgrey', 1 => 'purple', 2 => 'orange', 3 => 'lightgreen', 4 => 'lightblue' }
-    bd = { 0 => 'darkgrey', 1 => 'silver', 2 => 'gold' }
-    h =  { fg: fg[f.to_i] || 'gold', bg: bg[b.to_i] || 'black', bd: bd[d.to_i] || 'red' }
+    bg = { 0 => 'darkgrey', 1 => 'white', 2 => 'lightblue', 3 => 'lightgreen', 4 => 'red' }
+    fg = { 0 => 'lightgrey', 1 => 'purple', 2 => 'orange', 3 => 'green', 4 => 'blue', 5 => 'red', 6 => 'brown', 7 => 'yellow', 8 => 'magenta' }
+    bd = { 0 => 'darkgrey', 1 => 'purple', 2 => 'orange', 3 => 'green', 4 => 'blue', 5=> 'red', 6 => 'brown', 7 => 'yellow', 8 => 'magenta' }
+    h =  { fg: fg[f.to_i] || 'gold', bg: bg[b.to_i] || 'black', bd: bd[d.to_i] || 'gold' }
   end
   
   def style b,f,d,p,r
@@ -952,19 +952,15 @@ class Sash
   end
 
   def lvl
-    r = []
+    r, ps = [], []
     if @u.attr[:boss].to_i > 0
       "#{@u.attr[:boss]}".length.times {
-        r << %[<span class='material-icons pin'>#{@pins[@u.attr[:class].to_i + 1]}</span>]
+        ps << %[<span class='material-icons pin'>#{@pins[@u.attr[:class].to_i + 1]}</span>]
       }
-      r << %[<br>]
-      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pip'>#{@pins[0]}</span>] }
-      p = style(@u.attr[:bg], @u.attr[:fg], @u.attr[:boss].length, @u.attr[:class], 0)
-    else
-      @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{@pins[0]}</span>] }    
-      p = style(0, 0, 0, 0, 0)
     end
-    return %[<h1 id='lvl' style='#{p[:style]}; text-align: center;'>#{r.join('')}</h1>]
+    @u.attr[:rank].to_i.times { r << %[<span class='material-icons pin'>#{@pins[0]}</span>] }    
+    p = style("#{@u.attr[:boss].to_i}".length - 1, "#{@u.attr[:xp].to_i}".length - 1, @u.attr[:class], @u.attr[:class], 0)
+    return %[<div id='lvl' style='#{p[:style]};'><div>#{ps.join('')}</div><div>#{r.join('')}</div></div>]
   end
   
   def badges
@@ -974,13 +970,23 @@ class Sash
     @awd = @u.awards.members(with_scores: true).to_h
     @stp = @u.stripes.members(with_scores: true).to_h
     BADGES.each_pair do |k,v|
-      @bss[k.to_s] = "#{@bgs[k.to_s].to_i}".length
-      @stp[k.to_s] = "#{@bss[k.to_s].to_i}".length
+      @u.boss[k.to_s] = "#{@bgs[k.to_s].to_i}".length - 1
+      @u.stripes[k.to_s] = "#{@awd[k.to_s].to_i}".length
       t[:badges] += @bgs[k.to_s] || 0
       t[:boss] += @bss[k.to_s] || 0
       t[:awards] += @awd[k.to_s] || 0
       t[:stripes] += @stp[k.to_s] || 0
-      p = style(@bss[k.to_s], @bgs[k.to_s], @awd[k.to_s], @stp[k.to_s], 1000);
+      if @bgs[k.to_s].to_i > 9
+        g = "#{@bgs[k.to_s].to_i}"[-1]
+      else
+        g = @bgs[k.to_s]
+      end
+      if @awd[k.to_s].to_i > 9
+        w = "#{@awd[k.to_s].to_i}"[0]
+      else
+        w = @awd[k.to_s]
+      end
+      p = style(@bss[k.to_s], g, w, @stp[k.to_s], 1000);
       r << %[<button class='material-icons badge' name='give[type]' value='#{k}' style='#{p[:style]}'>#{v}</button>]
     end
     @u.stat[:badges] = t[:badges]
@@ -2274,17 +2280,14 @@ Redis.new.publish 'BOX.out', "#{params}"
       end
       
       if params.has_key?(:give) && "#{params[:give][:type]}".length > 0
+        if @by.id != @user.id
         if params[:give][:of] != nil
-          @user.boss.incr(params[:give][:type])
-        end
-        if @user.boss[params[:give][:type]].to_i > (2 ** "#{@user.awards[params[:give][:type]].to_i}".length)
           @user.awards.incr(params[:give][:type])
+        else
+          @user.badges.incr(params[:give][:type])
         end
-        if @user.awards[params[:give][:type]].to_i > (2 ** "#{@user.stripes[params[:give][:type]].to_i}".length)
-          @user.stripes.incr(params[:give][:type])
         end
-        @user.badges.incr(params[:give][:type])
-        @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{params[:give][:type]} #{params[:give][:of]} - #{DESCRIPTIONS[params[:give][:type].to_sym]}]
+        @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{DESCRIPTIONS[params[:give][:type].to_sym]}<ul><li><span>badges:</span> <span>#{@user.badges[params[:give][:type]].to_i}</span></li><li><span>awards:</span> <span>#{@user.awards[params[:give][:type]].to_i}</span></li><li><span>stripes:</span> <span>#{@user.stripes[params[:give][:type]].to_i}</span></li><li><span>boss:</span> <span>#{@user.boss[params[:give][:type]].to_i}</span></li></ul>]
       end
       if params.has_key? :act
         if params[:act] == 'bank'

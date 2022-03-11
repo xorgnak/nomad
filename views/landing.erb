@@ -5,10 +5,10 @@ textarea { font-size: x-large; width: 100%; }
 </style>
 
 <% if LOCKED[@domain.id] == 'false'  %>
-<a href='<%= @path %>/?landing=edit' class='material-icons'>unlocked</a>
+<a href='<%= @path %>/?landing=edit' class='material-icons' style='text-decoration: none; color: black; background-color: white; padding: 1%; border: thin outset grey;'>lock</a>
 <% end %>
 <% if Redis.new.get('ONION') != nil && ENV['BOX'] == 'true' %>
-<button type='button' onclick='$("#onion").toggle()' class='material-icons'>my_location</button>
+<button type='button' onclick='$("#onion").toggle()' class='material-icons' style='background-color: white; padding: 1%;'>my_location</button>
 <div id='onion' style='display: none;'>
   <div id='qrcode' style='background-color: white; padding: 2%; text-align: center;'></div>
   <script>$('#qrcode').qrcode('<%= Redis.new.get('ONION') %>');</script>
