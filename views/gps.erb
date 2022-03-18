@@ -1,0 +1,72 @@
+    <% if @user.attr.has_key?(:goto)  %>
+    <% @go = @user.attr[:goto].split(',') %>
+    <% else %>
+    <% @go = [0,0] %>
+<% end %>
+var gps_id, target, gps_options;
+var gps_running = true;
+function Point(x,y){
+    this.x = x;
+    this.y = y;
+    this.distanceTo = function (point)
+    {
+	var distance = Math.sqrt((Math.pow(point.x-this.x,2))+(Math.pow(point.y-this.y,2)))
+	return distance;
+    };
+}
+
+function gps_success(pos) {
+    var crd = pos.coords;
+    $('#lon').val(crd.longitude);
+    $('#lat').val(crd.latitude);
+  if (target.latitude === crd.latitude && target.longitude === crd.longitude) {
+    log('Congratulations, you reached the target');
+    navigator.geolocation.clearWatch(id);
+  } else {
+      var dir = '';
+      var dst_y = 0;
+      var dst_x = 0;
+      if (target.latitude < crd.latitude) {
+	  dir += 'N';
+	  dst_y = target.latitude - crd.latitude;
+      } else if (target.latitude > crd.latitude) {
+	  dir += 'S';
+	  dst_y = crd.latitude - target.latitude;
+      }
+      if (target.longitude < crd.longitude) {
+	  dir += 'W';
+	  dst_x = target.longitude - crd.longitude;
+      } else if (target.longitude > crd.longitude) {
+	  dir += 'E'
+	  dst_x = crd.longitude - target.longitude;
+      }
+
+      var here = new Point (crd.longitude, crd.latitude);
+      here.distanceTo(there);
+      console.log(newPoint.distanceTo(nextPoint));
+      log('<span class="material-icons" style="color: green;">navigation</span>go ' + dir + ' for ' + dst + ' arc seconds.');
+  }
+}
+
+function gps_error(err) {
+    if (gps_running == true) {
+	log("<span class='material-icons' style='color: red;'>navigation</span> no navagation available.");
+	gps_running = false;
+    }
+}
+
+target = {
+  latitude : <%= @go[0] %>,
+  longitude: <%= @go[1] %>
+};
+
+gps_options = {
+  enableHighAccuracy: false,
+  timeout: 5000,
+  maximumAge: 0
+};
+
+    <% if @user.attr.has_key?(:goto) %>
+    var there = new Point(<%= @go[0] %>, <%= @go[1] %>);
+    gps_id = navigator.geolocation.watchPosition(gps_success, gps_error, gps_options);
+    <% end %>

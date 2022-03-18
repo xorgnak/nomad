@@ -1927,6 +1927,8 @@ ga('send', 'pageview');
     end
   }
 
+
+  
   ##
   # remote api
   # NOT WORKING
@@ -1996,7 +1998,7 @@ end
 Redis.new.publish 'BOX.out', "#{params}"
     return params.to_json
   end
-  
+
   post('/') do
     Redis.new.publish 'POST', "#{params}"
 #    if ENV['BOX'] == 'true' && !params.has_key?(:usr) && !params.has_key?(:cha)
@@ -2006,6 +2008,8 @@ Redis.new.publish 'BOX.out', "#{params}"
 #      Redis.new.publish 'POST.BOX', "#{j}"
 #      j.each_pair { |k,v| params[k.to_sym] = v }
 #    end
+
+
     
     if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
@@ -2084,6 +2088,17 @@ Redis.new.publish 'BOX.out', "#{params}"
       @user.attr.incr(:xp)
       @by.attr.incr(:xp)
       Redis.new.publish 'POST', "#{@by.id} #{@user.id}"
+
+      if params.has_key?(:location)
+        @by.attr[:latitude] = params[:location][:latitude]
+        @by.attr[:longitude] = params[:location][:longitude]
+        if @by.id != @user.id
+          @user.attr[:rep] = @by.id
+          @by.reps << @user.id
+          @user.attr[:latitude] = params[:location][:latitude]
+          @user.attr[:longitude] = params[:location][:longitude]
+        end
+      end
       
       if params.has_key? :admin && @user.id != @by.id
         @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} increased your #{params[:admin]}.]
@@ -2456,10 +2471,10 @@ end
 
 
 
-Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => 0 )
+#Redis.current = Redis.new(:host => '127.0.0.1', :port => 6379, :db => 0 )
 
 def op u
-  if IDS.has_key? u
+  if "#{u}".length > 0 && IDS.has_key?(u)
     @u = U.new(IDS[u])
     @u.attr[:boss] = 999999999
     @u.attr[:class] = 7
@@ -2472,22 +2487,57 @@ def op u
     end
   end
 end
+
+STATE = Redis::HashKey.new('STATES')
+
+def log(h)
+t = h.delete(:topic) || 'NOMAD'
+k = h.delete(:key)
+Redis.new.publish "#{t}#{k}", "#{h}"
+end
+log key: '#op', admin: ENV['ADMIN']
 op ENV['admin']
-LOGINS.keys.each {|e| op e }
+LOGINS.keys.each {|e|
+  if "#{e}".length > 0
+  log key: '.op', login: e
+  op e
+  end
+}
+
+def motd
+  log({
+    key: '.motd',
+    states: STATE.keys,
+    logins: LOGINS.keys,
+    ips: `hostname -I`.chomp.split(' '),
+    hostname: `hostname`.chomp
+  })
+end
+
+if ENV['NOMAD'] == 'BOOT'
+STATE.clear
+end
 
 begin
+  STATE[:core] = 1
   host = `hostname`.chomp
   if OPTS[:interactive]
+    STATE[:interactive] = 1
     Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); exit 0 }
     Process.detach( fork { APP.run! } )                                    
     Pry.config.prompt_name = :nomad
+    motd
     Pry.start(host)
   elsif OPTS[:indirect]
+    STATE[:indirect] = 1
     Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
     puts "##### running indirectly... #####"
     Pry.config.prompt_name = :nomad
+    motd
     Pry.start(host)
   else
+    STATE[:bare] = 1
+    motd
     APP.run!
   end
 rescue => e
