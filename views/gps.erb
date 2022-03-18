@@ -42,7 +42,7 @@ function gps_success(pos) {
       }
 
       var here = new Point (crd.longitude, crd.latitude);
-      here.distanceTo(there);
+      var dst = here.distanceTo(there);
       console.log(newPoint.distanceTo(nextPoint));
       log('<span class="material-icons" style="color: green;">navigation</span>go ' + dir + ' for ' + dst + ' arc seconds.');
   }
