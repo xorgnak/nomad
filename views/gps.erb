@@ -40,10 +40,9 @@ function gps_success(pos) {
 	  dir += 'E'
 	  dst_x = crd.longitude - target.longitude;
       }
-
-      var here = new Point (crd.longitude, crd.latitude);
+      var there = new Point(0, 0);
+      var here = new Point (dst_x, dst_y);
       var dst = here.distanceTo(there);
-      console.log(newPoint.distanceTo(nextPoint));
       log('<span class="material-icons" style="color: green;">navigation</span>go ' + dir + ' for ' + dst + ' arc seconds.');
   }
 }
