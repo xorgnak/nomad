@@ -34,7 +34,7 @@ function Point(x,y){
     {
 	var deg = Math.sqrt((Math.pow(point.x-this.x,2))+(Math.pow(point.y-this.y,2)))
 	var dst = calcCrow(this.y, this.x, point.y, point.x);
-	return { deg: deg.toFixed(1), dst: dst.toFixed(1) };
+	return { deg: deg.toFixed(1), dst: dst.toFixed(0) };
     };
 }
 
