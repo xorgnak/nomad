@@ -6,13 +6,35 @@
 var gps_id, target, gps_options;
 var gps_running = true;
 var coords = false;
+function calcCrow(lat1, lon1, lat2, lon2)
+{
+    var R = 6371; // km
+    var dLat = toRad(lat2-lat1);
+    var dLon = toRad(lon2-lon1);
+    var lat1 = toRad(lat1);
+    var lat2 = toRad(lat2);
+    
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+    return d;
+}
+
+// Converts numeric degrees to radians
+function toRad(Value)
+{
+    return Value * Math.PI / 180;
+}
+
 function Point(x,y){
     this.x = x;
     this.y = y;
     this.distanceTo = function (point)
     {
-	var distance = Math.sqrt((Math.pow(point.x-this.x,2))+(Math.pow(point.y-this.y,2)))
-	return distance;
+	var deg = Math.sqrt((Math.pow(point.x-this.x,2))+(Math.pow(point.y-this.y,2)))
+	var dst = calcCrow(this.y, this.x, point.y, point.x);
+	return { deg: deg.toFixed(1), dst: dst.toFixed(1) };
     };
 }
 
@@ -47,11 +69,11 @@ function gps_success(pos) {
       var here = new Point (crd.longitude, crd.latitude);
       var dst = here.distanceTo(there);
       if (coords == false) {
-      log('<span id="" class="material-icons" style="color: green;">' + ptr + '</span><span><span id="dst">' + dst + '</span> min.</span>');
+      log('<span id="" class="material-icons" style="color: green;">' + ptr + '</span><span><span id="dst">' + dst.dst + '</span>km.</span>');
       coords = true;
       }
       $('#ptr').text(ptr);
-      $('#dst').text(dst);
+      $('#dst').text(dst.dst);
   }
 }
 
