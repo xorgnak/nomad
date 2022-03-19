@@ -5,6 +5,7 @@
 <% end %>
 var gps_id, target, gps_options;
 var gps_running = true;
+var coords = false;
 function Point(x,y){
     this.x = x;
     this.y = y;
@@ -23,27 +24,34 @@ function gps_success(pos) {
     log('Congratulations, you reached the target');
     navigator.geolocation.clearWatch(id);
   } else {
-      var dir = '';
+      var dir = [];
       var dst_y = 0;
       var dst_x = 0;
       if (target.latitude < crd.latitude) {
-	  dir += 'N';
-	  dst_y = target.latitude - crd.latitude;
+	  dir.push('north');
+//	  dst_y = target.latitude - crd.latitude;
       } else if (target.latitude > crd.latitude) {
-	  dir += 'S';
-	  dst_y = crd.latitude - target.latitude;
+	  dir.push('south');
+//	  dst_y = crd.latitude - target.latitude;
       }
       if (target.longitude < crd.longitude) {
-	  dir += 'W';
-	  dst_x = target.longitude - crd.longitude;
+	  dir.push('west');
+//	  dst_x = target.longitude - crd.longitude;
       } else if (target.longitude > crd.longitude) {
-	  dir += 'E'
-	  dst_x = crd.longitude - target.longitude;
+	  dir.push('east');
+//	  dst_x = crd.longitude - target.longitude;
       }
-      var there = new Point(0, 0);
-      var here = new Point (dst_x, dst_y);
+      var ptr = dir.join('_');
+      var there = new Point(<%= @go[0] %>, <%= @go[1] %>);
+//      var here = new Point (dst_x, dst_y);
+      var here = new Point (crd.longitude, crd.latitude);
       var dst = here.distanceTo(there);
-      log('<span class="material-icons" style="color: green;">navigation</span>go ' + dir + ' for ' + dst + ' arc seconds.');
+      if (coords == false) {
+      log('<span id="" class="material-icons" style="color: green;">' + ptr + '</span><span><span id="dst">' + dst + '</span> min.</span>');
+      coords = true;
+      }
+      $('#ptr').text(ptr);
+      $('#dst').text(dst);
   }
 }
 
