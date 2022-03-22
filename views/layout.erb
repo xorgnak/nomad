@@ -32,10 +32,10 @@ body { margin: 0; padding: 0; }
 <input type='hidden' id='u' name='u' value='<%= params[:u] || @id %>'>
 <% if params.has_key?(:x) %>
 <input type='hidden' id='z' name='z' value='<%= params[:z] || 'zzzzzz' %>'>
-<input type='hidden' id='x' name='x' value='<%= params[:x] || 'solo' %>'>
+<input type='hidden' id='x' name='x' value='<%= params[:x] %>'>
 <input type='hidden' id='ts' name='ts' value='<%= params[:ts] || @ts %>'>
+<% end %>
 <input type='hidden' id='lat' name='location[latitude]' value='<%= params[:lat] %>'>
 <input type='hidden' id='lon' name='location[longitude]' value='<%= params[:lon] %>'>
-<% end %>
 <%= yield %>  
 </form>

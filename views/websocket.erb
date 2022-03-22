@@ -9,10 +9,10 @@ const formToJSON = (elements) =>
 	  {},
       );
 
-    <% if request.scheme == 'http' %>
-    var ws = new WebSocket('ws://' + window.location.host + '/ws');
+    <% if ENV['BOX'] == 'false' %>
+    var ws = new WebSocket('ws://<%= request.host %>/ws');
     <% else %>
-    var ws = new WebSocket('wss://' + window.location.host + '/ws');
+    var ws = new WebSocket('wss://<%= request.host %>/ws');
     <% end %>
 
 ws.onopen    = function()  {
@@ -44,6 +44,3 @@ $(document).on('click', '#msg', function(ev) {
     input.value = "";
     ws.send(JSON.stringify(h));
 });
-
-
-

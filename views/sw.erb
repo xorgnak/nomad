@@ -17,7 +17,7 @@ navigator.serviceWorker.ready.then(function(sw) {
 		vapid = s;
 		console.log(s);
 	    });
-	    $.post("/sw?u=<%= params[:u] %>", { subscription: JSON.stringify(vapid) });
+	    $.post("<%= @path %>/sw?u=<%= params[:u] %>", { subscription: JSON.stringify(vapid) });
 	}
     });
 });

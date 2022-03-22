@@ -1,4 +1,4 @@
-<%# if /^https/.match(request.url) %>
+<%# if ENV['BOX'] == 'false' %>
 var client = new Paho.Client('<%= request.host %>', 8883, "<%= @id %>");
 <%# else %>
 //var client = new Paho.Client('<%= request.host %>', 8083, "<%= @id %>");
@@ -14,19 +14,20 @@ onSuccess: onConnect,
 userName: '<%= @id %>',
 password: 'password',
 cleanSession: true,
-useSSL: true
+<% if ENV['BOX'] == 'false' %>
+,useSSL: true
+<% end %>
 });
 }
 
 // called when the client connects
 function onConnect() {
     // Once a connection has been made, make a subscription and send a message.
-    console.log("onConnect");
+    console.log("onConnect:", '<%= @id %>');
     client.subscribe("<%= @id %>");
-    
-    //message = new Paho.MQTT.Message("OK");
-    //message.destinationName = "INIT";
-    //client.send(message);
+    message = new Paho.Message("OK:<%= @id %>");
+    message.destinationName = "INIT";
+    client.send(message);
 }
 
 // called when the client loses its connection

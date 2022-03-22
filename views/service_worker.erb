@@ -50,12 +50,15 @@ self.addEventListener('notificationclick', function(event) {
     )
 });
 
-self.registration.showNotification( '<%= OPTS[:domain] %>', {
-    tag: 'nomad.' + '<%= OPTS[:domain] %>',
-    body: 'runing!',
+//console.log('sw', otk, at);
+
+
+self.registration.showNotification( '<%= request.host %>', {
+    tag: 'nomad.' + '<%= request.host %>',
+    body: 'state: OK',
+//    body: 'last update: <%= Time.now.utc %>\nsponsor: <%= @user.attr[:sponsor] %>',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    image: '/QR<%= params[:u] %>.png',
     vibrate: [500,100,500],
     timestamp: '<%= Time.now.utc.to_i %>'
 });

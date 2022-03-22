@@ -531,7 +531,7 @@ class Tracks
 
   #                  U   "say this" -> new track
   # zone, waypoint, password, for
-  def mark z, w, p, f
+  def mark z, w, p, f, a
     Redis.new.publish "WAYPOINT.mark", "#{z} #{w} #{p} #{f}"
     if "#{z}".length > 0 && "#{w}".length > 0 && "#{p}".length > 0 && "#{f}".length > 0
     @a = Adventure.new(adventure(z))
@@ -542,6 +542,7 @@ class Tracks
     @u.waypoints << @a[w].id
     @a.contributors << @u.id
     @a[w].passwords[p] = { for: f }
+    @a[w].attr[:goto] = a
     end
   end
   
@@ -1504,7 +1505,7 @@ class APP < Sinatra::Base
     def notify u, h={}
       @u = U.new(u)
       @v = JSON.parse(@u.attr[:vapid])
-      Redis.new.publish('NOTIFY', "#{@v}")
+      Redis.new.publish('NOTIFY', "#{u} #{@v} #{h}")
       Webpush.payload_send(
         message: JSON.generate(h),
         endpoint: @v['endpoint'],
@@ -1579,8 +1580,8 @@ class APP < Sinatra::Base
     end
     @path = %[#{s}://#{@domain.id}];
     @term = K.new(params[:u]);
-    Redis.new.publish("BEFORE", "#{@path} #{@domain}")
     @tree = Tree.new(@domain.id)
+    Redis.new.publish("BEFORE", "#{@domain.id} #{@term} #{@tree}")
   }
   
   get('/favicon.ico') { return '' }
@@ -1605,9 +1606,13 @@ class APP < Sinatra::Base
   get('/shell') { erb :shell, layout: false }
   get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
   post('/sw') {
+    Redis.new.publish('SW', "#{params}")
     @user = U.new(params[:u])
-    @user.attr[:vapid] ||= JSON.generate(params[:subscription])
-    notify(params[:u], title: @domain.id, body: 'connected')
+    
+    if params.has_key? :subscription
+      @user.attr[:vapid] = JSON.generate(params[:subscription])
+      notify(params[:u], title: @domain.id, body: 'connected')
+    end
   }
   
   get '/dx' do
@@ -1875,7 +1880,7 @@ ga('send', 'pageview');
     Redis.new.publish('GET.otp', "#{session[:otp]} #{OTP.all}")
     if QRO.has_key? params[:u]
       if token(params[:u]) == 'true'
-        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i && OTP[params[:u]] == session[:otp]
+        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i
           ot = []; 6.times { ot << rand(16).to_s(16) }; @otk = ot.join('')
           OTK[params[:u]] = @otk
           @vapid = Webpush.generate_key;
@@ -2218,7 +2223,11 @@ Redis.new.publish 'BOX.out', "#{params}"
         Redis.new.publish "WAYPOINT", "#{params} #{params[:waypoint]}"
         if "#{params[:waypoint][:new][:say]}".length > 0
           v = params[:waypoint][:new]
-          TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:for]
+          if v[:at] == nil
+            TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:for], "#{params[:location][:latitude] || 0},#{params[:location][:longitude] || 0}"
+          else
+            TRACKS[request.host].mark @by.attr[:sponsor], @by.id, v[:say], v[:for], Zone.new(@by.attr[:sponsor]).attr[:goto]
+          end
         end
       end
 
@@ -2254,6 +2263,7 @@ Redis.new.publish 'BOX.out', "#{params}"
           t = {}; ts = params[:track].split('@')
           tp = ts[0].split('|')
           tf = ts[1].split('#')
+          @user.attr[:goto] = Adventure.new(tf[0])[tp[1]].attr[:goto]
           @user.log << %[<span class='material-icons' style='color: blue;'>#{BADGES[tf[1].to_sym]}</span> Go to #{tf[0]}, meet #{U.new(tp[1]).attr[:name]} and say "#{tp[0]}"]
         end
       end
@@ -2318,6 +2328,7 @@ Redis.new.publish 'BOX.out', "#{params}"
           @tree.link[params[:sponsor][:name]] = @by.attr[:zone] || @tree.attr[:lobby] || request.host
           ZONES << params[:sponsor][:name]
           z = Zone.new(params[:sponsor][:name])
+          z.attr[:goto] = "#{params[:location][:latitude]},#{params[:location][:longitude]}"
           z.attr[:owner] = @by.id
           z.attr[:admin] = @by.id
           z.pool << @by.id

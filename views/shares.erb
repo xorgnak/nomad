@@ -3,7 +3,7 @@
   h1 > * { vertical-align: middle; }
   input { width: 60%; }
 </style>
-<div id='shares' class='' style='display: none;'>
+<div id='shares' class='' style=''>
   
   <% @tot = Shares.shares(request.host) %>
   <fieldset><legend>ownership</legend>
@@ -41,7 +41,6 @@
 <h3 style='text-align: center; width: 100%; margin: 0;'>
   <span id='s_desc'></span>
   <span id='s_tot'></span>
-  <button type='submit' id='s_ready' class='material-icons' style='display: none;' name='act' value='shares'>confirmation_number</button>
 </h3>
 </fieldset>
 </div>

@@ -3,7 +3,7 @@
 #bank > h1 > * { vertical-align: middle; }
 #bank > h1 > input { width: 60%; }
 </style>
-<fieldset id='bank' class='displays' style='text-align: center; display: none; overflow-y: scroll;'><legend>bank</legend>
+<fieldset id='bank' class='displays' style='text-align: center; display: none; overflow-y: scroll; height: 85vh;'><legend>bank</legend>
 <h3 style='width: 100%; margin: 0; text-align: center;'>
 <input type='range' id='b_slider' step='1' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value).to_i %>' value='<%= @user.coins.value %>' style='width: 100%;'>
 </h3>

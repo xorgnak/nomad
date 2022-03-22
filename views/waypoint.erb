@@ -26,9 +26,9 @@
 </datalist>
 <h3 style='width: 100%; text-align: center;'>
 
-<input list='words' name='waypoint[new][say]' style='width: 45%;' placeholder='SAY'>
+<input list='words' name='waypoint[new][say]' style='width: 35%;' placeholder='SAY'>
 
-<select name='waypoint[new][for]' style='width: 45%;'>
+<select name='waypoint[new][for]' style='width: 35%;'>
 <option selected disabled>FOR</option>
 <% BADGES.each_pair do |k,v| %>
 <%# if @user.badges[k].to_i > 0 %>
@@ -36,5 +36,7 @@
 <%# end %>
 <% end %>
 </select>
+<input type='checkbox' id='pinned' name='waypoint[new][at]' value='users' style='display: none;'>
+<label for="pinned" class='material-icons'></label>
 </h3>
 </fieldset>

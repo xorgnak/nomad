@@ -71,6 +71,15 @@ color: gold;
   color: green;
 }
 
+#pinned + label { vertical-align: middle; }
+
+#pinned + label:before {
+  content: "emergency_share";
+}
+
+#pinned:checked + label:before {
+  content: "crop";
+}	   
 </style>
 
 <% @a = @user.attr.all %>
@@ -196,14 +205,18 @@ color: gold;
 	<li style='background-color: white; color: black; margin: 0;'>
 	  <span class='material-icons' style='padding: 2%; vertical-align: middle;'>toll:</span>
 	  <span>
-	    <% if @user.attr[:class].to_i > 3 %>
-	    <input type='number' name='xfer' min='-100' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>
+	  <% if @user.attr[:class].to_i > 6 %>
+	              <input type='number' name='xfer' min='-10' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>
+		       
+	  <% elsif @user.attr[:class].to_i > 5 %>
+	              <input type='number' name='xfer' min='-100' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>		       
+	    <% elsif @user.attr[:class].to_i > 3 %>
+	    <input type='number' name='xfer' min='-10' max='<%= @user.coins.value %>' value='0' style='width: 25%;'>
 	    <% else %>
 	    <input type='number' name='xfer' min='0' max='<%= @user.coins.value %>' value=''0 style='width: 25%;'>
 	    <% end %>
 	  </span>
 	</li>
-
 
 	<li><span style='padding: 2%;'>rank:</span>
 	  <% if @user.attr[:class].to_i >= 3 %>
@@ -218,7 +231,7 @@ color: gold;
 	
 	<% if !params.has_key?(:ts) %>
 	<li><span style='padding: 2%;'>boss:</span>
-	  <% if @user.attr[:class].to_i >= 3 %>
+	  <% if @user.attr[:class].to_i >= 5 %>
 	  <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
 	  <% end %>
 	  <% if @user.attr[:class].to_i >= 6 %>
@@ -229,7 +242,7 @@ color: gold;
 	</li>
 	
 	<li><span style='padding: 2%;'>class:</span>
-	  <% if @user.attr[:class].to_i > 2 %>
+	  <% if @user.attr[:class].to_i > 4 %>
 	  <span id='class'></span>
 	  <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
     <% else %>
@@ -406,6 +419,7 @@ color: gold;
     </div>
     <%= erb :bank %>
     <%= erb :report %>
+    <% if @user.attr[:class].to_i > 0 %>
     <nav id='menu' style='width: 100%; font-size: small; text-align: center;'>
     <button class='open material-icons' id='open_log' value='log' style='border-color: orange;'>toc</button>
     <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
@@ -418,15 +432,38 @@ color: gold;
     <% end %>
     <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble').gsub('://', "://#{@user.attr[:name] || 'nomad'}@") %>:<%= MUMBLE[request.host] || '64738' %>/?version=1.2.0">headset_mic</a>
     </nav>
+    <% end %>
     <% @user.log.clear() %>
 		      
   </div>
   <script>
   var roles = ['user', 'influencer', 'ambassdor', 'manager', 'agent', 'operator', 'owner', 'developer']
 
-<% if /^https/.match(request.url) %>
+var otk = localStorage.getItem('otk');
+var at = localStorage.getItem('at');
+
+if (otk == null) {
+localStorage.setItem('otk', '<%= @otk %>');
+localStorage.setItem('at', '<%= Time.now.utc.to_i %>');
+otk = localStorage.getItem('otk');
+}
+console.log('otk', otk, at);
+
+if ( parseInt(at) > <%= Time.now.utc.to_i - (((60 * 60) * 24) * 7) %> ) {
+localStorage.setItem('at', '<%= Time.now.utc.to_i %>');
+at = localStorage.getItem('at');
+} else {
+//<% if ENV['BOX'] != 'true'  %>
+//window.location = '<%= @path %>/?w=<%= @otk %>'
+//<% else %>
+//window.location = '<%= @path %>'
+//<% end %>
+console.log('at', at, (parseInt(at) + (((60 * 60) * 24) * 7)), <%= Time.now.utc.to_i %>);
+}
+
+<%# if /^https/.match(request.url) %>
   <%= erb :sw %>
-  <% end %>
+  <%# end %>
 
 var sender = true;
 $('#qrcode').qrcode('<%= @qr %>/<%= badge(@user.id).member %>');

@@ -1,0 +1,41 @@
+<% @user = U.new(params[:u]) %>
+<% @zone = Zone.new(params[:z]) %>
+<h3>Hello, <input name='config[name]'></h3>
+<p>Welcome to the <%= @zone.id %> zone.  There are a couple tools that you should know about.</p>
+<div style='overflow-y: scroll; height: 50%;'>
+<fieldset>
+<legend>main interface</legend>
+  <fieldset>
+  <legend>qr scanner</legend>
+  <p>Your scanner allows you to send referrals (adventure waypoints), reward collegues (badges), and send your digital business card to clients. (callback).  These are powerfull tools which can be leveraged to great effect.  Ask your referrer for more information about how these tools are used in this zone.</p>
+  </fieldset>
+  <fieldset>
+  <legend>qr badge</legend>
+  <p>Your badge shows your qualifications and awards to others and shows your sponsorship affiliation to others.  It is your portal with the network.</p>
+  </fieldset>
+  <fieldset>
+  <legend>messages</legend>
+  <p>The messenger allows you to leave notes to zone members and release special offers.  Offers are only posted once.</p>
+  </fieldset>
+</fieldset>
+<fieldset>
+<legend class='material-icons'>edit</legend>
+  <fieldset>
+  <legend>waypoint</legend>
+  <p>You can vote on the busyness of your waypoint with the slider.</p>
+  </fieldset>
+
+  <fieldset>
+  <legend>passwords</legend>
+  <p>A waypoint is a specific stop within a zone on an adventure.  It has a password and a badge.  When a player is sent to your waypoint the will be directed to your zone and given the password.</p>
+  </fieldset>
+</fieldset>
+
+
+<fieldset>
+<legend></legend>
+<p></p>
+</fieldset>
+
+</div>
+<h3></h3>
