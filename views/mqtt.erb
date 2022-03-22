@@ -13,7 +13,7 @@ client.connect({
 onSuccess: onConnect,
 userName: '<%= @id %>',
 password: 'password',
-cleanSession: true,
+cleanSession: true
 <% if ENV['BOX'] == 'false' %>
 ,useSSL: true
 <% end %>
