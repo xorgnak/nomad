@@ -248,7 +248,7 @@ color: gold;
 	<li><span style='padding: 2%;'>class:</span>
 	  <% if @user.attr[:class].to_i > 4 %>
 	  <span id='class'></span>
-	  <input id='set_class' name='admin[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
+	  <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
     <% else %>
     <span id='class'></span>
 	</li>
