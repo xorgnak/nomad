@@ -152,8 +152,8 @@ color: gold;
       <select id='chance' name='config[chance]' style='width: 30%;'>
 	<option selected disabled>chance</option>
 	<option>none</option>
-	<option value='card'>card</option>
-	<option value='coin'>coin</option>
+<!--	<option value='card'>card</option> -->
+<!--	<option value='coin'>coin</option> -->
 	<option value='dice'>dice</option>
       </select>
       <span style='width: 65%'>
@@ -195,7 +195,7 @@ color: gold;
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; overflow-y: scroll;'>
     <fieldset>
       <legend style='padding: 0 3% 0 3%;'>
-      <input type='checkbox' id='zap' name='zap' value='true' style='display: none;' checked>
+      <input type='checkbox' id='zap' name='zap' value='true' style='display: none;'>
       <label for="zap" class='material-icons'></label>
       <input type='text' id='scan' name='scan' value='<%= @id %>' style='width: 50%; color: white;' disabled></legend>
       <fieldset><legend>attributes</legend>
