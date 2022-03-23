@@ -348,7 +348,7 @@ color: gold;
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
 
-      <% if @user.attr.has_key? :zone %>
+      <% if @user.attr.has_key? :sponsor %>
 
 
       <% if OWNERSHIP[request.host] != 'franchise' %>
@@ -363,7 +363,7 @@ color: gold;
     <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; color: black; padding: 0 1% 0 1%'>edit</button>
       <input type='checkbox' id='broadcast' name='message[broadcast]' value='users' style='display: none;'>
       <label for="broadcast" class='material-icons'></label>
-	  <input type='text' name='message[body]' placeholder='[<%= @user.attr[:zone] %>]>' style='width: 60%;'>
+	  <input type='text' name='message[body]' placeholder='[<%= @user.attr[:sponsor] %>]>' style='width: 60%;'>
 	  <button type='submit' class='ready material-icons' style='vertical-align: middle; background-color: green; padding: 1%; border: none;'>send</button>
         </h1>
 	<% else %>
