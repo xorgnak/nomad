@@ -131,7 +131,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <div style='width: 100%; text-align: center;'>
  <h3 style='width: 100%; text-align: center; margin: 0;'>
   <% if @user.attr[:chance] == 'card' %>
-   <% @res = @chance.result[:hand].map {|e| "#{e[:card]}#{e[:suit]}" }.join(", ") %>
+   <% @res = @chance.result[:hand] %>
   <% elsif @user.attr[:chance] == 'coin' %>
    <% @res = @chance.result[:toss] %>
   <% elsif @user.attr[:chance] == 'dice' %>
