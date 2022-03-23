@@ -2214,7 +2214,7 @@ Redis.new.publish 'BOX.out', "#{params}"
           end
         }
         l.each {|e|
-          @by.log << %[<span class='material-icons'>info</span> #{e}]
+          @user.log << %[<span class='material-icons'>info</span> #{e}]
         }
       end
       
