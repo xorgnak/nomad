@@ -1037,6 +1037,7 @@ class U
   set :visited
   set :jobs
   set :items
+  set :reps
   sorted_set :wallet
   sorted_set :awards
   sorted_set :stripes
