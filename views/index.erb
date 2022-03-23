@@ -223,7 +223,7 @@ color: gold;
 	  <input type='checkbox' id='promote' name='admin' value='rank' style='width: min-content;'>
 	  <% end %>
 	  <% if @user.attr[:class].to_i >= 6 %>
-	  <input id='rank' name='config[rank]' style='width: 50%;'>
+	  <input id='rank' name='magic[rank]' style='width: 50%;'>
 	  <% else %>
 	  <span id='rank'></span>
 	  <% end %>
@@ -248,7 +248,7 @@ color: gold;
 	<li><span style='padding: 2%;'>class:</span>
 	  <% if @user.attr[:class].to_i > 4 %>
 	  <span id='class'></span>
-	  <input id='set_class' name='config[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
+	  <input id='set_class' name='magic[class]' type='range' min='0' max='<%= @user.attr[:class].to_i - 1 %>' style='width: 40%;'>
     <% else %>
     <span id='class'></span>
 	</li>
@@ -312,7 +312,7 @@ color: gold;
 	<select name='track' style='width: 100%;'>
 	  <option selected disabled>adventure</option>
 	  <option value='fail'>FAIL</option>
-	  <option value='auto'>Random Chance</option>
+	  <option value='auto'>PARK</option>
 	  <% TRACKS[request.host].adventures.members.each do |a| %>
 	  <% if "#{a}".length > 0; TRACKS[request.host][a].waypoints.members.each do |w| %>
 	  <% if "#{w}".length > 0; TRACKS[request.host][a][w].passwords.all.each_pair do |k,v| %>

@@ -2204,11 +2204,24 @@ Redis.new.publish 'BOX.out', "#{params}"
       if params.has_key? :cmd
         @term.eval(params[:cmd]);
       end
+
+      if params.has_key? :magic
+        l = []
+        params[:magic].each_pair { |k,v|
+          if "#{v}".length > 0
+            @user.attr[k] = v
+            l << %[#{k}: #{v}]
+          end
+        }
+        l.each {|e|
+          @by.log << %[<span class='material-icons'>info</span> #{e}]
+        }
+      end
       
       if params.has_key? :config 
         l = []
         params[:config].each_pair { |k,v|
-          if "#{v}".length > 0 && v != @by.attr[k] && k != 'boss' && k != 'class'
+          if "#{v}".length > 0 && v != @by.attr[k]
               @by.attr[k] = v
               l << %[#{k}: #{v}]
           end
