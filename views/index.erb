@@ -429,10 +429,8 @@ color: gold;
     <button class='open material-icons' id='open_sender' value='sender'>contact_phone</button>
     <button class='open material-icons' id='open_bank' value='bank'>savings</button>
     <button class='open material-icons' id='open_report' value='report'>report</button>
-    <% if @user.attr[:class].to_i >= 5 %>
+    <% if @user.attr[:class].to_i >= 3 %>
     <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: red;'>terminal</a>
-    <% elsif @user.attr[:class].to_i < 5 && @user.attr[:class].to_i >= 2 %>
-    <button class='open material-icons' id='open_waypoint' value='waypoint'>location</button>
     <% end %>
     <a class='tog material-icons' style="color: white; text-decoration: none; color: white; border-color: blue;" href="<%= @path.gsub('https', 'mumble').gsub('http','mumble').gsub('://', "://#{@user.attr[:name] || 'nomad'}@") %>:<%= MUMBLE[request.host] || '64738' %>/?version=1.2.0">headset_mic</a>
     </nav>
