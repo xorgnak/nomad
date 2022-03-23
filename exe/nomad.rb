@@ -2221,7 +2221,7 @@ Redis.new.publish 'BOX.out', "#{params}"
       if params.has_key? :config 
         l = []
         params[:config].each_pair { |k,v|
-          if "#{v}".length > 0 && v != @by.attr[k]
+          if "#{v}".length > 0 && v != @by.attr[k] && k != :boss && k != :class && k != :rank
               @by.attr[k] = v
               l << %[#{k}: #{v}]
           end
