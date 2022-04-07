@@ -43,7 +43,7 @@ textarea { font-size: x-large; width: 100%; }
     <% end %>
 <% else %>
 
-  <% if params[:landing] == 'edit' && LOCKED[@domain.id] == 'false' %>
+  <% if LOCKED[@domain.id] == 'false' && params.has_key?(:edit) %>
   <% if ENV['BOX'] == 'true' %>
   <fieldset><legend>box</legend>
 	<input type='text' placeholder='mumble' name='conf[mumble]' value='<%= MUMBLE[request.host] %>'></p>
