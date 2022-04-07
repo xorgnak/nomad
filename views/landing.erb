@@ -90,7 +90,7 @@ textarea { font-size: x-large; width: 100%; }
       <% end %>
       <button style='width: 80%; background-color: green; color: white;'>ASK</button></div>
   <% end %>
-  <% if !params.has_key?(:landing); !params.has_key?(:quick) && ENV['BOX'] == 'true' && LOCKED[@domain.id] != 'false' && !params.has_key?(:edit) %>
+  <% if !params.has_key?(:edit); !params.has_key?(:quick) && ENV['BOX'] == 'true' %>
       <h1><input type='text' name='login[username]' maxlength='20' placeholder='username' style='text-align: center;'></h1>
       <h1><input type='text' name='login[password]' maxlength='20' placeholder='password' style='text-align: center;'></h1>
       <h1><button>login</button></h1>
