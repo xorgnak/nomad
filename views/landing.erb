@@ -5,7 +5,7 @@ textarea { font-size: x-large; width: 100%; }
 </style>
 
 <% if LOCKED[@domain.id] == 'false'  %>
-<a href='<%= @path %>/?landing=edit' class='material-icons' style='text-decoration: none; color: black; background-color: white; padding: 1%; border: thin outset grey;'>lock</a>
+<a href='<%= @path %>/?edit=true' class='material-icons' style='text-decoration: none; color: black; background-color: white; padding: 1%; border: thin outset grey;'>lock</a>
 <% end %>
 <% if Redis.new.get('ONION') != nil && ENV['BOX'] == 'true' %>
 <button type='button' onclick='$("#onion").toggle()' class='material-icons' style='background-color: white; padding: 1%;'>my_location</button>
