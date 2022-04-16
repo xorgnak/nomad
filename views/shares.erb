@@ -6,7 +6,6 @@
 <div id='shares' class='' style=''>
   
   <% @tot = Shares.shares(request.host) %>
-  <fieldset><legend>ownership</legend>
     <ul>
       <li>
 	<span>you own:</span>
@@ -19,8 +18,6 @@
       </li>
       <% end %>
     </ul>
-  </fieldset>
-  <fieldset><legend>shares</legend>
     <h3 id='s_amt' style='text-align: center; width: 100%; margin: 0;'>
       <span class='material-icons'>savings</span><%= Shares.cost(request.host) %></span>
 <select name='shares[mode]'>
@@ -42,7 +39,6 @@
   <span id='s_desc'></span>
   <span id='s_tot'></span>
 </h3>
-</fieldset>
 </div>
 
   

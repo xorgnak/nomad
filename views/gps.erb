@@ -64,7 +64,7 @@ function gps_success(pos) {
 //	  dst_x = crd.longitude - target.longitude;
       }
       var ptr = dir.join('_');
-      var there = new Point(<%= @go[0] %>, <%= @go[1] %>);
+      var there = new Point(<%= @go[0] || 0 %>, <%= @go[1] || 0 %>);
 //      var here = new Point (dst_x, dst_y);
       var here = new Point (crd.longitude, crd.latitude);
       var dst = here.distanceTo(there);
@@ -85,8 +85,8 @@ function gps_error(err) {
 }
 
 target = {
-  latitude : <%= @go[0] %>,
-  longitude: <%= @go[1] %>
+  latitude : <%= @go[0] || 0 %>,
+  longitude: <%= @go[1] || 0 %>
 };
 
 gps_options = {
@@ -96,6 +96,6 @@ gps_options = {
 };
 
     <% if @user.attr.has_key?(:goto) %>
-    var there = new Point(<%= @go[0] %>, <%= @go[1] %>);
+    var there = new Point(<%= @go[0] || 0 %>, <%= @go[1] || 0 %>);
     gps_id = navigator.geolocation.watchPosition(gps_success, gps_error, gps_options);
     <% end %>

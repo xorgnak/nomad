@@ -3,6 +3,7 @@
 #q_sponsor > h1 > * { vertical-align: middle; }
 #q_abilities > li { font-size: small; }
 #q_sponsor > .class { padding: 0 2% 0 2%; border: thin solid black; }
+#q_abilities { text-align: left; }
 </style>
 <div id='sponsorship' class='' style=''>
 <h4 style='margin: 0; width: 100%; text-align: center;'>
@@ -37,7 +38,6 @@
 <% end %>
 </datalist>
 <h1 id='q_name' list='zones' style='width: 100%; text-align: center; display: none;'><input type='text' name='sponsor[name]' placeholder='ZONE' style='width: 70%;'>
-<button id='rdy' class='ready material-icons' style='display: none;' name='act' value='sponsor'>send</button>
 </h1>
 
 </fieldset>
@@ -48,12 +48,11 @@ ev.preventDefault();
 var desc = "with " + $('#q_qty').val() + " class " + $('#q_type').val() + " users at <span class='material-icons' style='font-size: large;'>savings</span>" + ( 2 ** $('#q_type').val()) + " for " + ($('#q_dur').val() * $('#q_tf').val()) + " hours who can...";
 var amt = (( $('#q_qty').val() * ( 2 ** $('#q_type').val()) ) * ( $('#q_dur').val() * $('#q_tf').val() ));
 var abilities = [ "vote in contests.", "generate content.", "send invites.", "administer waypoints.", "administer zones.", "move between zones and administer contests." ].slice(0, $('#q_type').val());
-var ab = "<ul id='abilities'>"
-
+var ab = "";
 abilities.forEach(function(item, index, arr) {
   ab += "<li><span class='ability'>" + item + "</li>";
 });
-ab += "</ul>";
+
 $('#q_abilities').html(ab);
 $('#q_desc').html(desc);
 $('#q_amt').html("<span><span class='material-icons'>savings</span>" + amt + "</span>");

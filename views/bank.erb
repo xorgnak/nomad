@@ -14,24 +14,30 @@
 <input id='b_credit' class='b' type='number' min='0' max='<%= (Bank.wallet[@user.id].to_i + @user.coins.value || 0).to_i %>' name='bank[credit]' value='<%= Bank.wallet[@user.id] %>' style='width: 25%;'>
 </h3>
 <% if Bank.wallet[@user.id].to_i > 0 %>
-<fieldset><legend class='material-icons'>cabin</legend>
+<fieldset>
     <% if OWNERSHIP[request.host] == 'franchise' %>
+    <% if Shares.by(request.host)[@user.id].to_i > 0 %>
+    <legend class=''>franchise</legend>
     <%= erb :franchisee %>
+    <% end %>
     <% else %>
+    <legend class=''>sponsor</legend>
     <%= erb :sponsor %>
     <% end %>
     </fieldset>
     <% end %>
     <% if Bank.wallet[@user.id].to_i > 0 || Shares.by(request.host)[@user.id].to_i > 0 %>
-    <fieldset><legend class='material-icons'>confirmation_number</legend>
+    <fieldset>
     <% if OWNERSHIP[request.host] == 'franchise' %>
+    <legend class=''>claims</legend>
     <%= erb :franchise %>
     <% else %>
+    <legend class=''>shares</legend>
     <%= erb :shares %>
     <% end %>
     </fieldset>
     <% end %>
-    <button type='submit' class='ready material-icons' name='act' value='bank' style='color: green;'>account_balance</button>
+    <button type='submit' class='ready' name='act' value='bank' style='color: green;'>transact</button>
 </fieldset>    
 <script>
 <% if params.has_key? :bare %>

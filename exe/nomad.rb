@@ -2205,7 +2205,7 @@ Redis.new.publish 'BOX.out', "#{params}"
         @term.eval(params[:cmd]);
       end
 
-      if params.has_key? :magic
+      if params.has_key?(:magic) && @user.id != @by.id
         l = []
         params[:magic].each_pair { |k,v|
           if "#{v}".length > 0
@@ -2226,6 +2226,20 @@ Redis.new.publish 'BOX.out', "#{params}"
               l << %[#{k}: #{v}]
           end
         }
+        if "#{@by.attr[:title]}".length > 0 && "#{@by.attr[:zone]}".length > 0
+          t = Time.now.utc
+          if @by.attr[:class].to_i > 3
+            ttt = "#{t.strftime('%Y')}"
+          else
+            ttt = "#{t.strftime('%B')} #{t.strftime('%Y')}"
+          end
+          co = %[Best #{@by.attr[:title]} in #{@by.attr[:zone]} #{ttt}]
+          VOTES << co
+          Contest.new(co).pool << @by.id
+          @by.attr['vote'] = co
+          @by.log << %[<span class='material-icons'>emoji_events</span> You are in the "#{co}" contest.]
+        end
+        
         l.each {|e|
           @by.log << %[<span class='material-icons'>info</span> #{e}]
         }
@@ -2293,19 +2307,12 @@ Redis.new.publish 'BOX.out', "#{params}"
         VOTES << params[:vote]
         Contest.new(params[:vote]).pool << @user.id
         @user.attr['vote'] = params[:vote]
-        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} entered you in #{params[:vote]}.]
+        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} entered you in the "#{params[:vote]}" contest.]
       end
 
       if params.has_key?(:contest)
         contest(params[:contest]).votes.incr(@user.id)
         contest(params[:contest]).voters.incr(params[:z])
-      end
-      
-      if params.has_key?(:zone) && params[:zone] != ''
-#        ZONES << params[:zone]
-        Zone.new(params[:zone]).pool << @user.id
-        @user.zones << params[:zone]
-        @user.log << %[<span class='material-icons'>info</span> #{@by.attr[:name] || @by.id} added you to the #{params[:zone]} zone.]
       end
       
       if params.has_key?(:title) && params[:title] != ''
@@ -2317,7 +2324,7 @@ Redis.new.publish 'BOX.out', "#{params}"
       if params.has_key? :zap && params[:zap] == true
         Chance.new(@by.id).zap(@user.id)
       end
-      
+
       if params.has_key?(:give) && "#{params[:give][:type]}".length > 0
         if @by.id != @user.id
         if params[:give][:of] != nil
@@ -2328,12 +2335,15 @@ Redis.new.publish 'BOX.out', "#{params}"
         end
         @user.log << %[<span class='material-icons'>#{BADGES[params[:give][:type].to_sym]}</span> #{DESCRIPTIONS[params[:give][:type].to_sym]}<ul><li><span>badges:</span> <span>#{@user.badges[params[:give][:type]].to_i}</span></li><li><span>awards:</span> <span>#{@user.awards[params[:give][:type]].to_i}</span></li><li><span>stripes:</span> <span>#{@user.stripes[params[:give][:type]].to_i}</span></li><li><span>boss:</span> <span>#{@user.boss[params[:give][:type]].to_i}</span></li></ul>]
       end
-      if params.has_key? :act
-        if params[:act] == 'bank'
+#      if params.has_key? :act
+      #        if params[:act] == 'bank'
+      if params.has_key? :bank
           Redis.new.publish("OWNERSHIP.bank", "#{params}")
           Bank.wallet[@by.id] = params[:bank][:credit].to_i
           @by.coins.value = params[:bank][:coins].to_i
-        elsif params[:act] == 'sponsor'
+      end
+          #        elsif params[:act] == 'sponsor'
+          if params.has_key? :sponsor
           Redis.new.publish("OWNERSHIP.sponsor", "#{params}")
           tf = ((60 * 60) * params[:sponsor][:duration].to_i * params[:sponsor][:timeframe].to_i).to_i;
           pay = (2 ** params[:sponsor][:type].to_i).to_i
@@ -2352,8 +2362,10 @@ Redis.new.publish 'BOX.out', "#{params}"
           z.attr[:budget] = cost
           @by.zones << params[:sponsor][:name]
           Bank.wallet.decr @by.id, cost
-          @by.log(%[<span class='material-icons'>cabin</span>#{params[:sponsor][:name]} <span class='material-icons'>savings</span>#{cost}])
-        elsif params[:act] == 'shares'
+          @by.log << %[<span class='material-icons'>cabin</span>#{params[:sponsor][:name]} <span class='material-icons'>savings</span>#{cost}]
+          end
+          #        elsif params[:act] == 'shares'
+          if params.has_key? :shares
           Redis.new.publish("OWNERSHIP.shares", "#{params}")
           if ENV['OWNERSHIP'] == 'franchise'
             @by.attr[:tos] = params[:tos][:terms]
@@ -2362,14 +2374,15 @@ Redis.new.publish 'BOX.out', "#{params}"
           if params[:shares][:mode] == 'sell' && Shares.by(request.host)[@by.id].to_i >= params[:shares][:qty].to_i
             Bank.wallet.incr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.burn @domain.id, @by.id, params[:shares][:qty].to_i
-            @by.log(%[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
+            @by.log << %[-<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} +<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}]
           elsif params[:shares][:mode] == 'buy' && Bank.wallet[@by.id] >= (params[:shares][:qty].to_i * Shares.cost(request.host))
             Bank.wallet.decr @by.id, params[:shares][:qty].to_i * Shares.cost(request.host)
             Shares.mint @domain.id, @by.id, params[:shares][:qty].to_i
-            @by.log(%[+<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} -<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}])
+            @by.log << %[+<span class='material-icons'>confirmation_number</span>#{params[:shares][:qty]} -<span class='material-icons'>savings</span>#{params[:shares][:qty].to_i * Shares.cost(request.host)}]
           end
-        end
-      end
+          end
+#        end
+#      end
 
       if params.has_key? :xfer && params[:xfer] != ''
         Bank.xfer from: @by.id, to: @user.id, amt: params[:xfer]

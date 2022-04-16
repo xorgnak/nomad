@@ -50,7 +50,7 @@ legend { padding: 0 2% 0 2%; background-color: black; color: white; border-radiu
 
 #badge_type + label:before {
 content: "military_tech";
-color: silver;
+color: gold;
 }
 
 #badge_type:checked + label:before {
@@ -112,12 +112,15 @@ color: gold;
     <h1 style='width: 100%;'>
       <select id='title' name='config[title]' style='width: 100%;'>
 	<option value='title' selected disabled>title</option>
+	
 	<% if @user.attr[:class].to_i > 0 %>
 	<option value='influencer'>influencer</option>
 	<% end %>
+	
 	<% if @user.attr[:class].to_i > 1 %>
 	<option value='manager'>manager</option>
 	<% end %>
+	
 	<% if @user.attr[:class].to_i > 2 %>
 	<option value='operator'>operator</option>
 	<% end %>
@@ -125,6 +128,7 @@ color: gold;
 	<% @user.titles.members.each do |e| %>
 	<option value='<%= e %>'><%= e %></option>
 	<% end %>
+	
       </select>
     </h1>
 
@@ -148,26 +152,6 @@ color: gold;
       </datalist>
       <input type='tel' list='numbs' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>' pattern='[0-9]{10}'>
     </h1>
-    <h3 style='width: 100%; text-align: center;'>
-      <select id='chance' name='config[chance]' style='width: 30%;'>
-	<option selected disabled>chance</option>
-	<option>none</option>
-<!--	<option value='card'>card</option> -->
-	<option value='coin'>coin</option>
-	<option value='dice'>dice</option>
-      </select>
-      <span style='width: 65%'>
-      <span id='card' class='chance' style='display: none; text-align: center;'>
-	<input type='number' name='config[hand]' min='0' max='10' step='1' value='1' style='width: 15%;' placeholder='hand' value='<%= @user.attr[:hand] %>'>
-	<span style='color: white; padding: 0 3% 0 3%;'>&gt;</span>
-      </span>
-      <span id='coin' class='chance' style='display: none; text-align: center;'>
-      </span>
-      <span id='dice' class='chance' style='display: none; text-align: center;'>
-	<input type='number' name='config[number]' min='1' max='99' step='1' value='<%= @user.attr[:number] || "2" %>' style='width: 15%;' maxlength='2' placeholder='2'><span style='color: white;'>d</span><input type='number' min='1' max='999' step='1' style='width: 15%;' maxlength='3' value='<%= @user.attr[:sides] || "6" %>' name='config[sides]' style='' placeholder='6'><span style='color: white; padding: 0 3% 0 3%;'>&gt;</span>
-	</span>
-	<input type='number' name='config[over]' min='0' step='1' maxlength='6' value='<%= @user.attr[:over] || "100" %>' style='width: 20%;' placeholder='0'>
-    </h3>
     <h3 style='width: 100%; text-align: center; background-color: white; color: black;'>
     <input type='file' id='pic' accept="image/*" name='file'>
     <span>rsvp image</span>
@@ -194,10 +178,8 @@ color: gold;
   
   <div id='magic' style='background-color: black; display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; overflow-y: scroll;'>
     <fieldset>
-      <legend style='padding: 0 3% 0 3%;'>
-      <input type='checkbox' id='zap' name='zap' value='true' style='display: none;'>
-      <label for="zap" class='material-icons'></label>
-      <input type='text' id='scan' name='scan' value='<%= @id %>' style='width: 50%; color: white;' disabled></legend>
+      <legend style='padding: 0 3% 0 3%; text-align: center; border: thin solid white;'>
+      <input type='text' id='scan' name='scan' value='<%= @id %>' style='width: 100%; background-color: black; border: none; color: white; text-align: center;' disabled></legend>
       <fieldset><legend>attributes</legend>
       <ul style='background-color: white; color: black; margin: 0;'>
 	<li><span style='padding: 2%;'>xp:</span><span id='xp'></span></li>
@@ -232,19 +214,6 @@ color: gold;
 
 	<% if !params.has_key?(:ts) %>
 
-<!--
-	<li><span style='padding: 2%;'>boss:</span>
-	  <% if @user.attr[:class].to_i >= 5 %>
-	  <input type='checkbox' id='promote' name='admin' value='boss' style='width: min-content;'>
-	  <% end %>
-	  <% if @user.attr[:class].to_i >= 6 %>
-	  <input id='boss' name='config[boss]' style='width: 50%;'>
-	  <% else %>
-	  <span id='boss'></span>
-	  <% end %>
-	</li>
--->
-
 	<li><span style='padding: 2%;'>class:</span>
 	  <% if @user.attr[:class].to_i > 4 %>
 	  <span id='class'></span>
@@ -259,7 +228,7 @@ color: gold;
       </ul>
       </fieldset>
       
-      <fieldset class='magic net' style='display: none;'><legend>network</legend>
+      <fieldset class='' style=''><legend>network</legend>
       <div style='background-color: white;'>
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 && @user.zones.members.length > 0 %>
 	<datalist id='titles'>
@@ -267,7 +236,7 @@ color: gold;
 	  <option value='<%= title %>'>
 	    <% end %>
 	</datalist>
-	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' placeholder='title'></h3>
+	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' style='width: 100%;' placeholder='title'></h3>
 	<% end %>
 
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 && @user.zones.members.length > 0 %>
@@ -283,36 +252,21 @@ color: gold;
 	</h3>
 	<% end %>
 	
-	<% if @user.attr[:class].to_i >= 6 %>
-	<datalist id='contests'>
-	  <% VOTES.members.each do |vote| %>
-	  <option value='<%= vote %>'>
-	<% end %>
-	</datalist>
-	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='vote' list='contests' placeholder='contest'></h3>
-	<% end %>
-
       </div>
       </fieldset>
 
-      <fieldset class='magic cyoa'><legend>adventure</legend>
+      <fieldset class=''><legend>adventure</legend>
       <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black; margin: 0;'>
-	<input type='checkbox' id='badge_type' name='give[of]' value='true' style='display: none;'>
-	<label for="badge_type" class='material-icons'></label>
-	<select name='give[type]' style='width: 25%; padding: 0;'>
-	  <option selected disabled>badge</option>
+	<select name='give[type]' style='width: 100%; padding: 0;'>
+	  <option selected disabled>give badge...</option>
 	  <% BADGES.each_pair do |name, badge| %>
 	  <option value='<%= name %>'><%= name %></option>
 	  <% end %>
 	</select>
-      <input type='checkbox' id='success' name='success' value='true' style='display: none;' checked>
-      <label for="success" class='material-icons'></label>
       </h3>
-      <p style='width: 100%; text-align: center;'>
+      <p style='width: 100%; text-align: center; margin: 0;'>
 	<select name='track' style='width: 100%;'>
-	  <option selected disabled>adventure</option>
-	  <option value='fail'>FAIL</option>
-	  <option value='auto'>PARK</option>
+	  <option selected disabled>next waypoint...</option>
 	  <% TRACKS[request.host].adventures.members.each do |a| %>
 	  <% if "#{a}".length > 0; TRACKS[request.host][a].waypoints.members.each do |w| %>
 	  <% if "#{w}".length > 0; TRACKS[request.host][a][w].passwords.all.each_pair do |k,v| %>
@@ -390,7 +344,7 @@ color: gold;
 	  <datalist>
 	    <% @user.jobs.members.each do |e| %>
 	    <option value='<%= e %>'>
-	      <% end %>
+	      <% end %>OB
 	  </datalist>
 	  <dialog id='pfxs' style='width: 90%;'>
 	    <div style='border: thin solid black;'>

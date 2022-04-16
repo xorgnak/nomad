@@ -1,10 +1,10 @@
 
-<div id='shares' class='displays' style=''>
+<div id='shares' class='' style=''>
 
 <% @tot = Shares.shares(request.host) %>
 <fieldset>
 <legend>ownership</legend>
-<ul>
+<ul style='text-align: left;'>
 <li>
 <span>you own:</span>
 <span><%= Shares.by(request.host)[@user.id].to_i || 0 %></span>
@@ -24,23 +24,24 @@
 <input type='hidden' name='shares[mode]' value='buy'>
 <input type='hidden' id='s_qty' name='shares[qty]' value='1'>
 
-<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%; font-size: x-small;' disabled>
+<textarea name='franchise[tos][terms]' style='width: 100%; height: 100%; font-size: small; background-color: white; color: black;' disabled>
 terms of service for <%= request.host %> drafted on <%= Time.now.utc %>
 
+CONDITIONS
 <%= TOS[request.host] || "don't do anything stupid." %>
 
-For each job:
-if we procure the job and you do it you get <%= 100 - PROCUREMENT[request.host].to_i %>.
-if we procure the job and fulfill it you get <%= 100 - FULFILLMENT[request.host].to_i %>.
+
+TERMS
+Our interest is in facilitation of fulfillment.  We make our money on getting people ready to work.  To that end, we rely on local service providers as franchise holders. 
+For your professional service, we will award you <%= PROCUREMENT[request.host].to_i %>% of every elidgable job.
+If you also fulfill the job, you get an additional <%= FULFILLMENT[request.host].to_i %>%.
+ 
 
 <%= FRANCHISE[request.host] || 'share and enjoy.' %>
 </textarea>
 
 <h3><input type='checkbox' name='franchise[tos][agreed]' value='<%= Time.now.utc %>'><span>do you agree to our terms?</span></h3>
 
-<h3 style='text-align: center; width: 100%; margin: 0;'>
-<button type='submit' id='s_ready' class='material-icons' name='act' value='shares' style=''>BUY</button>
-</h3>
 </fieldset>
 </div>
 <script>
