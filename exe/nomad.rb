@@ -1938,7 +1938,7 @@ ga('send', 'pageview');
   ##
   # remote api
   # NOT WORKING
-  post('/box') do
+  get('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
     content_type :json
     if params[:login][:password] == OTK[IDS[params[:login][:username]]]
@@ -2445,10 +2445,10 @@ ga('send', 'pageview');
               redirect "#{@path}"
             end
           else
-            url = "https://#{ENV['CLUSTER']}"
-            uri = URI.parse(url)
-            response = Net::HTTP.post_form uri, params
-            Redis.new.publish('BOX.AUTH', "#{response.body}")
+            url = "https://#{ENV['CLUSTER']}/box"
+            uri.query = URI.encode_www_form(params)
+            res = Net::HTTP.get_response(uri)
+            Redis.new.publish('BOX.AUTH', "#{res.body}")
           end
           
         else
