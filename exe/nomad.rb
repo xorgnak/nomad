@@ -1941,8 +1941,8 @@ ga('send', 'pageview');
   post('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
     content_type :json
-    if params.has_key?(:cha) && params[:pin] == OTK[params[:u]]
-      params[:u] = IDS[CHA[params[:cha]]]
+    if params[:login][:password] == OTK[IDS[params[:login][:username]]]
+      params[:u] = IDS[params[:login][:username]]
       BOOK['+1' + CHA[params[:cha]]] = params[:u]
       LOOK[params[:u]] = '+1' + CHA[params[:cha]]
       U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
@@ -1962,7 +1962,7 @@ ga('send', 'pageview');
       params.delete(:cha)
       params.delete(:pin)
       @domain.users.incr(@id)
-      Redis.new.publish("NODE AUTHORIZE", "#{@path}")
+      Redis.new.publish("BOX.auth", "#{@path}")
     elsif token(params[:u]) == 'true';
       
       if params.has_key?(:file) && params.has_key?(:u)
@@ -2447,9 +2447,8 @@ ga('send', 'pageview');
           else
             url = "https://#{ENV['CLUSTER']}"
             uri = URI.parse(url)
-            http = Net::HTTP.new(uri.host, uri.port)
-            resp = Net::HTTP.post_form("#{uri}/box", params)
-            Redis.new.publish('BOX.AUTH', "#{resp.body}")
+            response = Net::HTTP.post_form uri, params
+            Redis.new.publish('BOX.AUTH', "#{response.body}")
           end
           
         else
