@@ -1941,38 +1941,10 @@ ga('send', 'pageview');
   get('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
     content_type :json
-    if params[:login][:password] == OTK[IDS[params[:login][:username]]]
-      params[:u] = IDS[params[:login][:username]]
-      BOOK['+1' + CHA[params[:cha]]] = params[:u]
-      LOOK[params[:u]] = '+1' + CHA[params[:cha]]
-      U.new(params[:u]).attr[:phone] = CHA[params[:cha]]
-      U.new(params[:u]).attr.incr(:key);
-      r = []; 100.times { r << rand(16).to_s(16) }
-      j = JSON.generate({ utc: Time.now.utc.to_f,
-                          id: U.new(params[:u]).id,
-                          key: U.new(params[:u]).attr[:key],
-                          rnd: r.join('')
-                        })
-      U.new(params[:u]).attr[:credentials] = j
-      U.new(params[:u]).attr[:priv] = Digest::SHA512.hexdigest(j)
-      U.new(params[:u]).attr[:pub] = Digest::SHA2.hexdigest(U.new(params[:u]).attr[:priv])
+    if params[:password] == OTK[IDS[params[:username]]]
+      params[:u] = IDS[params[:username]]
       token(params[:u], ttl: (((60 * 60) * 24) * 7))
-      CHA.delete(params[:cha])
-      @id = id(params[:u]);
-      params.delete(:cha)
-      params.delete(:pin)
-      @domain.users.incr(@id)
       Redis.new.publish("BOX.auth", "#{@path}")
-    elsif token(params[:u]) == 'true';
-      
-      if params.has_key?(:file) && params.has_key?(:u)
-        fi = params[:file][:tempfile]
-        File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
-      end
-      
-      @id = id(params[:u]);
-      @by = U.new(@id)
-      @by.attr[:seen] = Time.now.utc.to_i
     end
     Redis.new.publish 'BOX.out', "#{params}"
     return params.to_json
@@ -2445,7 +2417,9 @@ ga('send', 'pageview');
               redirect "#{@path}"
             end
           else
+            
             url = "https://#{ENV['CLUSTER']}/box"
+            uri = URI(url)
             uri.query = URI.encode_www_form(params)
             res = Net::HTTP.get_response(uri)
             Redis.new.publish('BOX.AUTH', "#{res.body}")
