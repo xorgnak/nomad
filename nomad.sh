@@ -251,7 +251,7 @@ EOF
     arduino-cli core update-index
     arduino-cli core install esp32:esp32
     arduino-cli core install esp8266:esp8266
-    
+    sudo chown pi:pi ~/.nomad
     echo "### NOMAD arduino-cli begin ###" >> ~/.nomad
     echo "function upload() { source config.sh; echo \"\$FQBN\"; arduino-cli compile --fqbn \$FQBN \`pwd\` && arduino-cli upload --port /dev/ttyUSB0 --fqbn \$FQBN \`pwd\`; }" >> ~/.nomad
     echo 'echo "upload -> upload sketch to device"' >> ~/.nomad

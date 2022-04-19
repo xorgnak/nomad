@@ -30,88 +30,20 @@ static volatile bool wifi_connected = false;
 String userid;
 String addr;
 
-
-
-const char* broker = "vango.me";
-
 #define LED_BUILTIN 33
-
-#define LF 12
-#define LB 13
-#define RF 14
-#define RB 15
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+
+
+
+// [BEGIN] DO NO TOUCH
+
 #define PART_BOUNDARY "123456789000000000000987654321"
 
-// This project was tested with the AI Thinker Model, M5STACK PSRAM Model and M5STACK WITHOUT PSRAM
 #define CAMERA_MODEL_AI_THINKER
-//#define CAMERA_MODEL_M5STACK_PSRAM
-//#define CAMERA_MODEL_M5STACK_WITHOUT_PSRAM
 
-// Not tested with this model
-//#define CAMERA_MODEL_WROVER_KIT
-
-#if defined(CAMERA_MODEL_WROVER_KIT)
-  #define PWDN_GPIO_NUM    -1
-  #define RESET_GPIO_NUM   -1
-  #define XCLK_GPIO_NUM    21
-  #define SIOD_GPIO_NUM    26
-  #define SIOC_GPIO_NUM    27
-  
-  #define Y9_GPIO_NUM      35
-  #define Y8_GPIO_NUM      34
-  #define Y7_GPIO_NUM      39
-  #define Y6_GPIO_NUM      36
-  #define Y5_GPIO_NUM      19
-  #define Y4_GPIO_NUM      18
-  #define Y3_GPIO_NUM       5
-  #define Y2_GPIO_NUM       4
-  #define VSYNC_GPIO_NUM   25
-  #define HREF_GPIO_NUM    23
-  #define PCLK_GPIO_NUM    22
-
-#elif defined(CAMERA_MODEL_M5STACK_PSRAM)
-  #define PWDN_GPIO_NUM     -1
-  #define RESET_GPIO_NUM    15
-  #define XCLK_GPIO_NUM     27
-  #define SIOD_GPIO_NUM     25
-  #define SIOC_GPIO_NUM     23
-  
-  #define Y9_GPIO_NUM       19
-  #define Y8_GPIO_NUM       36
-  #define Y7_GPIO_NUM       18
-  #define Y6_GPIO_NUM       39
-  #define Y5_GPIO_NUM        5
-  #define Y4_GPIO_NUM       34
-  #define Y3_GPIO_NUM       35
-  #define Y2_GPIO_NUM       32
-  #define VSYNC_GPIO_NUM    22
-  #define HREF_GPIO_NUM     26
-  #define PCLK_GPIO_NUM     21
-
-#elif defined(CAMERA_MODEL_M5STACK_WITHOUT_PSRAM)
-  #define PWDN_GPIO_NUM     -1
-  #define RESET_GPIO_NUM    15
-  #define XCLK_GPIO_NUM     27
-  #define SIOD_GPIO_NUM     25
-  #define SIOC_GPIO_NUM     23
-  
-  #define Y9_GPIO_NUM       19
-  #define Y8_GPIO_NUM       36
-  #define Y7_GPIO_NUM       18
-  #define Y6_GPIO_NUM       39
-  #define Y5_GPIO_NUM        5
-  #define Y4_GPIO_NUM       34
-  #define Y3_GPIO_NUM       35
-  #define Y2_GPIO_NUM       17
-  #define VSYNC_GPIO_NUM    22
-  #define HREF_GPIO_NUM     26
-  #define PCLK_GPIO_NUM     21
-
-#elif defined(CAMERA_MODEL_AI_THINKER)
   #define PWDN_GPIO_NUM     32
   #define RESET_GPIO_NUM    -1
   #define XCLK_GPIO_NUM      0
@@ -129,9 +61,9 @@ PubSubClient client(espClient);
   #define VSYNC_GPIO_NUM    25
   #define HREF_GPIO_NUM     23
   #define PCLK_GPIO_NUM     22
-#else
-  #error "Camera model not selected"
-#endif
+
+// [END] DO NO TOUCH
+
 
 
 void mqttCallback(char* topic, byte* message, unsigned int length) {
@@ -156,39 +88,6 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
   } else {
     digitalWrite(LED_BUILTIN, HIGH);
   }
-
-  //LF
-  if(messageTemp[2] == '1'){
-    Serial.print("LF ");
-    digitalWrite(LF, HIGH);
-  } else {
-    digitalWrite(LF, LOW);
-  }
-
-  //LB
-  if(messageTemp[3] == '1'){
-    Serial.print("LB ");
-    digitalWrite(LB, HIGH);
-  } else {
-    digitalWrite(LB, LOW);
-  }
-
-  //RB
-  if(messageTemp[3] == '1'){
-    Serial.print("RF ");
-    digitalWrite(RF, HIGH);
-  } else {
-    digitalWrite(RF, LOW);
-  }
-
-  //LB
-  if(messageTemp[4] == '1'){
-    Serial.print("RB ");
-    digitalWrite(RB, HIGH);
-  } else {
-    digitalWrite(RB, LOW);
-  }
-  
   Serial.println();
 }
 
@@ -202,7 +101,7 @@ void wifiOnConnect(){
 
 void wifiOnDisconnect(){
   Serial.println("STA Disconnected");
-  delay(1000);
+  delay(100);
   WiFi.begin(ssid, password);
 }
 
@@ -367,18 +266,19 @@ void setupUserId() {
 }
 
 void setup() {
-  setupUserId();
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-  pinMode(LF, OUTPUT);
-  pinMode(LB, OUTPUT);
-  pinMode(RF, OUTPUT);
-  pinMode(RB, OUTPUT);
+  
+  Serial.begin(115200);
+
+  setupUserId();
+  
   pinMode(4, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(115200);
+
   Serial.print("INIT!");
   Serial.setDebugOutput(false);
   Serial.print("OKAY!");
+
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -416,22 +316,28 @@ void setup() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+
+
   Serial.print("wifi...");
   // Wi-Fi connection
   WiFi.disconnect(true);
   WiFi.setHostname("turtle");
   WiFi.onEvent(WiFiEvent);
-  WiFi.mode(WIFI_MODE_APSTA);
-  //  WiFi.softAP("turtle");
+  WiFi.mode(WIFI_MODE_STA);
   WiFi.begin(ssid, password);
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+
+  WiFi.softAP(ssid, password);
+  
   Serial.println("mqtt...");
   client.setServer(broker, 1883);
   client.setCallback(mqttCallback);
   mqttReconnect();
+
   Serial.print("Camera Stream Ready!");
   startCameraServer();
 }

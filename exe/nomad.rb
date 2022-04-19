@@ -1941,8 +1941,7 @@ ga('send', 'pageview');
   post('/box') do
     Redis.new.publish 'BOX.in', "#{params}"
     content_type :json
-    if params.has_key?(:cha) && params[:pin] == Redis.new.get(params[:cha])
-
+    if params.has_key?(:cha) && params[:pin] == OTK[params[:u]]
       params[:u] = IDS[CHA[params[:cha]]]
       BOOK['+1' + CHA[params[:cha]]] = params[:u]
       LOOK[params[:u]] = '+1' + CHA[params[:cha]]
@@ -1953,7 +1952,7 @@ ga('send', 'pageview');
                           id: U.new(params[:u]).id,
                           key: U.new(params[:u]).attr[:key],
                           rnd: r.join('')
-                      })
+                        })
       U.new(params[:u]).attr[:credentials] = j
       U.new(params[:u]).attr[:priv] = Digest::SHA512.hexdigest(j)
       U.new(params[:u]).attr[:pub] = Digest::SHA2.hexdigest(U.new(params[:u]).attr[:priv])
@@ -1963,45 +1962,19 @@ ga('send', 'pageview');
       params.delete(:cha)
       params.delete(:pin)
       @domain.users.incr(@id)
-      Redis.new.publish("AUTHORIZE", "#{@path}")
-      
-    elsif params.has_key?(:usr)
-
-      cha = []; 64.times { cha << rand(16).to_s(16) }
-      qrp = []; 16.times { qrp << rand(16).to_s(16) }
-      pin = []; 6.times { pin << rand(9) }
-      if !IDS.has_key? params[:usr]
-        IDS[params[:usr]] = params[:u]
-        QRI[qrp.join('')] = params[:u]
-        QRO[params[:u]] = qrp.join('')
-      else
-        params[:u] = IDS[params[:usr]]
-      end
-      CHA[cha.join('')] = params[:usr]
-      params[:cha] = cha.join('')
-      Redis.new.setex params[:cha], 180, pin.join('');
-      phone.send_sms to: '+1' + params[:usr], body: "pin: #{pin.join('')}"
-      params.delete(:usr)
+      Redis.new.publish("NODE AUTHORIZE", "#{@path}")
     elsif token(params[:u]) == 'true';
-
+      
       if params.has_key?(:file) && params.has_key?(:u)
         fi = params[:file][:tempfile]
         File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
       end
-
+      
       @id = id(params[:u]);
       @by = U.new(@id)
       @by.attr[:seen] = Time.now.utc.to_i
-
-      if params.has_key? :config
-        a = []
-        params[:config].each_pair do |k,v|
-          if "#{v}".length > 0 && v != @by.attr[k] && k != 'boss' && k != 'class'; @by.attr[k] = v; a << %[#{k}: #{v}]; end
-end
-a.each { |e| @by.log << %[<span class='material-icons'>info</span> #{e}] }
-      end
-end
-Redis.new.publish 'BOX.out', "#{params}"
+    end
+    Redis.new.publish 'BOX.out', "#{params}"
     return params.to_json
   end
 
@@ -2442,33 +2415,43 @@ Redis.new.publish 'BOX.out', "#{params}"
       
       if params.has_key? :login
         if params[:login][:username].length > 0
-          if LOGINS[params[:login][:username]] == params[:login][:password]
-            if !IDS.has_key? params[:login][:username]
-              IDS[params[:login][:username]] = @id
-              BOOK[params[:login][:username]] = @id
-              LOOK[@id] = params[:login][:username]
-              qrp = []; 16.times { qrp << rand(16).to_s(16) }
-              QRI[qrp.join('')] = IDS[params[:login][:username]]
-              QRO[IDS[params[:login][:username]]] = qrp.join('')
+
+          if ENV['BOX'] == 'false'
+            if LOGINS[params[:login][:username]] == params[:login][:password]
+              if !IDS.has_key? params[:login][:username]
+                IDS[params[:login][:username]] = @id
+                BOOK[params[:login][:username]] = @id
+                LOOK[@id] = params[:login][:username]
+                qrp = []; 16.times { qrp << rand(16).to_s(16) }
+                QRI[qrp.join('')] = IDS[params[:login][:username]]
+                QRO[IDS[params[:login][:username]]] = qrp.join('')
+                @by = U.new(IDS[params[:login][:username]])
+                @by.password.value = LOGINS[params[:login][:username]]
+              end
+              
               @by = U.new(IDS[params[:login][:username]])
-              @by.password.value = LOGINS[params[:login][:username]]
-            end
-            
-            @by = U.new(IDS[params[:login][:username]])
-            if !Dir.exist? "home/#{@by.id}"
-              Dir.mkdir("home/#{@by.id}")
-            end
-            if @by.password.value.to_s == params[:login][:password].to_s
-              token(@by.id, ttl: (((60 * 60) * 24) * 7))
-              ot = []; 64.times { ot << rand(16).to_s(16) }
-              OTP[@by.id] = ot.join('')
-              session[:otp] = ot.join('')
-              @domain.users.incr(@by.id)
-              redirect "#{@path}/#{@by.id}"
+              if !Dir.exist? "home/#{@by.id}"
+                Dir.mkdir("home/#{@by.id}")
+              end
+              if @by.password.value.to_s == params[:login][:password].to_s
+                token(@by.id, ttl: (((60 * 60) * 24) * 7))
+                ot = []; 64.times { ot << rand(16).to_s(16) }
+                OTP[@by.id] = ot.join('')
+                session[:otp] = ot.join('')
+                @domain.users.incr(@by.id)
+                redirect "#{@path}/#{@by.id}"
+              end
+            else
+              redirect "#{@path}"
             end
           else
-            redirect "#{@path}"
+            url = "https://#{ENV['CLUSTER']}"
+            uri = URI.parse(url)
+            http = Net::HTTP.new(uri.host, uri.port)
+            resp = Net::HTTP.post_form("#{uri}/box", params)
+            Redis.new.publish('BOX.AUTH', "#{resp.body}")
           end
+          
         else
           redirect "#{@path}"
         end
