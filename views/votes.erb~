@@ -1,0 +1,23 @@
+<% votes.each_pair do |k,v| %>
+<><></>
+<% end %>
+
+<select id='votes'>
+<option selected disabled>standings</option>
+<% @votes.keys.each do |e| %>
+<option value='<%= e %>'></option>
+<% end %>
+</select>
+
+<% @votes.each_pair do |k,v| %>
+<fieldset id='<%= k %>' style='display: none;'>
+ <legend><%= k %></legend>
+<ol>
+<% v.each_pair do |kk, vv| %>
+  <% if vv > 0 %>
+<li><span class='v_score'><%= vv %></span><span><%= kk %></span></li>
+  <% end %>
+<% end %>
+</ol>
+</fieldset>
+<% end %>

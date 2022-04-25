@@ -1,0 +1,32 @@
+
+<% votes.keys.each_with_index do |e,i| %>
+<fieldset id='V<%= i %>' class='vote' style='text-align: left; display: none;'>
+<legend style='text-align: center;'><span class='material-icons' style='vertical-align: middle; color: gold;'>emoji_events</span><%= e %></legend>
+<ol>
+<% Vote.new(e).leaderboard.each do |e| %>
+<% e.each_pair do |k,v| %>
+<li>
+<span class='v_score'>(<%= v %>)</span>
+<span class='v_name'>
+<a style='text-decoration: none; color: white;' href='<%= @path %>/?u=<%= QRO[k] %>'><%= U.new(k).attr[:name] || QRO[k] %></a>
+</span>
+</li>
+<% end %>
+<% end %>
+</ol>
+</fieldset>
+<% end %>
+
+<select id='votes' style='text-align: center; background-color: white; color: black;'>
+<option selected disabled>standings</option>
+<% votes.keys.each_with_index do |e, i| %>
+<option value='<%= i %>'><%= e %></option>
+<% end %>
+</select>
+<script>
+$(document).on('change','#votes', function() {
+console.log('change ' + $('#votes').val() );
+  $('.vote').hide();
+  $('#V' + $('#votes').val()).show();
+});
+</script>

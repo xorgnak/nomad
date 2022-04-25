@@ -1,0 +1,10 @@
+<% @track = TRACKS[request.host] %>
+<fieldset>
+<legend>possibilities</legend>
+<ul>
+<li>players: <%= @track.players.keys.length %></li>
+<li>waypoints: <%= @track.waypoints.members.length %></li>
+<li>tracks: <%= @track.adventures.members.length %></li>
+<li>adventures: <%= @track.waypoints.members.length ** @track.waypoints.members.length %></li>
+</ul>
+</fieldset>

@@ -699,11 +699,23 @@ class Vote
   def id
     @id
   end
+  def leaderboard
+    a = []
+    self.votes.revrange(0, -1).each {|e| a << { e => self.votes[e] } }
+    return a
+  end
   def leader
     x = self.votes[-1]
     return { user: x, votes: self.votes[x] }
   end
 end
+
+def votes
+  v = {}
+  VOTES.members.each {|e| v[e] = Vote.new(e).leaderboard }
+  return v
+end
+
 
 class Zone
   include Redis::Objects
@@ -1053,6 +1065,8 @@ class U
   set :titles
   hash_key :attr
   counter :coins
+  counter :zaps
+  counter :spaz
   list :log
   value :pin, expireat: 180
   value :password
@@ -1468,9 +1482,14 @@ class Chance
     me = U.new(@id)
     a = "#{me.attr[:xp]}".length + 1
     you = U.new(u)
+    me.zaps.increment
+    you.spaz.increment
     d = "#{you.attr[:xp]}".length + 1
     z = die("#{d}d#{you.attr[:rank].to_i + you.attr[:class].to_i}")
     roll("#{a}d#{me.attr[:rank].to_i + me.attr[:class].to_i}") {|h|
+      ic = %[<span class='material-icons'>crisis_alert</span>]
+      icn_hit = %[<span class='material-icons' style='color: red;'>ads_click</span>]
+      icn_miss = %[<span class='material-icons' style='color: green;'>adjust</span>]
       if h[:total] > z[:total]
         r = 1
         me.zapper.incr(you.id)
@@ -1478,15 +1497,25 @@ class Chance
         you.zap.incr(me.id)
         you.zapped.incr(me.id)
         me.attr.incr(:xp)
-        me.log << %[you zapped #{you.attr[:name] || 'another player'}.]
-        you.log << %[you got zapped by #{me.attr[:name] || 'another player'}.]
+        icn = %[<span class='material-icons'>crisis_alert</span>]
+        me.log << %[#{icn_hit} you zapped #{you.attr[:name] || 'another player'}.]
+        you.log << %[#{icn_hit} you got zapped by #{me.attr[:name] || 'another player'}.]
       else
         r = 0
         me.zap.incr(you.id)
         you.zap.incr(me.id)
-        me.log << %[you missed #{you.attr[:name] || 'another player'}.]
-        you.log << %[#{me.attr[:name] || 'another player'} missed you.]
+        icn = %[<span class='material-icons'>crisis_alert</span>]
+        me.log << %[#{icn_miss} you missed #{you.attr[:name] || 'another player'}.]
+        you.log << %[#{icn_miss} #{me.attr[:name] || 'another player'} missed you.]
       end
+      me.attr.incr(:xp)
+      you.attr.incr(:xp)
+      u, t = 0, 0
+      me.zapper.members(with_scores: true).to_h.each_pair {|k,v| u += 1; t += v }
+      me.attr[:rank] = ( "#{me.zaps.value}".length + "#{me.spaz.value}".length ) - 1
+      you.attr[:rank] = ( "#{you.zaps.value}".length + "#{you.spaz.value}".length ) - 1
+      me.log << %[<span class='material-icons'>emoji_events</span>rank: #{me.attr[:rank]}]
+      you.log << %[<span class='material-icons'>emoji_events</span>rank: #{you.attr[:rank]}]
       { me: h, you: z, total: r }
     }
   end
@@ -1835,6 +1864,16 @@ class APP < Sinatra::Base
       phone.send_sms(to: params['From'], body: b)
     end
   }
+
+  get('/zap') do
+    content_type :json
+    @by = U.new(QRI[params[:u]])
+    @user = U.new(QRI[params[:z]])
+    @chance = Chance.new(@by.id).zap(@user.id)
+    Redis.new.publish('ZAP', "#{@chance}")
+    return JSON.generate(@chance)
+  end
+  
   get('/') {
     @id = id(params[:u]);
     if params.has_key?(:u);
@@ -1879,9 +1918,9 @@ ga('send', 'pageview');
   }
   get('/:u') {
     Redis.new.publish('GET.otp', "#{session[:otp]} #{OTP.all}")
-    if QRO.has_key? params[:u]
+    if QRO.has_key?(params[:u]) || IDS.has_key?(params[:u])
       if token(params[:u]) == 'true'
-        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i
+        if params[:t].to_i + ((60 * 60) * 48) <= Time.now.utc.to_i || IDS.has_key?(params[:u])
           ot = []; 6.times { ot << rand(16).to_s(16) }; @otk = ot.join('')
           OTK[params[:u]] = @otk
           @vapid = Webpush.generate_key;
@@ -1934,6 +1973,14 @@ ga('send', 'pageview');
   }
 
 
+  post('/zap') do
+    content_type :json
+    @by = U.new(QRI[params[:u]])
+    @user = U.new(QRI[params[:z]])
+    @chance = Chance.new(@by.id).zap(@user.id)
+    Redis.new.publish('ZAP', "#{@chance}")
+    return JSON.generate(@chance)
+  end
   
   ##
   # remote api
@@ -2417,14 +2464,19 @@ ga('send', 'pageview');
               redirect "#{@path}"
             end
           else
-            
             url = "https://#{ENV['CLUSTER']}/box"
             uri = URI(url)
-            uri.query = URI.encode_www_form(params)
-            res = Net::HTTP.post_form(uri, params)
-            Redis.new.publish('BOX.AUTH', "#{res.body}")
+            px = { username: params[:login][:username], password: params[:login][:password] }
+            res = Net::HTTP.post_form(uri, px)
+            j = JSON.parse(res.body)
+            if j.has_key?('u')
+              token(params['u'], ttl: (((60 * 60) * 24) * 7))
+              @by = U.new(params[:u])
+              Redis.new.publish('BOX.AUTH', "#{@by}")
+            else
+              redirect "#{@path}"
+            end
           end
-          
         else
           redirect "#{@path}"
         end

@@ -29,7 +29,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
   <% if params.has_key? :v %>
   <span class='material-icons' style='padding: 0 3% 0 3%; border: thin outset grey; border-radius: 5px; color: white; box-shadow: 0 0 2px white;'>thumb_up</span>
   <% else %>
-  <a class='material-icons' href='/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style=''>thumb_up_off_alt</a>
+  <a class='material-icons' href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style=''>thumb_up_off_alt</a>
   <% end %>
 
   <% end %>
@@ -106,12 +106,18 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% end %>
 
 
-<% if @user.attr.has_key? :vote %>
+<% if @user.attr.has_key?(:vote) && !params.has_key?(:v) %>
 
-<div style='padding: 0; margin: 0; margin: 5% 0 5% 0;'>
-<p style='width: 100%; text-align: center; margin: 0;'>vote (<span class='material-icons'>thumb_up_off_alt</span>) for me for:</p>
-<h4 style='width: 100%; text-align: center; margin: 0;'><%= @user.attr[:vote] %></h4>
+<fieldset style='padding: 0; margin: 5% 0 5% 0;'>
+<legend>vote</legend>
+<a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style='border: none;'>
+<div style='border: thick outset grey;'>
+<h4 style='text-align: center; width: 100%;'>
+<span style='color: black;'><%= @user.attr[:vote] %></span>
+</h4>
 </div>
+</a>
+</fieldset>
 <% end %>
 <% @u.log.clear() if params.has_key?(:clear) %>
 <% if @u.log.values.length > 0 %>
@@ -121,24 +127,23 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% end %></fieldset>
 <% end %>
 
- <% if Chance.new(@user.id).try? %>
+<% if @u.attr[:xp].to_i >= params[:free].to_i %>
+<fieldset style='padding: 0;'>
+<legend><span id='orb' class='material-icons' style='vertical-align: middle;'>auto_awesome</span>power up</legend>
+<a href='<%= @path %>/?w=zap-<%= Time.now.utc.to_i %>' style='border: none;'><div style='background-color: red; color: white; border: thick outset red; border-radius: 50px;'><p style='width: 100%; text-align: center;'><span>shall we play a game?</span></p></div></a>
+</fieldset>
+<% end %>
+
+
+ <% if Chance.new(@user.id).try?  && @user.attr[:xp].to_i > 0 %>
  <fieldset><legend>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
  <h3 style='width: 100%; text-align: center; margin: 0;'>
-  <% if @user.attr[:chance] == 'card' %>
-   <% @res = @chance.result[:hand] %>
-  <% elsif @user.attr[:chance] == 'coin' %>
-   <% @res = @chance.result[:toss] %>
-  <% elsif @user.attr[:chance] == 'dice' %>
-   <% @res = @chance.result[:dice].join(', ') %>
-  <% end %>
-  <% if @chance.success? == 'true' %>
-    <span class='material-icons'>sentiment_very_satisfied</span>
-  <% else %>
-  <span class='material-icons'>sentiment_very_dissatisfied</span>
-  <% end %>
- <span style='padding: 1%; border: thin solid black; margin: 0;'><%= @res %></span>
+ <span style='padding: 1%; border: thin solid black; margin: 0; background-color: black; color: white;'><%= @chance.result[:total] %></span>
+ <% @chance.result[:dice].each do |e| %>
+ <span style='padding: 1%; border: thin solid black; margin: 0;'><%= e %></span>
+ <% end %>
  </h3>
 </div>
 </fieldset>
@@ -166,11 +171,6 @@ document.querySelector("#modal").showModal()
 var orb_wake = 100;
 var orb_rest = 200;
 
-$( "#orb" ).animate({
-    width: [ "toggle", "swing" ],
-    height: [ "toggle", "swing" ],
-    opacity: "toggle"
-}, 3000, "linear", function() {
     setInterval(function() {
 	setTimeout(function() {
 	    $('#orb').css('border-color', '<%= @u.attr[:rest] || "black" %>');
@@ -183,7 +183,7 @@ $( "#orb" ).animate({
 	$('#orb').css('border-color', '<%= @u.attr[:wake] || "white" %>');
 	orb_wake = Math.floor(Math.random() * 100);
     }, orb_wake);
-});
+    
     <% if ENV['BOX'] == 'true' %>
     let socket = new WebSocket("wss://<%= ENV['CLUSTER'] %>/ws");
     <% else %>

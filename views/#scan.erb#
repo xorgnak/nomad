@@ -1,4 +1,4 @@
-var zaps = 0;
+
 
 function handler(scn) {
     var h = {};
@@ -10,7 +10,7 @@ function handler(scn) {
 	var oo = v.split('=');
 	h[oo[0]] = oo[1]
     });
-    <% if @user.attr[:class].to_i > 0 || !params.has_key?('zap') %>
+    <% if @user.attr[:class].to_i > 0 || !pararms.has_key?('zap') %>
     $('form').append("<input type='hidden' name='target' value='" + h.u + "'>");
     $('form').append("<input type='hidden' name='box' value='" + ho + "'>");
 	<% if @user.attr[:class].to_i > 6 %>
@@ -38,7 +38,7 @@ function handler(scn) {
       zaps++;
       $('#zaps').text(zaps);
     }
-    log("<span class='material-icons'>crisis_alert</span>" + zaps + " <span>" + zap + "</span>");
+    log("<span class='material-icons'>crisi
     });
 }
 

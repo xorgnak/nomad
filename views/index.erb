@@ -46,6 +46,18 @@ legend { padding: 0 2% 0 2%; background-color: black; color: white; border-radiu
   color: yellow;
   }
 
+#notify + label { background-color: black; }
+
+#notify + label:before {
+content: "no";
+color: red;
+}
+
+#notify:checked + label:before {
+content: "yes";
+color: green;
+}
+
 #badge_type + label { vertical-align: middle; color: black; background-color: white; }
 
 #badge_type + label:before {
@@ -104,11 +116,11 @@ color: gold;
   
   <dialog id='config' style='background-color: black; padding: 0; height: 100%; width: 100%;'>
     <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
+    <% if @user.attr[:class].to_i > 0 %>
     <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>    
     <h1 style='width: 100%;'>
       <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 100%;'>
     </h1>
-
     <h1 style='width: 100%;'>
       <select id='title' name='config[title]' style='width: 100%;'>
 	<option value='title' selected disabled>title</option>
@@ -140,6 +152,7 @@ color: gold;
 	<% end %>
       </select>
     </h1>
+
     <h1>
     <select id='contact' name='config[contact]' style='width: 20%;'>
       	<option value='none' selected>contact</option>
@@ -157,9 +170,11 @@ color: gold;
     <span>rsvp image</span>
     </h3>
     <fieldset>
+
     <legend>one time key</legend>
     <p style='width: 100%; text-align: center; margin: 0; color: white;'><%= @otk %></p>
     </fieldset>
+    <% end %>
     <button type='submit'style='background-color: green; color: white;'>save</button>
   </dialog>
   
@@ -227,7 +242,7 @@ color: gold;
 	<li><span style='padding: 2%;'>role:</span><span id='role'></span></li>
       </ul>
       </fieldset>
-      
+
       <fieldset class='' style=''><legend>network</legend>
       <div style='background-color: white;'>
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 2 && @user.zones.members.length > 0 %>
@@ -238,7 +253,7 @@ color: gold;
 	</datalist>
 	<h3 style='width: 100%; margin: 0; text-align: center; background-color: white; color: black;'><input type='text' name='title' list='titles' style='width: 100%;' placeholder='title'></h3>
 	<% end %>
-
+	
 	<% if !params.has_key?(:z) && @user.attr[:class].to_i >= 5 && @user.zones.members.length > 0 %>
 	<h3 style='width: 100%; text-align: center; margin: 0;'>
 	  <select name='zone' style='width: 100%;'>
@@ -254,7 +269,7 @@ color: gold;
 	
       </div>
       </fieldset>
-
+      
       <fieldset class=''><legend>adventure</legend>
       <h3 id='give' style='width: 100%; text-align: center; background-color: white; color: black; margin: 0;'>
 	<select name='give[type]' style='width: 100%; padding: 0;'>
@@ -276,6 +291,13 @@ color: gold;
 	  <% end %>
 	</select>
       </p>
+      <h3 style='width: 100%; text-align: center; margin: 0;'>
+      <span style=''>
+      <span style='padding: 0 0 0 2%; color: white;'>notify:</span>
+      <span style='border: thin outset white; border-radius: 50px; width: 20%; padding: 0 2% 0 2%;'>
+            <input type='checkbox' id='notify' name='notify' style='display: none;' checked>
+	    <label for="notify" class=''></label>
+      </h3>
       </fieldset>
 
 
@@ -313,6 +335,7 @@ color: gold;
 
       <div id='messenger'>
       <% if OWNERSHIP[request.host] != 'franchise' %>
+      <% if @user.attr[:class].to_i > 0 %>
     <h3 style='width: 100%; text-align: center; margin: 0;'>
     <button type='button' onclick='$("#waypoint").toggle()' class='material-icons' style='padding: 0; border: none; vertical-align: middle; background-color: white; color: black; padding: 0 1% 0 1%'>edit</button>
       <input type='checkbox' id='broadcast' name='message[broadcast]' value='users' style='display: none;'>
@@ -328,6 +351,7 @@ color: gold;
 	  <input list='messenges' name='message[body]' placeholder='[<%= @user.attr[:sponsor] %>]>' style='width: 60%;'>
 	  <button type='submit' class='ready material-icons' style='vertical-align: middle; background-color: green; padding: 1%; border: none;'>send</button>
         </h1>
+	<% end %>
 	<% else %>
 	  <datalist id='npt'>
 	    <option value='delivered as ordered'>
@@ -369,6 +393,7 @@ color: gold;
 	    </div>
 	    
 	  </dialog>
+
 	  <h3 style='width: 100%; text-align: center; margin: 0;'>
 	  <input type='hidden' id='the_pic' name='message[pic]' value='none'>
 	  <input type='hidden' id='the_pfx' name='message[pfx]' value='none'>
@@ -456,6 +481,8 @@ log('<span class="material-icons">info</span> Add to homescreen to install.');
 <% if !/.onion/.match(request.host) %>
 // log('<span class="material-icons" style="">copyright</span> 2021 <a href="https://github.com/xorgnak/nomad" style="color: white; text-decoration: none;">nomad</a>#<%= `git log --format="%H" -n 1`[0..3] %> for <%= @domain.id %>');
 <% end %>
+
+//log("<span class='material-icons'>crisis_alert</span><span id='zaps'>0</span>");
 
 <%= erb :scan %>
 <%= erb :sha %>
