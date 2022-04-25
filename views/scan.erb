@@ -31,7 +31,7 @@ function handler(scn) {
     $('#magic').show();
     //mine(h.u);
     <% end %>
-    $.get('/zap?u=<%= QRI[@user.id] %>&z=' + h.u, function(data) {
+    $.post('/zap?u=<%= QRI[@user.id] %>&z=' + h.u, function(data) {
     var zap = "miss.";
     if (data.total == 1) {
       zap = "hit!";
