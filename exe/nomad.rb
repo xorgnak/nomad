@@ -1563,6 +1563,12 @@ class APP < Sinatra::Base
       hh = hostname.split('-')
       return hh[0]
     end
+
+    def votes
+      v = {}
+      VOTES.members.each {|e| v[e] = Vote.new(e).leaderboard }
+      return v
+    end
     
     def id *i
       if i[0]
