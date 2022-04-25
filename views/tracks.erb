@@ -1,10 +1,9 @@
 <% @track = TRACKS[request.host] %>
 <fieldset class='vote' style='text-align: left;'>
 <legend><span class='material-icons' style='vertical-align: middle; color: green;'>query_stats</span>tracks</legend>
-<ul>
-<li>players: <%= @track.players.keys.length %></li>
+<ul style='margin: 0;'>
 <li>waypoints: <%= @track.waypoints.members.length %></li>
-<li>tracks: <%= @track.adventures.members.length %></li>
+<li>adventures: <%= @track.adventures.members.length %></li>
 <li>contests: <%= VOTES.members.length %></li>
 </ul>
 </fieldset>
