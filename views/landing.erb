@@ -69,7 +69,9 @@ textarea { font-size: x-large; width: 100%; }
      </p>
      </fieldset>
      <fieldset><legend>content</legend>
-      <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 80%;'><%= LANDING[@domain.id] %></textarea>
+     <textarea name='head' placeholder='head html...' style='width: 100%; height: 20%;'><%= HEAD[@domain.id] %></textarea>
+      <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 30%;'><%= LANDING[@domain.id] %></textarea>
+      <textarea name='foot' placeholder='foot html...' style='width: 100%; height: 20%;'><%= FOOT[@domain.id] %></textarea>
       </fieldset>
 <p style='width: 100%; text-align: center'>
   <input type='checkbox' id='conf_ownership_lock' name='conf[lock]' value='true'>
@@ -96,5 +98,13 @@ textarea { font-size: x-large; width: 100%; }
       <h1><button>login</button></h1>
   <% end %>
 <% end %>
+    <div id='head'>
+    <%= erb HEAD[request.host] || '' %>
+    </div>
+    <div id='main'>
     <%= erb LANDING[request.host] || '' %>
+    </div>
+    <div id='foot'>
+    <%= erb FOOT[request.host] || '' %>
+    </div>
 </div>
