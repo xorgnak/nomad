@@ -1556,7 +1556,7 @@ class APP < Sinatra::Base
       end
       
       if @user.attr[:class].to_i >= 1
-        pr[1] << %[message the team (<span class='material-icons' style='vertical-align: middle;'>star</span>) and customers (<span class='material-icons' style='vertical-align: middle;'>star</span>) with updates and offers for sponsor.]
+        pr[1] << %[message the team (<span class='material-icons' style='vertical-align: middle;'>star</span>) and customers (<span class='material-icons' style='vertical-align: middle;'>stars</span>) with updates and offers for sponsor.]
         pr[1] << %[create passwords for offers at your waypoint (<span class='material-icons' style='vertical-align: middle;'>edit</span>).]
         pr[1] << %[share your rsvp with a text message (<span class='material-icons' style='vertical-align: middle;'>contact_phone</span>).]
         pr[1] << %[add a pitchline, contact phone-number and link-to-follow to your rsvp.]
@@ -1566,10 +1566,23 @@ class APP < Sinatra::Base
         pr[1] << %[view reports (<span class='material-icons' style='vertical-align: middle;'>report</span>).]
       end
       if @user.attr[:class].to_i >= 2
+        pr[2] << %[advance user rank.]
+      end
+      if @user.attr[:class].to_i >= 3
+        pr[3] << %[invite new users.]
+      end
+      if @user.attr[:class].to_i >= 4
         
       end
-
-      pins = 
+      if @user.attr[:class].to_i >= 5
+        pr[5] << %[promote user class.]
+      end
+      if @user.attr[:class].to_i >= 6
+        
+      end
+      if @user.attr[:class].to_i > 6
+        pr[7] << %[basically, you can do everything.]
+      end
       pri = []
       pr.each_pair {|k,v|
         o = []
