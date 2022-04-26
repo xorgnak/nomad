@@ -130,13 +130,13 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% if @u.attr[:xp].to_i >= params[:free].to_i %>
 <fieldset style='padding: 0;'>
 <legend><span id='orb' class='material-icons' style='vertical-align: middle;'>auto_awesome</span>power up</legend>
-<a href='<%= @path %>/?w=zap-<%= Time.now.utc.to_i %>' style='border: none;'><div style='background-color: red; color: white; border: thick outset red; border-radius: 50px;'><p style='width: 100%; text-align: center;'><span>shall we play a game?</span></p></div></a>
+<p style='width: 100%; text-align: center;'><a href='<%= @path %>/?w=zap-<%= Time.now.utc.to_i %>' style='border: thick outset white; background-color: red; color: white;;'>shall we play a game?</a></p>
 </fieldset>
 <% end %>
 
 
  <% if Chance.new(@user.id).try?  && @user.attr[:xp].to_i > 0 %>
- <fieldset style='pading: 0;'><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
+ <fieldset style='padding: 0;'><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
  <h3 style='width: 100%; text-align: center; margin: 0;'>
