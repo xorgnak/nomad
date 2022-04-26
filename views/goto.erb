@@ -139,7 +139,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <fieldset style='padding: 0;'><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
- <h3 style='width: 100%; text-align: center; margin: 0;'>
+ <h3 style='width: 100%; text-align: center;'>
  <span style='padding: 1%; border: thin solid black; margin: 0; background-color: black; color: white;'><%= @chance.result[:total] %></span>
  <% [@chance.result[:result]].flatten.each do |e| %>
  <span style='padding: 1%; border: thin solid black; margin: 0;'><%= e %></span>
