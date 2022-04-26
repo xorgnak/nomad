@@ -110,10 +110,12 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <fieldset style='padding: 0; margin: 5% 0 5% 0;'>
 <legend>vote</legend>
-<a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style='border: none;'>
-<div style='border: thick outset grey;'>
-<h4 style='text-align: center; width: 100%;'>
-<span style='color: black;'><%= @user.attr[:vote] %></span>
+<h4 style='width: 100%; text-align: center;'>
+<a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style='text-decoration: none;'>
+<div style='border: thick outset white;'>
+<%= @user.attr[:vote] %>
+</div>
+</a>
 </h4>
 </div>
 </a>
