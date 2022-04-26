@@ -2006,6 +2006,7 @@ ga('send', 'pageview');
     content_type :json
     if params[:password] == OTK[IDS[params[:username]]]
       params[:u] = IDS[params[:username]]
+      params[:q] = QRO[IDS[params[:username]]]
       params[:attr] = U.new(IDS[params[:username]]).attr.all
       token(params[:u], ttl: (((60 * 60) * 24) * 7))
       Redis.new.publish("BOX.auth", "#{@path}")
@@ -2500,9 +2501,9 @@ ga('send', 'pageview');
               IDS[j['username']] = @id
               BOOK[j['username']] = @id
               LOOK[@id] = j['username']
-              qrp = []; 16.times { qrp << rand(16).to_s(16) }
-              QRI[qrp.join('')] = IDS[j['username']]
-              QRO[IDS[j['username']]] = qrp.join('')
+              qrp = j['q']
+              QRI[qrp] = IDS[j['username']]
+              QRO[IDS[j['username']]] = qrp
               Redis.new.publish('BOX.AUTH', "#{@by} #{j}")
               redirect "#{@path}/#{@by.id}"
             else
