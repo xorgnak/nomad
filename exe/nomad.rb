@@ -1386,7 +1386,7 @@ class Chance
   def deal *n
     a, t = [], 0
     [self.cards.shift(n[0].to_i || 1)].flatten.each {|e| t += e[:value]; a << e }
-    return { total: t, hand: a }                            
+    return { total: t, result: a }                            
   end
   def try?
     if @u.attr.has_key?(:chance) && @u.attr[:chance] != 'none'
@@ -1466,7 +1466,7 @@ class Chance
       t = "heads"
     end
     Redis.new.publish("CHANCE.coin", "#{c} #{t}")
-    { total: c, toss: t }
+    { total: c, result: t }
   end
   def roll i, &b
     b.call(die(i))
@@ -1476,7 +1476,7 @@ class Chance
     ii = i.split('d')
     ii[0].to_i.times { x = rand(ii[1].to_i) + 1; tot += x; r << x }
     Redis.new.publish("CHANCE.dice", "#{tot} #{r}")
-    return { total: tot, dice: r }
+    return { total: tot, result: r }
   end
   def zap u
     me = U.new(@id)
