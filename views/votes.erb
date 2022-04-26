@@ -1,7 +1,7 @@
 
 <% votes.keys.each_with_index do |e,i| %>
 <fieldset id='V<%= i %>' class='vote' style='text-align: left; display: none;'>
-<legend style='text-align: center;'><span class='material-icons' style='vertical-align: middle; color: gold;'>emoji_events</span><%= e %></legend>
+<legend style='text-align: center; padding: 0 2% 0 2%;'><span class='material-icons' style='vertical-align: middle; color: gold;'>emoji_events</span><%= e %></legend>
 <ol>
 <% Vote.new(e).leaderboard.each do |ee| %>
 <% ee.each_pair do |k,v| %>
