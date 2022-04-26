@@ -12,7 +12,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <img src='/<%= @domain.id %>/<%= @user.id %>.img'>
 
-<% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = Vote.new(@user.attr[:vote]); c.votes.incr(@user.id); c.voters.incr(params[:z]); end; %>
+<% if @user.attr.has_key?(:vote) && params.has_key?(:v); c = Vote.new(@user.attr[:vote]); c.votes[@user.id] = 1; c.voters << params[:z]; end; %>
 
 <div id='top' style='width: 100%; text-align: center; position: fixed; top: 0;'>
 

@@ -692,6 +692,7 @@ end
 class Vote
   include Redis::Objects
   sorted_set :votes
+  set :voters
   set :pool
   def initialize i
     @id = i
