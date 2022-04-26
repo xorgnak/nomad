@@ -136,7 +136,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 
  <% if Chance.new(@user.id).try?  && @user.attr[:xp].to_i > 0 %>
- <fieldset><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
+ <fieldset style='pading: 0;'><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
  <h3 style='width: 100%; text-align: center; margin: 0;'>
