@@ -3,8 +3,8 @@
 <fieldset id='V<%= i %>' class='vote' style='text-align: left; display: none;'>
 <legend style='text-align: center;'><span class='material-icons' style='vertical-align: middle; color: gold;'>emoji_events</span><%= e %></legend>
 <ol>
-<% Vote.new(e).leaderboard.each do |e| %>
-<% e.each_pair do |k,v| %>
+<% Vote.new(e).leaderboard.each do |ee| %>
+<% ee.each_pair do |k,v| %>
 <li>
 <span class='v_score'>(<%= (v / Vote.new(e).voters.members.length) % 100 %>)</span>
 <span class='v_name'>
