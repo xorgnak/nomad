@@ -108,7 +108,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <% if @user.attr.has_key?(:vote) && !params.has_key?(:v) %>
 
-<fieldset style='padding: 0; margin: 5% 0 5% 0;'>
+<fieldset style='margin: 5% 0 5% 0;'>
 <legend><span class='material-icons'>loyalty</span>vote</legend>
 <h4 style='width: 100%; text-align: center; margin: 0; padding: 0;'>
 <a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style='text-decoration: none; border: none; margin: 0; padding: 0;'>
