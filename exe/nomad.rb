@@ -2161,7 +2161,9 @@ ga('send', 'pageview');
       end
                        
       if params.has_key?(:landing) && LOCKED[@domain.id] == 'false'
+        HEAD[@domain.id] = params[:head]                 
         LANDING[@domain.id] = params[:landing]
+        FOOT[@domain.id] = params[:foot]
         OWNERSHIP[@domain.id] = params[:conf][:ownership] || 'sponsor'
         XFER[@domain.id] = params[:conf][:xfer] || 'false'
         if params[:conf].has_key? :mumble
