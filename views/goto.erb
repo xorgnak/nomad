@@ -21,25 +21,15 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
   <a id='tog' style='padding: 0 3% 0 3%;' class='material-icons' onclick='$("#badge").toggle(); $("#btm").toggle();'>badge</a>
 
   <% if @user.attr.has_key?(:link) && @user.attr[:link] != '' %>
-    <a style='color: gold; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:link] %>'>lightbulb</a>
+    <a style='color: gold; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:link] %>'>follow_the_signs</a>
   <% end %>
 
-  <% if @user.attr.has_key?(:vote) %>
-
-  <% if params.has_key? :v %>
-  <span class='material-icons' style='padding: 0 3% 0 3%; border: thin outset grey; border-radius: 5px; color: white; box-shadow: 0 0 2px white;'>thumb_up</span>
-  <% else %>
-  <a class='material-icons' href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style=''>thumb_up_off_alt</a>
-  <% end %>
-
-  <% end %>
-
-  <% if @user.attr.has_key?(:contact) && params[:contact] != 'none' && !/.onion/.match(request.host) %>
+  <% if @user.attr.has_key?(:contact) && @user.attr[:contact] != 'none' && !/.onion/.match(request.host) %>
     <a style=' color: green; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:contact] %>:<%= @user.attr[:phone] %>'>call</a>
   <% end %>
 </h1>
 
-<% if @user.attr.has_key?(:contact) && params[:contact] != 'none' && /.onion/.match(request.host) %>
+<% if @user.attr.has_key?(:contact) && @user.attr[:contact] != 'none' && /.onion/.match(request.host) %>
 <h1 style='width: 100%; margin: 0; background-color: black;'>
     <span class='material-icons' style='color: green'>call</span>
     <span style='color: white;'><%= @user.attr[:phone] %></span>
@@ -59,11 +49,11 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
     <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
   </div>
 
-  <% if ENV['LVLS'] != 'false' %>
+  <% if LVLS[request.host] != 'false' %>
   <%= @u.sash.lvl %>
   <% end %>
   
-  <% if ENV['BADGES'] != 'false' %>
+  <% if SASH[request.host] != 'false' %>
   <%= @u.sash.badges %>
   <% end %>
 </div>
@@ -109,9 +99,10 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% if @user.attr.has_key?(:vote) && !params.has_key?(:v) %>
 
 <fieldset style='margin: 5% 0 5% 0;'>
-<legend><span class='material-icons'>loyalty</span>vote</legend>
+<legend><span class='material-icons' style='vertical-align: middle;'>how_to_vote</span>vote</legend>
 <h4 style='width: 100%; text-align: center; margin: 0; padding: 0;'>
-<a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1' style='text-decoration: none; border: none; margin: 0; padding: 0;'>
+<a href='<%= @path %>/?u=<%= params[:u] %>&x=<%= params[:x] || 'solo' %>&z=<%= params[:z] %>&v=1'
+style='text-decoration: none; border: none; margin: 0; padding: 0;'>
 <div style='border: thick outset grey; color: black;'>
 <%= @user.attr[:vote] %>
 </div>
@@ -132,20 +123,28 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 <% if @u.attr[:xp].to_i >= params[:free].to_i %>
 <fieldset style='padding: 0;'>
 <legend><span id='orb' class='material-icons' style='vertical-align: middle;'>auto_awesome</span>power up</legend>
-<p style='width: 100%; text-align: center;'><a href='<%= @path %>/?w=zap-<%= Time.now.utc.to_i %>' style='border: thick outset white; background-color: red; color: white;;'>shall we play a game?</a></p>
+<p style='width: 100%; text-align: center; margin: 0; padding: 0;'>
+<a href='<%= @path %>/?w=zap-<%= Time.now.utc.to_i %>'
+style='text-decoration: none; border: none; margin: 0; padding: 0;'>
+<div style='border: thick outset grey; color: white; background-color: red; text-align: center;'>shall we play a game?</div></a>
+</p>
 </fieldset>
 <% end %>
 
 
- <% if Chance.new(@user.id).try?  && @user.attr[:xp].to_i > 0 %>
- <fieldset style='padding: 0;'><legend><span class='material-icons' style='color: red;'>casino</span>luck</legend>
+ <% if @user.attr[:xp].to_i > 0 %>
+ <fieldset style='padding: 0;'><legend><span class='material-icons' style='color: red; vertical-align: middle;'>casino</span>luck</legend>
  <% @chance = Chance.new(@user.id); @chance.try! %>
  <div style='width: 100%; text-align: center;'>
  <h3 style='width: 100%; text-align: center;'>
- <span style='padding: 1%; border: thin solid black; margin: 0; background-color: black; color: white;'><%= @chance.result[:total] %></span>
+ <div>
+ <% if rand(2) == 0; @tot = 'border-radius: 50px;'; else; @tot = ''; end %>
+ <% if rand(2) == 0; @col = 'red'; else; @col = 'black'; end %>
+ <span style='padding: 1%; border: thin solid black; margin: 0; background-color: <%= @col %>; <%= @tot %> color: white;'><%= @chance.result[:total] %></span>
  <% [@chance.result[:result]].flatten.each do |e| %>
- <span style='padding: 1%; border: thin solid black; margin: 0;'><%= e %></span>
+ <span style='padding: 1%; margin: 1%;'><%= e %></span>
  <% end %>
+ </div>
  </h3>
 </div>
 </fieldset>

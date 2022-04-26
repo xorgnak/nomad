@@ -238,6 +238,10 @@ FULFILLMENT = Redis::HashKey.new('FULFILLMENT')
 XFER = Redis::HashKey.new("XFER")
 OTP = Redis::HashKey.new('OTP')
 OTK = Redis::HashKey.new('OTK')
+LVLS = Redis::HashKey.new("LVLS")
+SASH = Redis::HashKey.new("SASH")
+LOAD = Redis::HashKey.new("LOAD")
+INIT = Redis::HashKey.new("INIT")
 
 WE = Hash.new { |h,k| h[k] = Cerebrum.new }
 ME = Hash.new {|h,k| h[k] = Hash.new { |hh, kk| hh[kk] = Me.new("#{k}:#{kk}") } }
@@ -1387,9 +1391,10 @@ class Chance
   end
   def id; @id; end
   def deal *n
-    a, t = [], 0
+    a, aa, t = [], [], 0
     [self.cards.shift(n[0].to_i || 1)].flatten.each {|e| t += e[:value]; a << e }
-    return { total: t, result: a }                            
+    a.each {|e| aa << %[#{e[:card]}#{e[:suit]}] }
+    return { total: t, result: aa }                            
   end
   def try?
     if @u.attr.has_key?(:chance) && @u.attr[:chance] != 'none'
@@ -1399,23 +1404,25 @@ class Chance
     end
   end
   def try!
+    @n = @u.attr[:rank].to_i + 1
     case @u.attr[:chance]
     when 'coin'
-      self.res.value = coin
+      t, a = 0, []; @n.times { c = coin; t += c[:total]; a << c[:result] }
+      self.res.value = { total: t, result: a }
     when 'card'
-      if self.cards.values.length - @u.attr[:hand].to_i  >= 0
+      if self.cards.values.length - @n  >= 0
         deck
       end
-      self.res.value = deal(@u.attr[:hand])
+      self.res.value = deal(@n)
     when 'dice'
-      self.res.value = roll("#{@u.attr[:number]}d#{@u.attr[:sides]}") {|r| r }
+      self.res.value = roll("#{@n}d#{@u.attr[:class].to_i + 1}") {|r| r }
     end
     self.try.value = success(result)
     return success?
   end
   def success i
     Redis.new.publish("CHANCE.success", "#{i} #{@u.attr.all}")
-    if i[:total].to_i >= @u.attr[:over].to_i
+    if i[:total].to_i >= @u.attr[:rank].to_i
       return true
     else
       return false
@@ -1464,12 +1471,12 @@ class Chance
   def coin
     c = rand(2)
     if c == 0
-      t = "tails"
+      t = "arrow_circle_up"
     else
-      t = "heads"
+      t = "arrow_circle_down"
     end
     Redis.new.publish("CHANCE.coin", "#{c} #{t}")
-    { total: c, result: t }
+    { total: c, result: %[<span class='material-icons' style='vertical-align: middle;'>#{t}</span>] }
   end
   def roll i, &b
     b.call(die(i))
@@ -1963,7 +1970,7 @@ ga('send', 'pageview');
           w = []; 16.times { w << rand(16).to_s(16) }
           redirect "#{@path}/?w=#{w.join('')}"
           else
-            redirect '/'
+            redirect "#{@path}/?auth=0"
           end
         end
       else
@@ -1972,7 +1979,7 @@ ga('send', 'pageview');
         w = []; 16.times { w << rand(16).to_s(16) }
         redirect "#{@path}/?w=#{w.join('')}"
         else
-          redirect '/'
+          redirect "#{@path}/?auth=0"
         end
       end
     else
@@ -1999,6 +2006,7 @@ ga('send', 'pageview');
     content_type :json
     if params[:password] == OTK[IDS[params[:username]]]
       params[:u] = IDS[params[:username]]
+      params[:attr] = U.new(IDS[params[:username]]).attr.all
       token(params[:u], ttl: (((60 * 60) * 24) * 7))
       Redis.new.publish("BOX.auth", "#{@path}")
     end
@@ -2164,8 +2172,12 @@ ga('send', 'pageview');
         HEAD[@domain.id] = params[:head]                 
         LANDING[@domain.id] = params[:landing]
         FOOT[@domain.id] = params[:foot]
+        LOAD[@domain.id] = params[:load]
+        INIT[@domain.id] = params[:init]
         OWNERSHIP[@domain.id] = params[:conf][:ownership] || 'sponsor'
         XFER[@domain.id] = params[:conf][:xfer] || 'false'
+        LVLS[@domain.id] = params[:conf][:lvls] || 'false'
+        SASH[@domain.id] = params[:conf][:sash] || 'false'
         if params[:conf].has_key? :mumble
           MUMBLE[@domain.id] = params[:conf][:mumble]
         end
@@ -2477,13 +2489,22 @@ ga('send', 'pageview');
           else
             url = "https://#{ENV['CLUSTER']}/box"
             uri = URI(url)
-            px = { username: params[:login][:username], password: params[:login][:password] }
+            px = { username: params[:login][:username], password: params[:login][:password], box: Redis.new.get('ONION') }
             res = Net::HTTP.post_form(uri, px)
             j = JSON.parse(res.body)
             if j.has_key?('u')
-              token(params['u'], ttl: (((60 * 60) * 24) * 7))
-              @by = U.new(params[:u])
-              Redis.new.publish('BOX.AUTH', "#{@by}")
+              token(j['u'], ttl: (((60 * 60) * 24) * 7))
+              @id = j['u']
+              @by = U.new(@id)
+              j['attr'].each_pair { |k,v| @by.attr[k.to_sym] = v }
+              IDS[j['username']] = @id
+              BOOK[j['username']] = @id
+              LOOK[@id] = j['username']
+              qrp = []; 16.times { qrp << rand(16).to_s(16) }
+              QRI[qrp.join('')] = IDS[j['username']]
+              QRO[IDS[j['username']]] = qrp.join('')
+              Redis.new.publish('BOX.AUTH', "#{@by} #{j}")
+              redirect "#{@path}/#{@by.id}"
             else
               redirect "#{@path}"
             end
