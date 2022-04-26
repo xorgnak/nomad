@@ -1,0 +1,14 @@
+<fieldset style='text-align: center; height: 100%'>
+<legend><%= `hostname`.chomp %>.<%= ENV['CLUSTER'] %></legend>
+<div id='cpuinfo' style='text-align: left; font-size: xx-small; background-color: black; color: orange; border: none; border-top: thin solid orange; border-bottom: thin solid orange; overflow-y: scroll; overflow-x: hidden; width: 90vw; height: 100%'></div>
+</fieldset>
+<script>
+var ln = 0;
+<% @cat = []; `dmesg`.split("\n").each {|e| @cat << %[<p style='margin: 0;'>#{e}</p>] } %>
+var cat = <%= JSON.generate(@cat) %>;
+console.log(cat);
+setInterval(function(){
+$('#cpuinfo').append(cat.shift());
+$("#cpuinfo").animate({ scrollTop: $('#cpuinfo').height() * 100 });
+}, 100);
+</script>

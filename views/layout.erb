@@ -3,6 +3,7 @@
 <%= e %> { font-family: monospace; font-size: x-large; max-width: 100%; }
 <% end %>
 body { margin: 0; padding: 0; }
+<%= erb CSS[request.host] || '' %>
 </style>
 <% @ts = Time.now.utc.to_i %>
 
@@ -28,7 +29,7 @@ body { margin: 0; padding: 0; }
   
 
 <title id='banner'><%= @path %></title>
-<form action='/' method='POST' enctype="multipart/form-data">
+<form action='/' method='POST' enctype="multipart/form-data" style='height: 100%; margin: 0; padding: 0;'>
 <input type='hidden' id='u' name='u' value='<%= params[:u] || @id %>'>
 <% if params.has_key?(:x) %>
 <input type='hidden' id='z' name='z' value='<%= params[:z] || 'zzzzzz' %>'>

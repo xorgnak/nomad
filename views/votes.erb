@@ -1,12 +1,14 @@
-
+<% @v_colors = ['black', 'blue', 'orange', 'red', 'gold'] %>
 <% votes.keys.each_with_index do |e,i| %>
+<% @v_count = 0 %>
 <fieldset id='V<%= i %>' class='vote' style='text-align: left; display: none;'>
-<legend style='text-align: center; padding: 0 2% 0 2%;'><span class='material-icons' style='vertical-align: middle; color: gold;'>emoji_events</span><%= e %></legend>
-<ol>
+<legend style='text-align: center; padding: 0 2% 0 2%;'><span id='t<%= i %>' class='material-icons' style='vertical-align: middle; text-shadow: 0 0 white;'>emoji_events</span><%= e %></legend>
+<ol style='overflow-y: scroll; margin: 0; height: 20vh;'>
 <% Vote.new(e).leaderboard.each do |ee| %>
 <% ee.each_pair do |k,v| %>
-<li>
-<span class='v_score'>(<%= (v / Vote.new(e).voters.members.length) * 100 %>)</span>
+<% @v_count += v.to_i %>
+<li style='margin: 1% 0 1% 0; font-size: 80%;'>
+<span class='v_score' style='background-color: <%= @v_colors["#{v.to_i}".length - 1] %>; color: white; border-radius: 50px; padding: 0 1% 0 1%; border: thin solid white;'><%= v.to_i %></span>
 <span class='v_name'>
 <a style='text-decoration: none; color: white;' href='<%= @path %>/?u=<%= QRO[k] %>'><%= U.new(k).attr[:name] || QRO[k] %></a>
 </span>
@@ -15,6 +17,7 @@
 <% end %>
 </ol>
 </fieldset>
+<script>$('#t<%= i %>').css('color', '<%= @v_colors["#{@v_count.to_i}".length - 2] %>');</script>
 <% end %>
 
 <select id='votes' style='text-align: center; background-color: white; color: black;'>

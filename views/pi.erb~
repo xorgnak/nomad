@@ -1,0 +1,5 @@
+<h3>
+<%= `hostname`.chomp %>
+</h3>
+<textarea style='font-size: xx-small; background-color: black; height: 35vh;'>
+<%= `cat /proc/cpuinfo` %>

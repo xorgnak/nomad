@@ -2,13 +2,16 @@
 html { background-color: black; color: white; }
 form { }
 textarea { font-size: x-large; width: 100%; }
+<%= erb CSS[request.host] || '' %>
 </style>
 
 <% if LOCKED[@domain.id] == 'false'  %>
+<h1 style='z-index: 1000;'>
 <a href='<%= @path %>/?edit=true' class='material-icons' style='text-decoration: none; color: black; background-color: white; padding: 1%; border: thin outset grey;'>lock</a>
 <% end %>
 <% if Redis.new.get('ONION') != nil && ENV['BOX'] == 'true' %>
 <button type='button' onclick='$("#onion").toggle()' class='material-icons' style='background-color: white; padding: 1%;'>my_location</button>
+</h1>
 <div id='onion' style='display: none;'>
   <div id='qrcode' style='background-color: white; padding: 2%; text-align: center;'></div>
   <script>$('#qrcode').qrcode('<%= Redis.new.get('ONION') %>');</script>
@@ -79,9 +82,10 @@ textarea { font-size: x-large; width: 100%; }
      </p>
      </fieldset>
      <fieldset><legend>content</legend>
+      <textarea name='css' placeholder='css' style='width: 100%; height: 30%;'><%= CSS[@domain.id] %></textarea>
       <textarea name='landing' placeholder='landing html...' style='width: 100%; height: 30%;'><%= LANDING[@domain.id] %></textarea>
-      <textarea name='head' placeholder='head html...' style='width: 100%; height: 20%;'><%= HEAD[@domain.id] %></textarea>
-      <textarea name='foot' placeholder='foot html...' style='width: 100%; height: 20%;'><%= FOOT[@domain.id] %></textarea>
+      <textarea name='head' placeholder='head content...' style='width: 100%; height: 20%;'><%= HEAD[@domain.id] %></textarea>
+      <textarea name='foot' placeholder='foot content...' style='width: 100%; height: 20%;'><%= FOOT[@domain.id] %></textarea>
       <textarea name='load' placeholder='load javascript...' style='width: 100%; height: 20%;'><%= LOAD[@domain.id] %></textarea>
       <textarea name='init' placeholder='init javascript...' style='width: 100%; height: 20%;'><%= INIT[@domain.id] %></textarea>
       </fieldset>
@@ -114,24 +118,31 @@ textarea { font-size: x-large; width: 100%; }
   <% end %>
 <% end %>
     <%= erb LANDING[request.host] || '' %>
-    <div id='head' style='position: fixed; top: 0; width: 100%;'>
+    <div id='head' style='z-index: -1; position: fixed; top: 0; width: 100%; height: 45vh;'>
     <%= erb HEAD[request.host] || '' %>
     </div>
-    <div id='foot' style='position: fixed; bottom: 0; width: 100%;'>
+    <div id='foot' style='z-index: 1; position: fixed; bottom: 0; width: 100%;'>
     <%= erb FOOT[request.host] || '' %>
     </div>
 </div>
 <script>
+
 <% if params.has_key?(:edit) %>
 $('#head').hide();
 $('#foot').hide();
-<% end  %>
-<% if !params.has_key?(:auth) && !params.has_key?(:w) %>
-$('.auth').hide();
-<% else %>
+<% end %>
+
+<% if params.has_key?(:auth) || params.has_key?(:w) %>
+$('.auth').show();
 $('#head').hide();
 $('#foot').hide();
 <% end %>
+
 <%= erb LOAD[request.host] || '' %>
-$(function(){ <%= erb INIT[request.host] || '' %> });
+
+$(function(){
+
+<%= erb INIT[request.host] || '' %>
+
+});
 </script>
