@@ -1947,9 +1947,9 @@ class APP < Sinatra::Base
     @id = id(params[:u]);
     if params.has_key?(:u);
       @user = U.new(QRI[@id]);
-      if @user.attr[:xp].to_i < 5 
-        @user.log << %[<span class='material-icons' style='vertical-align: middle;'>help</span> get your qrcode above scanned to earn rewards.]
-      end
+#      if @user.attr[:xp].to_i < 5 
+#        @user.log << %[<span class='material-icons' style='vertical-align: middle;'>help</span> get your qrcode above scanned to earn rewards.]
+#      end
       Bank.mint
       if @user.attr.has_key?(:chance) && @user.attr[:chance] != 'none'
         @chance = Chance.new(@user.id)
