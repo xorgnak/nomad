@@ -1947,7 +1947,7 @@ class APP < Sinatra::Base
     @id = id(params[:u]);
     if params.has_key?(:u);
       @user = U.new(QRI[@id]);
-      if @user.attr[].to_i < 5 
+      if @user.attr[:xp].to_i < 5 
         @user.log << %[<span class='material-icons' style='vertical-align: middle;'>help</span> get your qrcode above scanned to earn rewards.]
       end
       Bank.mint
