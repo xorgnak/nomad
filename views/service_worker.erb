@@ -18,7 +18,7 @@ self.addEventListener('push', function(event) {
     const j = event.data ? JSON.parse(event.data.text()) : {};
     event.waitUntil(
 	self.registration.showNotification( j.title || '<%= request.host %>', {
-	    tag: 'nomad.' + '<%= request.host %>',
+	    tag: 'nomad',
 	    body: j.body || 'ping',
 	    icon: j.icon || 'favicon.ico',
 	    timestamp: j.timestamp,
@@ -53,13 +53,25 @@ self.addEventListener('notificationclick', function(event) {
 //console.log('sw', otk, at);
 
 
-self.registration.showNotification( '<%= request.host %>', {
-    tag: 'nomad.' + '<%= request.host %>',
-    body: 'state: OK',
-//    body: 'last update: <%= Time.now.utc %>\nsponsor: <%= @user.attr[:sponsor] %>',
+<% if params.has_key? :u %>
+<% @user = U.new(params[:u]) %>
+<% if ENV['BOX'] == 'true' %>
+<% @rhelm = %[#{@user.attr[:title]}@#{`hostname`.chomp}.#{ENV['CLUSTER']}/#{@user.attr[:sponsor]}] %>
+<% else %>
+<% @rhelm = %[#{@user.attr[:title]}@#{request.host}/#{@user.attr[:sponsor]}] %>
+<% end %>
+<% @time = %[at: #{Time.now.utc}] %>
+<% @body=[%[tokens: #{@user.coins.value}]];[:xp, :rank, :class].each {|e|@body << %[#{e}:#{@user.attr[e]}] } %>
+
+
+
+
+self.registration.showNotification( '<%= @rhelm %>', {
+    tag: 'nomad',
+    body: '<%= @time %>\n<%= @body.join(' | ') %>',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     vibrate: [500,100,500],
-    timestamp: '<%= Time.now.utc.to_i %>'
+    timestamp: '<%= Time.now.to_i %>'
 });
-
+<% end %>

@@ -1,148 +1,72 @@
-<div id='adventure' class='mermaid' style=''>
-  journey
-  title an adventure
-  section Origin
-  need to find something to do: 1: player
-  get referred by someone to the network: 1: player, referrer
-  find an operator: 1: player
-  scan a referral rsvp qr code: 1: player
-  section Contact
-  make contact with operator: 2: operator, player
-  decide to go on adventure: 2: operator, player
-  section Journey
-  travel to waypoint: 3: operator, player
-  receive waypoint entry password: 4: operator, player
-  section Destination
-  arrive at waypoint: 5: player, user
-  deliver entry password: 6: player, user
-  receive waypoint details and further paswords: 7: player, user
-</div>
-<div id='network' class='mermaid' style=''>
-  classDiagram
-  Node --> Hub
-  Node1 --> Hub
-  Node2 --> Hub
-  Node3 --> Hub
-  Subnode0 --> Node
-  Subnode1 --> Node
-  Subnode2 --> Node
-  class Hub~Box~ {
-  a virtual machine hosting domains
-  }
-  class Box {
-  an instance of nomad
-  -redis
-  +mqtt
-  +app
-  +mumble
-  +nomad
-  }
-  class Node~Box~ {
-  A local network device hosting onion domains
-  mumble(Hub)
-  mqtt(Hub)
-  }
-</div>
+<fieldset class='phases' id='phase_0'>
+<legend>nomad usage</legend>
+<ul>
+<li>co-brand focused.</li>
+<li>influencer driven.</li>
+<li>organized by zones.</li>
+<li>owned by it's creators.</li>
+</ul>
+<fieldset><legend>getting started...</legend>
+<ol>
+<li><button type='button' class='phase' value='1'>create your zone.</button></li>
+<li><button type='button' class='phase' value='2'>add team members.</button></li>
+<li><button type='button' class='phase' value='3'>create waypoints.</button></li>
+<li><button type='button' class='phase' value='4'>market waypoints.</button></li>
+</ol>
+</fieldset>
+</fieldset>
 
-<div id='howto' class='mermaid' style=''>
-  stateDiagram-v2
-  direction LR
-  config: update your user profile
-  badge: share your rsvp qr code
-  scan: interact with other's rsvp and zap qr codes
-  send: share invites and callbacks
-  bank: exchange tokens for credits
-  allocate: buy franchises or sponsor zones with credits
-  own: buy franchises or shares of brand ownership.
-  [*] --> config
-  [*] --> badge
-  [*] --> scan
-  [*] --> send
-  [*] --> bank
-  [*] --> allocate
-  [*] --> own
-  config --> [*]
-  badge --> [*]
-  scan --> [*]
-  send --> [*]
-  bank --> [*]
-  allocate --> [*]
-  own --> [*]
-  state config {
-  conf: click top left
-  save: update configuration and click save
-  [*] --> conf
-  conf --> save
-  save --> [*]
-  }
-  state badge {
-  b: click top right
-  w: wait for other user to scan you qr.
-  [*] --> b
-  b --> w
-  w --> [*]
-  }
-  state scan {
-  c_s: scan other qr with scanner
-  c_m1: update rank, class, boss levels
-  c_m2: invite to zones, give titles, enter into contests
-  c_m3: give badges, badge awards, contest votes, and badge boss level
-  c_m4: give tokens
-  c_m5: zap them?
-  c_v: send it
-  [*] --> c_s
-  c_s --> c_m1
-  c_m1 --> c_m2
-  c_m2 --> c_m3
-  c_m3 --> c_m4
-  c_m4 --> c_m5
-  c_m5 --> c_v
-  c_v --> [*]
-  }
-  state send {
-  s_c: click the sender button
-  s_s: select input or callback
-  s_p: input receiver phone number
-  [*] --> s_c
-  s_c --> s_s
-  s_s --> s_p
-  s_p --> [*]
-  }
-  state bank {
-  b_c: click the piggy bank
-  b_t: update funds distribution
-  b_s: click the bank to save
-  [*] --> b_c
-  b_c --> b_t
-  b_t --> b_s
-  b_s --> [*]
-  }
-  state allocate {
-  a_h: click the house
-  a_r: select the number and level of resources to allocate.
-  a_t: select the zone timeframe
-  a_n: name your zone
-  a_s: buy it
-  [*] --> a_h
-  a_h --> a_r
-  a_r --> a_t
-  a_t --> a_n
-  a_n --> a_s
-  a_s --> [*]
-  }
-  state own {
-  o_c: click on the ticket
-  o_n: select number of shares to buy or sell
-  o_d: select buy or sell
-  o_b: click the bank
-  [*] --> o_c
-  o_c --> o_n
-  o_n --> o_d
-  o_d --> o_b
-  o_b --> [*]
-  }
-</div>
 
+<fieldset class='phases' id='phase_1' style='display: none;'>
+<legend>create your zone</legend>
+<ul>
+<li>get some tokens.</li>
+<li>use the bank to estimate zone resources.</li>
+<li>think of a good name.</li>
+</ul>
+</fieldset>
+
+<fieldset class='phases' id='phase_2' style='display: none;'>
+<legend>add team members</legend>
+<ul>
+<li>invite users.</li>
+<li>set their class, title, and zone.</li>
+<li>show them how to set up their profile.</li>
+</ul>
+</fieldset>
+
+<fieldset class='phases' id='phase_3' style='display: none;'>
+<legend>create waypoints</legend>
+<ul>
+<li>create waypoint passwords and categories for special offers and points of interest.</li>
+<li>use the crowd indicator to show how busy you are.</li>
+</ul>
+</fieldset>
+
+<fieldset class='phases' id='phase_4' style='display: none;'>
+<legend>market waypoints</legend>
+<h4 style='width: 100%; text-align: center;'>schedule your content planning session today</h4>
+<ul>
+<li>self-shot</li>
+<li>first-person</li>
+<li>influencer-driven</li>
+<li>experiential marketing.</li>
+</ul>
+<h4 style='width: 100%; text-align: center;'>we get it all in one take.</h4>
+</fieldset>
+
+<nav style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
+<button type='button' class='phase material-icons' value='0' class='material-icons' style='vertical-align: middle;'>info</button>
+<button type='button' class='phase' value='1'>1</button>
+<button type='button' class='phase' value='2'>2</button>
+<button type='button' class='phase' value='3'>3</button>
+<button type='button' class='phase' value='4'>4</button>
+</nav>
 <script>
-    mermaid.initialize({ startOnLoad: true });
+$(document).on('click', '.phase', function(ev) {
+ev.preventDefault();
+console.log($(this));
+$('.phases').hide();
+$('#phase_' + $(this).val()).show();
+});
 </script>
