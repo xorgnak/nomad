@@ -69,8 +69,8 @@ self.addEventListener('notificationclick', function(event) {
 self.registration.showNotification( '<%= @rhelm %>', {
     tag: 'nomad',
     body: '<%= @time %>\n<%= @body.join('\n') %>',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/<%= request.host %>/favicon.ico',
+    badge: '/<%= request.host %>/favicon.ico',
     vibrate: [500,100,500],
 //    timestamp: '<%= Time.now.to_i %>'
 });
