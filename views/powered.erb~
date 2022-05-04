@@ -1,0 +1,4 @@
+<style>
+.material-icons { vertical-align: middle; }
+</style>
+<h1 id='powered'>powered by the <a id='logo' href='<%= @path %>/nomad'><span class='material-icons'>hiking</span>nomadic</a> network.</h1>
