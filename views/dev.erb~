@@ -1,0 +1,6 @@
+<video src='/<%= params[:dev] %>'>
+<h1 style='width: 100%; text-align: center; margin: 0; padding: 0;'>
+<input placeholder='0000' style='vertical-align: middle; margin: 0; padding: 0;'>
+<button class='material-icons'
+style='vertical-align: middle; margin: 0; padding: 0; border: none; color: green'>send</buton>
+</h1>

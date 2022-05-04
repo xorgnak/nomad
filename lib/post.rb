@@ -1,4 +1,6 @@
 # coding: utf-8
+@board = GOV[request.host]
+
 if params.has_key?(:file) && params.has_key?(:u)
       fi = params[:file][:tempfile]
       File.open("public/#{@domain.id}/" + params[:u] + '.img', 'wb') { |f| f.write(fi.read) }
@@ -417,6 +419,14 @@ if params.has_key?(:file) && params.has_key?(:u)
           r = "#{@by.attr[:name]}\n#{@by.attr[:pitch]}\n#{@path}/?u=#{QRO[@by.id]}&z=#{@z}"
           phone.send_sms( from: ENV['PHONE'], to: params[:send][:number], body: r)
         end
+      end
+
+      if params.has_key?(:zone) && "#{params[:zone]}".length > 0 
+        @user.zones << params[:zone]
+        Zone.new(params[:zone]).users << @user.id
+        @board.zones << params[:zone]
+        @board.users << @user.id
+        @board.pool << @user.id
       end
       
       if params.has_key? :quick

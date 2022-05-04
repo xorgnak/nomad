@@ -174,6 +174,8 @@ class APP < Sinatra::Base
   get('/sponsor') { @user = U.new(params[:u]); erb :sponsor }
   get('/shares') { @user = U.new(params[:u]); erb :shares }
   get('/shell') { erb :shell, layout: false }
+  get('/onion') { @user = U.new(params[:u]); erb :onion }
+  get('/dev') { @user = U.new(params[:u]); erb :dev }
   get('/service-worker.js') { content_type('application/javascript'); erb :service_worker, layout: false }
   post('/sw') {
     Redis.new.publish('SW', "#{params}")
@@ -321,6 +323,7 @@ ga('send', 'pageview');
     ta = %[<!-- integrate internal analytics trackr -->]
     ERB.new(File.read("home/#{u}/#{params[:c]}/index.erb") + ga + ta).result(binding)
   }
+  
   get('/:u') {
     Redis.new.publish('GET.otp', "#{session[:otp]} #{OTP.all}")
     if QRO.has_key?(params[:u]) || IDS.has_key?(params[:u])
@@ -413,6 +416,7 @@ module Box
 end
 
 def op u
+  useradd u
   if "#{u}".length > 0 && IDS.has_key?(u)
     @u = U.new(IDS[u])
     @u.attr[:boss] = 999999999
@@ -433,27 +437,30 @@ t = h.delete(:topic) || 'NOMAD'
 k = h.delete(:key)
 Redis.new.publish "#{t}#{k}", "#{h}"
 end
+
 log key: '#op', admin: ENV['ADMIN']
+
 op ENV['admin']
 LOGINS.keys.each {|e|
   if "#{e}".length > 0
-  log key: '.op', login: e
-  op e
+    log key: '.op', login: e
+    op e
   end
 }
 
 def motd
   log({
-    key: '.motd',
-    states: STATE.keys,
-    logins: LOGINS.keys,
-    ips: `hostname -I`.chomp.split(' '),
-    hostname: `hostname`.chomp
-  })
+        key: '.motd',
+        economy: Shares.market,
+        states: STATE.keys,
+        logins: LOGINS.keys,
+        ips: `hostname -I`.chomp.split(' '),
+        hostname: `hostname`.chomp
+      })
 end
 
 if ENV['NOMAD'] == 'BOOT'
-STATE.clear
+  STATE.clear
 end
 
 begin
@@ -468,7 +475,7 @@ begin
     Pry.start(host)
   elsif OPTS[:indirect]
     STATE[:indirect] = 1
-    Signal.trap("INT") { puts %[[EXIT][#{Time.now.utc.to_f}]]; exit 0 }
+    Signal.trap("INT") { exit 0 }
     puts "##### running indirectly... #####"
     Pry.config.prompt_name = :nomad
     motd

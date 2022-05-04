@@ -1,6 +1,60 @@
-<fieldset class='phases' id='phase_0'>
+
+<% @ex = Shares.market %>
+<% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v}</li>] }  %>
+<% @brd = []; @ex[:ledger].each_pair { |k,v| @brd << %[<li>#{U.new(k).attr[:name] || 'nomad'}: #{v}</li>] }  %>
+<fieldset class='phases' id='phase_X'>
+<legend>network</legend>
+
+<h3 style='width: 100%; text-align: center;'>1<span class='material-icons'>toll</span>=<span style='border: thin dotted red; border-radius: 50px;'>one click.</span></h3>
+<h3 style='width: 100%; text-align: center;'>1<span class='material-icons'>savings</span>=<span style='border: thin dotted red; border-radius: 50px;'>1<span class='material-icons'>toll</span> saved.</span></h3>
+
+<div>
+<h3 style='width: 100%; text-align: center; margin: 0;'>Total Network Value</h3>
+<h3 style='width: 100%; text-align: center; margin: 0;'><%= @ex[:total] %><span class='material-icons'>savings</span></h3>
+</div>
+<p><span class='material-icons'>confirmation_number</span> price is determined by brand ownership.</p>
+<fieldset>
+<legend>stats</legend>
+<fieldset>
+<legend>reach</legend>
+<ul>
+<li>users: <%= @ex[:users] %></li>
+<li>domains: <%= @ex[:domains] %></li>
+</ul>
+</fieldset>
+<fieldset>
+<legend>market</legend>
+<p>total <span class='material-icons'>confirmation_number</span>: <%= @ex[:shares] %></p>
+<ul>
+<li>owners: <%= @ex[:owners] %></li>
+<li>held: <%= @ex[:held] %><span class='material-icons'>confirmation_number</span></li>
+</ul>
+<p>total <span class='material-icons'>toll</span>: <%= @ex[:coins] %></p>
+</fieldset>
+</fieldset>
+
+<fieldset>
+<legend>brands</legend>
+<ul>
+<%= @mkt.join('') %>
+</ul>
+</fieldset>
+
+<fieldset>
+<legend>shareholders</legend>
+<ul>
+<%= @brd.join('') %>
+</ul>
+</fieldset>
+<fieldset><legend>managment</legend>
+<%= GOV.html %>
+</fieldset>
+</fieldset>
+
+<fieldset class='phases' id='phase_0' style='display: none;'>
 <legend>nomad usage</legend>
 <ul>
+<li>entorage coordinated.</li>
 <li>co-brand focused.</li>
 <li>influencer driven.</li>
 <li>organized by zones.</li>

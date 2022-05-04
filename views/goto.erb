@@ -18,8 +18,8 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 <h1 style='width: 100%; margin: 0; background-color: black;'>
 
-  <a id='tog' style='padding: 0 3% 0 3%;' class='material-icons' onclick='$("#badge").toggle(); $("#btm").toggle();'>badge</a>
-
+  <a id='tog' style='padding: 0 3% 0 3%;' class='material-icons' onclick='$("#badge").show(); $("#top").hide(); $("#btm").hide();'>qr_code_2</a>
+  <a style='padding: 0 3% 0 3%;' class='material-icons' onclick='$("#modal").show(); $("#top").hide(); $("#btm").hide();'>stars</a>
   <% if @user.attr.has_key?(:link) && @user.attr[:link] != '' %>
     <a style='color: gold; padding: 0 3% 0 3%;' class='material-icons' href='<%= @user.attr[:link] %>'>follow_the_signs</a>
   <% end %>
@@ -43,7 +43,10 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
-<div id='badge' style='display: none; position: absolute; top: 0;'>
+<div id='badge' style='width: 100%; text-align: center; padding: 0; height: 100vh; overflow-y: scroll; display: none;'>
+<h1 style='width: 100%; text-align: center;'>
+<a onclick='$("#badge").hide(); $("#top").show(); $("#btm").show();' style='color: black; background-color: white; border: thick outset black; border-radius: 50px;'>back</a>
+</h1>
   <% @u = U.new("#{params[:u]}:#{params[:z]}") %>
   <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
     <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
@@ -76,11 +79,14 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
  <% if @user.attr.has_key? :sponsor %>
  <h4 id='sponsor' style='width: 100%; text-align: center; margin: 0; background-color: black; color: white;'><span><%= @user.attr[:sponsor] %></span></h2>
  <% end %>
-
+<h1 id='help' style='width: 100%; text-align: center; background-color: black; margin: 0;'>
+<a onclick='$("#howto").show(); $("#top").hide(); $("#btm").hide(); $("#help").hide();' style='background-color: gold; color: black; border: thick outset white; border-radius: 50px; padding: 0 2% 0 2%;'>WHAT IS THIS?</a>
+</h1>
 </div>
 
-<dialog id='modal' style='width: 100%; padding: 0; box-shadow: 0 0 15px white;' onclick='document.querySelector("#modal").close()'>
+<div id='modal' style='width: 100%; padding: 0; height: 100vh; overflow-y: scroll; display: none;'>
 <div style='background-color: white; color: black; width'>
+
 <% if OWNERSHIP[request.host] != 'franchise' %>
 <p style='width: 100%; text-align: center; background-color: black; color: white; margin: 0;'>
 <span style='text-align: left; width: 35%;'>
@@ -158,7 +164,21 @@ style='text-decoration: none; border: none; margin: 0; padding: 0;'>
  <% end %>
 
 </div>
-</dialog>
+<h1 style='width: 100%; text-align: center;'>
+<a onclick='$("#modal").hide(); $("#top").show(); $("#btm").show();' style='color: black; background-color: white; border: thick outset black; border-radius: 50px; background-color: green; color: white;'>DONE</a>
+</h1>
+</div>
+
+
+<div id='howto' style='width: 100%; padding: 0; height: 100vh; overflow-y: scroll; display: none;'>
+<ol>
+<li><span class=material-icons>qr_code_2</span><span>get your badge scanned to collect badges and go on adventures.</span></li>
+<li><span class='material-icons'>stars</span><span>see your progress, vote in contests, and collect rewards.</span></li>
+<li><span class='material-icons'>follow_the_signs</span><span>follow your influencer's media.</span></li>
+<li><span class='material-icons'>call</span><span>contact your influencer.</span></li>
+</ol>
+<h1 style='width: 100%; text-align: center;'><a onclick='$("#howto").hide(); $("#top").show(); $("#btm").show();' style='color: black; background-color: white; border: thick outset black; border-radius: 50px; background-color: green; color: white;'>DONE</a></h1>
+</div>
 
 <% @ts = Time.now.utc.to_i %>
 <input type='hidden' name='z' value='<%= params[:z] %>'>

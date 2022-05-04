@@ -1,6 +1,4 @@
-<% [ :boss, :mom, :photographer, :fabricator, :dispatch ].each do |e| %>
-<%= Board.new(e).html %>
-<% end %>
+<%= Board.new(request.host).html %>
 <% if params.has_key? :edit %>
 <button class='material-icons'>save</button>
 <% end %>

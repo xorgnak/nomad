@@ -28,92 +28,25 @@ padding: 3%;
       <button class='material-icons' type='button'
          onclick='$("#badge").toggle(); $("#display").toggle();'
 	 style='background-color: black;font-size: xx-large; width: 20%; float: right;'>qr_code_2</button>
-    <span onclick='$("#config").toggle(); $("#display").toggle();'>
-      <% if @user.attr.has_key?(:name) && @user.attr[:name] != '' %>
-      <%= @user.attr[:name] %>
-      <% else %>
-      <span style='font-size: xx-large;' class='material-icons'>settings</span> config
-      <% end %>
-    </span>
+    <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons'
+    style='text-decoration: none; color: white; border-color: green;'>terminal</a>
+     
   </h1>
   <p style="color: white; background-color: black; margin: 0;">mumble://<%= @user.attr[:name] || 'nomad' %>@<%= ENV['CLUSTER'] %>:64738/?version=1.2.0</p>
   
-  <h1 id='menu' style='width: 100%; background-color: black; text-align: center; margin: 0;'>
-      <a href='<%= @path %>/bank?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_bank' value='bank' style='text-decoration: none; color: white;'>savings</a>
-  <% if Bank.wallet[@user.id].to_i > 0 %>
-   <a href='<%= @path %>/sponsor?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_sponsorship' value='sponsorship' style='text-decoration: none; color: white;'>cabin</a>
-   <a href='<%= @path %>/shares?u=<%= @user.id %>&bare=true' class='open material-icons' id='open_shares' value='shares' style='text-decoration: none; color: white;'>confirmation_number</a>
-  <% end %>
+
   <a href='<%= @path %>/term?u=<%= @user.id %>' class='tog material-icons' style='text-decoration: none; color: white; border-color: green;'>terminal</a>
-  </h1>
-
-
-  <div id='config' style='background-color: black; display: none;'>
-    <h1><input type='text' name='config[name]' placeholder='NAME' value='<%= @user.attr[:name] %>'></h1>
-    <h1><input type='text' name='config[pitch]' placeholder='PITCH' value='<%= @user.attr[:pitch] %>'></h1>    
-    <h1 style='width: 100%;'>
-      <input type='text' name='config[link]' placeholder='LINK' value='<%= @user.attr[:link] %>' style='width: 100%;'>
-    </h1>
-
-    <h1 style='width: 100%;'>
-      <select id='title' name='config[title]' style='width: 100%;'>
-	<option value='title' selected disabled>title</option>
-	<% if @user.attr[:class].to_i > 0 %>
-	<option value='influencer'>influencer</option>
-	<% end %>
-	<% if @user.attr[:class].to_i > 1 %>
-	<option value='manager'>manager</option>
-	<% end %>
-	<% if @user.attr[:class].to_i > 2 %>
-	<option value='operator'>operator</option>
-	<% end %>
-	
-	<% @user.titles.members.each do |e| %>
-	<option value='<%= e %>'><%= e %></option>
-	<% end %>
-      </select>
-    </h1>
-
-    <h1 style='width: 100%;'>
-      <select id='sponsor' name='config[zone]' style='width: 100%;'>
-	<option value='sponsor' selected disabled>sponsor</option>
-	<% @user.zones.members.each do |e| %>
-	<option value='<%= e %>'><%= e %></option>
-	<% end %>
-      </select>
-    </h1>
-    <h1>
-    <select id='contact' name='config[contact]' style='width: 20%;'>
-      	<option value='none' selected>contact</option>
-	<option value='sms'>sms</option>
-	<option value='tel'>tel</option>
-      </select>
-      <datalist id='numbs'>
-      <option value='<%= @user.attr[:phone] %>'>
-      <option value='<%= ENV['PHONE'] %>'>
-      </datalist>
-      <input type='tel' list='numbs' name='config[phone]' style='width: 70%;' maxlength="10" size="10" placeholder='PHONE' value='<%= @user.attr[:phone] %>' pattern='[0-9]{10}'>
-    </h1>
-    <h1><input type='file' id='pic' accept="image/*" name='file'></h1>
-
-    <% if @user.attr[:class].to_i > 4 %>
-    <fieldset>
-    <legend>waypoint</legend>
-      <%= erb :waypoint, layout: false %>
-    </fieldset>  
-    <% end %>
-
-    <% if @user.attr[:class].to_i >= 5 && @user.attr.has_key?(:zone) %>
-    <fieldset id='urls'>
-    <legend>urls</legend>
-      <input name='waypoint[urls][new]' placeholder='https://'>
-      <% Zone.new(@user.attr[:zone]).urls.each do |e| %>
-      <% end %>
-    </fieldset>
-    <% end %>
-    <button style='background-color: green; color: white;'>save</button>
-  </div>
   
+
+
+
+
+
+
+
+
+
+
   <div id='badge' style='background-color: black; display: none; width: 100%;'>
     <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
     <% if ENV['LVLS'] != 'false' %>
@@ -126,33 +59,23 @@ padding: 3%;
       <% end %>
     </div>
   </div>
-
-
-
-
-
-
-
   
   <div id='display' style='position: fixed; bottom: 0; width: 100%; color: white; background-color: black;'>
-    <h1 id='sender' class='displays' style='width: 100%; text-align: center; margin: 0; display: none;'>
-    <select name='send[mode]' style='width: 15%; vertical-align: middle;'>
-    	    <option value='callback' selected>callback</option>
-	    <% if @user.attr[:class].to_i >= 3 %>
-    	    <option value='invite'>invite</option>
-	    <% end %>
-    </select>
-    <input type='tel' name='send[number]' placeholder='PHONE' style='width: 55%; vertical-align: middle;' pattern='[0-9]{10}'>
-    <button class='material-icons' style='vertical-align: middle; border: none;'>send</button>
-    </h1>
     <div id='log' class='displays' style='width: 100%; height: 100%; color: white; overflow-y: scroll; margin: 0;'>
       <% @user.log.values.to_a.reverse.each do |e| %>
       <p style='width: 100%; margin: 0;'><%= e %></p>
       <% end %>
     </div>
-    
+   
 <% @user.log.clear() %>
-		      
+<div>
+<% CAMS.all.each_pair do |k,v| %>
+<p style='width: 100%; text-align: center;'>
+<a href='/dev?u=<%= @user.id %>&dev=<%= v %>'
+style='background-color: white; color: black; text-decoration: none;'><%= k %></a>
+</p>
+<% end %>
+</div>
   </div>
   <script>
   var roles = ['user', 'influencer', 'ambassdor', 'manager', 'agent', 'operator', 'owner', 'developer'];

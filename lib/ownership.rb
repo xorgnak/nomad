@@ -1,13 +1,61 @@
 module Shares
+  def self.market
+    m, t, h, w, o = {}, 0, 0, 0, Hash.new {|h,k| h[k] = 0 }
+    {}.merge(SHARES.all).each_pair do |k,v|
+      if Shares.mined(k).to_i > v.to_i
+        (Shares.mined(k).to_i - v.to_i).to_i.times { Shares.bury(k) }
+      end
+      if Shares.mined(k).to_i < v.to_i
+        (v.to_i - Shares.mined(k).to_i).to_i.times { Shares.mine(k) }
+        end
+      x = ( Shares.shares(k)[:held].to_i * Shares.cost(k));
+      m[k] = x;
+      h += Shares.shares(k)[:held].to_i
+      {}.merge(Shares.held(k)).each_pair {|kk,vv| o[kk] += vv; }
+      t += x;
+    end
+    {
+      users: IDS.all.keys.length,
+      domains: SHARES.all.keys.length,
+      shares: U.new('EX').coins.value,
+      held: h,
+      owners: o.keys.length,
+      coins: Bank.supply,
+      total: t, 
+      market: m,
+      ledger: o
+    }
+  end
+
+  def self.mine(k)
+    U.new("EX").coins.incr(1)
+    Redis::SortedSet.new("shares").increment(k)
+  end
+  def self.bury k
+    U.new("EX").coins.decr(1)
+    Redis::SortedSet.new("shares").decrement(k)
+  end
+  def self.mined k
+    Redis::SortedSet.new('shares')[k]
+  end
   def self.shares k
-    o, s, r = 0, 0, SHARES[k].to_i || 100
-    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| if v > 0; o += 1; end; s += v; r -= v; }
-    return {owners: o, held: s, max: SHARES[k].to_i, remaining: r}
+    o, s, r = 0, 0, Redis::SortedSet.new('shares')[k].to_i
+    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v|
+      if v > 0;
+        o += 1;
+      end;
+      s += v;
+      r -= v;
+    }
+    return {owners: o, held: s, max: Redis::SortedSet.new('shares')[k].to_i, remaining: r}
   end
   def self.cost k
     o, s = 0, 0
     Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h.each_pair {|k,v| o += 1; s += v }
     return ((2 ** o) + (2 ** "#{s.to_i}".length)) 
+  end
+  def self.held(k)
+    Redis::SortedSet.new("shares:#{k}").members(with_scores: true).to_h
   end
   def self.by(k)
     Redis::SortedSet.new("shares:#{k}")

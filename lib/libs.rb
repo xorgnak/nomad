@@ -5,6 +5,31 @@ load 'lib/brain.rb'
 load 'lib/ownership.rb'
 load 'lib/term.rb'
 load 'lib/tracks.rb'
+load 'lib/chance.rb'
+
+def id *i
+  if i[0]
+    return i[0]
+  else
+    ii = []; ID_SIZE.times { ii << rand(16).to_s(16) }
+    return ii.join('')
+  end
+end
+
+def useradd u
+  if "#{u}".length > 0
+  @id = id(IDS[u]);
+  IDS[u] = @id
+  BOOK[u] = @id
+  LOOK[@id] = u
+  qrp = []; 16.times { qrp << rand(16).to_s(16) }
+  QRI[qrp.join('')] = IDS[u]
+  QRO[IDS[u]] = qrp.join('')
+  @by = U.new(IDS[u])
+  @by.password.value = LOGINS[u]
+  end
+end
+
 module Cypher
   def self.encrypt key, data
     return Cryptology.encrypt(data: data, key: key, cipher: 'CHACHA20-POLY1305')['data']
@@ -72,27 +97,143 @@ def token t, h={}
   return Redis.new.get(t)
 end
 
+class Gov
+  def initialize
+    
+  end
+  def [] k
+    Board.new(k)
+  end
+  def html
+    a = []
+    ['network', SHARES.all.keys].flatten.each {|e| a << Board.new(e).html }
+    return a.join('')
+  end
+  def gov
+    h = Hash.new {|h,k| h[k] = {}}
+    all.each_pair { |k,v| v.each_pair { |kk, vv| h[k][kk] = vv } }
+    return h
+  end
+end
+
+GOV = Gov.new
+
 class Board
   include Redis::Objects
+  set :board
+  set :titles
+  set :zones
+  set :pool
+  set :users
+  value :type
+  sorted_set :hire
+  sorted_set :pay
+  
+  def initialize d, *p
+    if p[0]
+      @id = "#{p[0]}.#{d}"
+    else
+      @id = "#{d}"
+    end
+    @domain = Domain.new(@id)
+  end
+  def id; @id; end
+  def positions
+    a = []
+    self.board.members.each {|e| a << Position.new("#{e}@#{@domain.id}").id }
+    return a
+  end
+  def govern *type
+    case type[0]
+    when :s
+      self.board.clear
+      self.board << :owner
+    when :c
+      self.board.clear
+      self.board << :president
+      self.board << :treasurer
+    when :nomad
+      self.board.clear
+      self.board << :boss
+      self.board << :procurement
+      self.board << :fulfilment
+      self.board << :operations
+    end
+    self.board.members
+  end
+  def all
+    h = {}
+    self.board.members.each {|e| h[e] = Position.new("#{e}@#{@domain.id}").is.value }
+    return h
+  end
+  def html
+    o = [];
+    self.board.members.each {|e| o << Position.new("#{e}@#{@domain.id}").html }
+    return %[<fieldset><legend>#{@domain.id}</legend>#{o.join('')}</fieldset>]
+  end
+  def [] k
+    self.board << k
+    Position.new("#{k}@#{@domain.id}")
+  end
+end
+
+class Position
+  include Redis::Objects
+  sorted_set :nominate
+  counter :election
+  sorted_set :votes
+  sorted_set :voted
   value :is
+  counter :state
   def initialize i
     @id = i
+    if self.is.value == nil
+      self.state.value = 1
+    end
   end
   def id
     @id
   end
-  def form
-    
+  def holder
+    is = 'vacant'
+    if self.is.value != nil
+      is = self.is.value
+    end
+    if self.is.value == nil && self.votes.revrange(0, -1)[0] != nil
+      is = self.votes.revrange(0, -1)[0] 
+    end
+    if self.is.value == nil && self.votes.revrange(0, -1)[0] == nil && self.nominate.revrange(0, -1)[0] != nil
+      is = self.nominate.revrange(0, -1)[0]
+    end
+    return is
+  end
+  def vote u, f
+    if self.state.value > 0
+    self.voted.increment(u)
+    if self.voted[u] == 1
+      self.votes.increment(f)
+    end
+    else
+      self.nominate.increment(u)
+      if self.nominate.members.length >= self.election.value
+        self.state.value = 1
+        self.nominate.members.each {|e| self.votes[e] = 0 }
+      end
+    end
+  end
+  def elect
+    self.state.value = 0
+    self.is.value = self.votes.revrange(0,-1)[0]
+    self.votes.clear
+    self.voted.clear
   end
   def html
     o = []
-    if self.is.value != nil
-    @u = U.new(self.is.value)
-    o << %[<img src='#{@u.attr[:img]}'>]
-    o << %[<p>#{@u.attr[:name] || 'vacant'}</p>]
-    else
-      o << %[<input type='text' name='board[#{self.id}]' placeholder='user'>]
+    @u = U.new(holder)
+    if @u.attr.has_key? :img
+      o << %[<div style='width: 100%; text-align: center;'><img style='width: 100%;' src='#{@u.attr[:img]}'></div>]
     end
+    o << %[<p syle='width: 100%; text-align: center;'><a href='/?u=#{QRO[@u.id]}' style='color: black; text-decoration: none;'>#{@u.attr[:name] || 'anonymous'}</a></p>]
     return %[<fieldset><legend>#{self.id}</legend>#{o.join('')}</fieldset>]
   end
 end
