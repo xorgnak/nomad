@@ -2,6 +2,15 @@
 <% @ex = Shares.market %>
 <% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v.to_i}<span class='material-icons'>toll</span></li>] }  %>
 <% @brd = []; @ex[:ledger].each_pair { |k,v| @brd << %[<li>#{U.new(k).attr[:name] || 'anonymous'}: #{v.to_i}<span class='material-icons'>confirmation_number</span></li>] }  %>
+<nav style='position: fixed; bottom: 0; width: 100%; text-align: center; background-color: black; color: white;'>
+<button style='background-color: orange;'disabled><span class='material-icons'>walking_directions</span>nomad</button>
+<button type='button' class='phase material-icons' value='0' class='material-icons' style='vertical-align: middle;'>info</button>
+<button type='button' class='phase' value='1'>1</button>
+<button type='button' class='phase' value='2'>2</button>
+<button type='button' class='phase' value='3'>3</button>
+<button type='button' class='phase' value='4'>4</button>
+</nav>
+
 <fieldset class='phases' id='phase_X'>
 <legend>network</legend>
 
@@ -109,13 +118,6 @@
 <h4 style='width: 100%; text-align: center;'>we get it all in one take.</h4>
 </fieldset>
 
-<nav style='position: fixed; bottom: 0; width: 100%; text-align: center;'>
-<button type='button' class='phase material-icons' value='0' class='material-icons' style='vertical-align: middle;'>info</button>
-<button type='button' class='phase' value='1'>1</button>
-<button type='button' class='phase' value='2'>2</button>
-<button type='button' class='phase' value='3'>3</button>
-<button type='button' class='phase' value='4'>4</button>
-</nav>
 <script>
 $(document).on('click', '.phase', function(ev) {
 ev.preventDefault();
