@@ -1,7 +1,7 @@
 module Shares
   def self.market
     m, t, h, w, o = {}, 0, 0, 0, Hash.new {|h,k| h[k] = 0 }
-    {}.merge(SHARES.all).each_pair do |k,v|
+    SHARES.all.each_pair do |k,v|
       if Shares.mined(k).to_i > v.to_i
         (Shares.mined(k).to_i - v.to_i).to_i.times { Shares.bury(k) }
       end

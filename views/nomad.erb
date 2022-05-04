@@ -1,7 +1,7 @@
 
 <% @ex = Shares.market %>
-<% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v}</li>] }  %>
-<% @brd = []; @ex[:ledger].each_pair { |k,v| @brd << %[<li>#{U.new(k).attr[:name] || 'nomad'}: #{v}</li>] }  %>
+<% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v.to_i}<span class='material-icons'>toll</span></li>] }  %>
+<% @brd = []; @ex[:ledger].each_pair { |k,v| @brd << %[<li>#{U.new(k).attr[:name] || 'anonymous'}: #{v.to_i}<span class='material-icons'>confirmation_number</span></li>] }  %>
 <fieldset class='phases' id='phase_X'>
 <legend>network</legend>
 
