@@ -1,6 +1,8 @@
 
 <style>
 fieldset { width: 100%; padding: 0; margin: 0; }
+.phases { border-left: none; border-right: none; border-bottom: none; }
+.phases > legend { text-align: center; border-left: thin solid black; border-right: thin solid black; }
 li { font-size: small; }
 ul { padding: 0; margin: 0; }
 ol { padding: 0; margin: 0; }
@@ -9,7 +11,7 @@ ol { padding: 0; margin: 0; }
 <% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v.to_i}<span class='material-icons'>toll</span></li>] }  %>
 <% @brd = []; @ex[:ledger].each_pair { |k,v| @brd << %[<li>#{U.new(k).attr[:name] || 'anonymous'}: #{v.to_i}<span class='material-icons'>confirmation_number</span></li>] }  %>
 <nav style='width: 100%; text-align: center; background-color: black; color: white;'>
-<button style='background-color: orange; color: black;'disabled><span class='material-icons'>hiking</span>nomad</button>
+<button style='background-color: orange; color: black;'disabled><span class='material-icons' style='vertical-align: middle;'>hiking</span>nomad</button>
 <button type='button' class='phase material-icons' value='0' class='material-icons' style='vertical-align: middle;'>info</button>
 <button type='button' class='phase' value='1'>1</button>
 <button type='button' class='phase' value='2'>2</button>
