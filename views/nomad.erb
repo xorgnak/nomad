@@ -1,11 +1,14 @@
 
 <style>
-fieldset { width: 100%; padding: 0; margin: 0; }
-.phases { border-left: none; border-right: none; border-bottom: none; }
+fieldset { width: 98%; padding: 0; margin: 0; }
+.phases { border-left: none; border-right: none; border-bottom: none; text-align: center; }
 .phases > legend { text-align: center; border-left: thin solid black; border-right: thin solid black; }
+.phases > fieldset { border-left: none; border-right: none; border-bottom: none; text-align: center; }
+.phases > fieldset > legend { text-align: center; border-left: thin solid black; border-right: thin solid black; }
+
 li { font-size: small; }
-ul { padding: 0; margin: 0; }
-ol { padding: 0; margin: 0; }
+ul { padding: 0; margin: 0; text-align: left; }
+ol { padding: 0; margin: 0; text-align: left; }
 </style>
 <% @ex = Shares.market %>
 <% @mkt = []; @ex[:market].each_pair { |k,v| @mkt << %[<li>#{k}: #{v.to_i}<span class='material-icons'>toll</span></li>] }  %>
