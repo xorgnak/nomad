@@ -43,7 +43,7 @@ a { text-decoration: none; padding: 0 3% 0 3%; border: thin outset grey; border-
 
 </div>
 
-<div id='badge' style='width: 100%; text-align: center; padding: 0; height: 100vh; overflow-y: scroll; display: none;'>
+<div id='badge' style='width: 100%; text-align: center; padding: 0; display: none;'>
   <% @u = U.new("#{params[:u]}:#{params[:z]}") %>
   <div id='qrcode-wrap' style='width: 100%; text-align: center;'>
     <div id="qrcode" style='padding: 2%; border: thick solid black; background-color: white;'></div>
