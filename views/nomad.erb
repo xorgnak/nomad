@@ -42,10 +42,8 @@ ol { padding: 0; margin: 0; text-align: left; }
 <li>owners: <%= @ex[:owners] %></li>
 <li>held: <%= @ex[:held] %><span class='material-icons'>confirmation_number</span></li>
 </ul>
-<fieldset><legend>total</legend>
-<p>total <span class='material-icons'>confirmation_number</span>: <%= @ex[:shares] %></p>
-<p>total <span class='material-icons'>toll</span>: <%= @ex[:coins] %></p>
-</fieldset>
+<p style='text-align: left;'>total <span class='material-icons'>confirmation_number</span>: <%= @ex[:shares] %></p>
+<p style='text-align: left;'>total <span class='material-icons'>toll</span>: <%= @ex[:coins] %></p>
 </fieldset>
 
 <fieldset>
