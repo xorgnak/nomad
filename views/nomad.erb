@@ -36,20 +36,14 @@ ol { padding: 0; margin: 0; text-align: left; }
 <p><span class='material-icons'>confirmation_number</span> price is determined by brand ownership.</p>
 <fieldset>
 <legend>stats</legend>
-<fieldset>
-<legend>reach</legend>
 <ul>
 <li>users: <%= @ex[:users] %></li>
 <li>domains: <%= @ex[:domains] %></li>
-</ul>
-</fieldset>
-<fieldset>
-<legend>market</legend>
-<p>total <span class='material-icons'>confirmation_number</span>: <%= @ex[:shares] %></p>
-<ul>
 <li>owners: <%= @ex[:owners] %></li>
 <li>held: <%= @ex[:held] %><span class='material-icons'>confirmation_number</span></li>
 </ul>
+<fieldset><legend>total</legend>
+<p>total <span class='material-icons'>confirmation_number</span>: <%= @ex[:shares] %></p>
 <p>total <span class='material-icons'>toll</span>: <%= @ex[:coins] %></p>
 </fieldset>
 </fieldset>
