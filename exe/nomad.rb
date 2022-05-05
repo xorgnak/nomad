@@ -924,26 +924,60 @@ if params.has_key?(:file) && params.has_key?(:u)
     end
   end
 end
+##
+class Pipe
+  require Redis::Objects
+  def initialize u, &b
+    @id = "PIPE:#{u}"
+    Redis.new.subscribe(@id) do |on|
+      on.message do |channel, message|
+        j = JSON.parse(msg)
+        @user = U.new(j['u'])
+        b.call(j)
+      end
+    end
+  end
+  def << m
+    Redis.new.publish @id, m
+  end
+  def id; @id; end
+end
+class Hole
+  require Redis::Objects
+  def initialize &b
+    @id = "HOLE"
+    Redis.new.subscribe(@id) do |on|
+      on.message do |channel, message|
+        j = JSON.parse(msg)
+        @user = U.new(j['u'])
+        b.call(j)
+      end
+    end
+  end
+  def push h
+    Redis.new.publish @id, JSON.generate(h)
+  end
+  def id; @id; end
+end
 
 Process.detach( fork {
 EventMachine::WebSocket.start(:host => '0.0.0.0', :port => 8080) do |ws|
+
+  @hole = Hole.new do |h|
+    $ch.push(JSON.generate(h))
+  end
+  @pipe = Hash.new {|h,k| h[k] = Pipe.new(k) { |hh| ws.send(JSON.generate(hh))  }}
   ws.onopen {
     sid = $ch.subscribe { |msg|
-      ws.send(JSON.generate({ msg: msg }))
+      j = JSON.parse(msg)
+      @user = U.new(j['u'])
+      @pipe[j['u']].push j
     }
-    ws.send JSON.generate({  state: 1 })
     
     ws.onmessage { |msg|
       j = JSON.parse(msg)
       @u = U.new(j['u'])
-      b = lambda() { |h| Redis.new.publish "WS.block", "#{h}";
-        out, u = {}, U.new(h['u'])
-        u.attr.all.each_pair {|k,v| out[k] = v }
-        out
-      }
-      output = { ok: Time.now.utc.to_i, data: b.call(j) }
-      Redis.new.publish "WS.output", "#{output}"
-      ws.send JSON.generate(output)
+      @pipe[j['u']].push j
     }
     
     ws.onclose {
