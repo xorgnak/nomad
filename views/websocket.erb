@@ -1,4 +1,6 @@
 
+function log(s) { console.log(s); }
+
 const formToJSON = (elements) =>
       [].reduce.call(
 	  elements,
@@ -9,38 +11,40 @@ const formToJSON = (elements) =>
 	  {},
       );
 
-    <% if ENV['BOX'] == 'false' %>
-    var ws = new WebSocket('ws://<%= request.host %>/ws');
+
+$(function(){
+
+    <% if ENV['BOX'] == 'true' %>
+    var ws = new WebSocket('ws://<%= request.host %>:8080');
     <% else %>
-    var ws = new WebSocket('wss://<%= request.host %>/ws');
+    var ws = new WebSocket('wss://<%= request.host %>:8080');
     <% end %>
 
-ws.onopen    = function()  {
-    var h = {
-	input: 'JOIN',
-	u: '<%= params[:u] %>',
-	zone: '<%= @user.attr[:zone] || "solo" %>',
-	form: {}
-    }
-    ws.send(JSON.stringify(h));
-};
-ws.onclose   = function()  { log('closed'); }
-ws.onmessage = function(m) {
-    j = JSON.parse(m.data);
-    log("[" + j.zone + "] " + j.input);
-};
-
-
-
-
-$(document).on('click', '#msg', function(ev) {
-    ev.preventDefault();
-    var h = {
-	input: input.value,
-	u: '<%= params[:u] %>',
-	zone: '<%= @user.attr[:zone] || "solo" %>',
-	form: formToJSON($(this))
-    }
-    input.value = "";
-    ws.send(JSON.stringify(h));
+    $(document).on('click', '.ws', function(ev) {
+	ev.preventDefault();
+	var h = {
+	    u: '<%= params[:u] %>',
+	    dev: '<%= params[:dev] %>',
+	    trigger: $(this).val(),
+	    lights: { front: $('#light_f').prop('checked'), back: $('#light_b').prop('checked') },
+	    direction: $('#direction').prop('checked')
+	}
+	ws.send(JSON.stringify(h));
+    });
+    
+    
+    ws.onmessage = function(evt) {
+	j = JSON.parse(evt.data);
+	log(j);
+    };
+    
+    ws.onclose = function() {
+	log('closed');
+    };
+    
+    ws.onopen = function() {
+	ws.send(JSON.stringify({ trigger: 'OK', u: '<%= params[:u] %>', dev: '<%= params[:dev] %>' }));
+    };
+    
+    
 });

@@ -53,28 +53,33 @@ img { width: 100vh; height: 100vh; z-index: -1; }
       }
 
 </style>
+
+<input type='hidden' name='dev' value='<%= params[:dev] %>'>
+
 <embed src='http://<%= params[:dev] %>' style=''></embed>
 <h1 style='width: 100%; text-align: center; margin: 0; padding: 0; position: fixed; top: 0;'>
 <input placeholder='0000' style='vertical-align: middle; margin: 0; padding: 0;'>
-<button class='material-icons'
+<button class='ws material-icons'
 style='vertical-align: middle; margin: 0; padding: 0; border: none; color: green'>send</buton>
 </h1>
 <embed src='http://<%= params[:dev] %>' style=''></embed>
 <h1 style='width: 100%; text-align: center; margin: 0; padding: 0; position: fixed; bottom: 0;'>
 
-<input id='light_f' type='checkbox' style='display: none;'>
+<input id='light_f'  name='light_front' type='checkbox' style='display: none;'>
 <label for='light_f' class='material-icons'></label>
 
-<input id='light_b' type='checkbox' style='display: none;'>
+<input id='light_b' name='light_back' type='checkbox' style='display: none;'>
 <label for='light_b' class='material-icons'></label>
 
 
-<input id='direction' type='checkbox' style='display: none;'>
+<input id='direction' name='direction' type='checkbox' style='display: none;'>
 <label for='direction' class='material-icons'></label>
 
-<input id='brakes' type='checkbox' style='display: none;' checked>
-<label for='brakes' class='material-icons'></label>
-
-<button class='material-icons'>west</button>
-<button class='material-icons'>east</button>
+<button name='turn' value='L' class='ws material-icons'>west</button>
+<button name='turn' value='G' class='ws material-icons' backgroumd-color: green;>north</button>
+<button name='turn' value='R' class='ws material-icons'>east</button>
 </h1>
+
+<script>
+<%= erb :websocket %>
+</script>

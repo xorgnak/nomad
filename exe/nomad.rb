@@ -1,9 +1,19 @@
 # coding: utf-8
+
+
+require 'em-websocket'
+
+
 load 'lib/requires.rb'
 load 'lib/opts.rb'
 load 'lib/env.rb'
 
 load 'lib/libs.rb'
+
+
+$ch = EM::Channel.new
+Process.detach( fork {
+EventMachine.run do
 
 class APP < Sinatra::Base
   set :bind, '0.0.0.0'
@@ -230,9 +240,8 @@ class APP < Sinatra::Base
         settings.sockets << ws
       end
       ws.onmessage do |msg|
-        settings.sockets.each{ |s|
-          s.send(msg)
-        }
+         EM.next_tick { settings.sockets.each{|s| s.send(msg) } }
+         #settings.sockets.each{ |s| s.send(msg); }
       end
       ws.onclose do
         settings.sockets.delete(ws)
@@ -913,13 +922,42 @@ if params.has_key?(:file) && params.has_key?(:u)
         redirect "#{@path}/#{@by.id}"
       end
     end
-
-
   end
 end
 
+Process.detach( fork {
+EventMachine::WebSocket.start(:host => '0.0.0.0', :port => 8080) do |ws|
+  ws.onopen {
+    sid = $ch.subscribe { |msg|
+      ws.send(JSON.generate({ msg: msg }))
+    }
+    ws.send JSON.generate({  state: 1 })
+    
+    ws.onmessage { |msg|
+      j = JSON.parse(msg)
+      @u = U.new(j['u'])
+      b = lambda() { |h| Redis.new.publish "WS.block", "#{h}";
+        out, u = {}, U.new(h['u'])
+        u.attr.all.each_pair {|k,v| out[k] = v }
+        out
+      }
+      output = { ok: Time.now.utc.to_i, data: b.call(j) }
+      Redis.new.publish "WS.output", "#{output}"
+      ws.send JSON.generate(output)
+    }
+    
+    ws.onclose {
+      $ch.unsubscribe(sid)
+    }
+  }
+  
+end } )
+Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); exit 0 }
+Process.detach( fork { APP.run! } )
+end
+} )                       
 def cam n, u
-CAMS[n] = u
+  CAMS[n] = u
 end
 
 module Box
@@ -986,15 +1024,12 @@ begin
   STATE[:core] = 1
   host = `hostname`.chomp
   if OPTS[:interactive]
-    STATE[:interactive] = 1
-    Signal.trap("INT") { File.delete("/home/pi/nomad/nomad.lock"); exit 0 }
-    Process.detach( fork { APP.run! } )                                    
+    STATE[:interactive] = 1                                    
     Pry.config.prompt_name = :nomad
     motd
     Pry.start(host)
   elsif OPTS[:indirect]
     STATE[:indirect] = 1
-    Signal.trap("INT") { exit 0 }
     puts "##### running indirectly... #####"
     Pry.config.prompt_name = :nomad
     motd
@@ -1002,7 +1037,6 @@ begin
   else
     STATE[:bare] = 1
     motd
-    APP.run!
   end
 rescue => e
   Redis.new.publish "ERROR", "#{e.full_message}"
